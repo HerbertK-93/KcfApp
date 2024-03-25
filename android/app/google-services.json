@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "589265652458",
+    "project_id": "kings-cogent-finance-ltd-ecab6",
+    "storage_bucket": "kings-cogent-finance-ltd-ecab6.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:589265652458:android:227c2429f32819c949e593",
+        "android_client_info": {
+          "package_name": "com.example.kings_cogent"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC7-B0VLLaLaGYXtpC42pVKwWQgbrdehVI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
