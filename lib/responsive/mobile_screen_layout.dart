@@ -335,7 +335,7 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> {
                     onPressed: () async {
                       final Uri emailLaunchUri = Uri(
                         scheme: 'mailto',
-                        path: 'youremail@example.com',
+                        path: 'kingscogentfinance@gmail.com',
                         queryParameters: {
                           'subject': 'Subject',
                           'body': 'Your message here.'
@@ -344,6 +344,15 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> {
                       final String urlString = emailLaunchUri.toString();
                       if (await canLaunch(urlString)) {
                         await launch(urlString);
+                        // Show a SnackBar to confirm that the message has been sent
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Your message has been sent!'),
+                            duration: Duration(seconds: 2), // Adjust as needed
+                          ),
+                        );
+                        Navigator.of(context)
+                            .pop(); // Close the dialog after sending
                       } else {
                         throw 'Could not launch $urlString';
                       }

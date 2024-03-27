@@ -1,9 +1,7 @@
-// ignore_for_file: prefer_const_constructors
-
 import 'package:flutter/material.dart';
 
 class OurServicesScreen extends StatelessWidget {
-  const OurServicesScreen({super.key});
+  const OurServicesScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -29,6 +27,15 @@ class OurServicesScreen extends StatelessWidget {
                 _buildServiceItem('Emergency Loans'),
               ],
             ),
+            const Divider(), // Divider
+            const SizedBox(height: 8), // Add some space
+            const Text(
+              'We also offer Saving schemes',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ],
         ),
       ),
@@ -40,15 +47,15 @@ class OurServicesScreen extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 8.0),
       child: Row(
         children: [
-          Icon(
+          const Icon(
             Icons.star,
             color: Colors.orange,
             size: 20,
           ),
-          SizedBox(width: 8),
+          const SizedBox(width: 8),
           Text(
             serviceName,
-            style: TextStyle(fontSize: 16),
+            style: const TextStyle(fontSize: 16),
           ),
         ],
       ),

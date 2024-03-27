@@ -14,12 +14,14 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
   DateTime? _endDate;
   List<String> loanHistory = [];
   List<String> savingsHistory = [];
+  List<String> transactionHistory = [];
 
   @override
   void initState() {
     super.initState();
     _loadLoanHistory();
     _loadSavingsHistory();
+    _loadTransactionHistory();
   }
 
   Future<void> _loadLoanHistory() async {
@@ -46,8 +48,20 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
     await prefs.setStringList('savingsHistory', savingsHistory);
   }
 
-  Future<void> _selectDate(
-      BuildContext context, String title, bool isStartDate, bool isLoan) async {
+  Future<void> _loadTransactionHistory() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      transactionHistory = prefs.getStringList('transactionHistory') ?? [];
+    });
+  }
+
+  Future<void> _saveTransactionHistory() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList('transactionHistory', transactionHistory);
+  }
+
+  Future<void> _selectDate(BuildContext context, String title, bool isStartDate,
+      [bool? isLoan]) async {
     final DateTime? pickedDate = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
@@ -62,39 +76,29 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
         ),
       );
       setState(() {
-        if (isLoan) {
-          if (isStartDate) {
-            _startDate = pickedDate;
-          } else {
-            _endDate = pickedDate;
-          }
-          loanHistory.add(DateFormat('yyyy-MM-dd').format(pickedDate));
+        if (_startDate == null || isStartDate) {
+          _startDate = pickedDate;
         } else {
-          if (isStartDate) {
-            _startDate = pickedDate;
-          } else {
-            _endDate = pickedDate;
-          }
-          savingsHistory.add(DateFormat('yyyy-MM-dd').format(pickedDate));
+          _endDate = pickedDate;
+          transactionHistory.add(
+              '${DateFormat('yyyy-MM-dd').format(_startDate!)} - ${DateFormat('yyyy-MM-dd').format(_endDate!)}');
+          _startDate = null;
+          _endDate = null;
+          _saveTransactionHistory();
         }
       });
-      if (isLoan) {
-        await _saveLoanHistory();
-      } else {
-        await _saveSavingsHistory();
-      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 3, // Number of tabs
+      length: 3,
       child: Scaffold(
         appBar: AppBar(
           title: const Text('User Details'),
           bottom: const TabBar(
-            isScrollable: true, // Make the TabBar scrollable
+            isScrollable: true,
             tabs: [
               Tab(text: 'Loans History'),
               Tab(text: 'Savings History'),
@@ -104,19 +108,12 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
         ),
         body: SingleChildScrollView(
           child: SizedBox(
-            height: MediaQuery.of(context)
-                .size
-                .height, // Match the height of the screen
+            height: MediaQuery.of(context).size.height,
             child: TabBarView(
               children: [
-                // Loan History Tab
                 _buildLoanHistoryTab(context),
-                // Savings History Tab
                 _buildSavingsHistoryTab(context),
-                // Transaction History Tab
-                const Center(
-                  child: Text('Transaction History Content'),
-                ),
+                _buildTransactionHistoryTab(context),
               ],
             ),
           ),
@@ -128,19 +125,17 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
   Widget _buildLoanHistoryTab(BuildContext context) {
     return Column(
       children: [
-        const SizedBox(height: 16), // Add padding above the date pickers
+        const SizedBox(height: 16),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             ElevatedButton(
-              onPressed: () =>
-                  _selectDate(context, 'Loan Start Date', true, true),
+              onPressed: () => _selectDate(context, 'Loan Start Date', true),
               child: const Text('Select Loan Start Date'),
             ),
-            const SizedBox(width: 8), // Add spacing between buttons
+            const SizedBox(width: 8),
             ElevatedButton(
-              onPressed: () =>
-                  _selectDate(context, 'Loan End Date', false, true),
+              onPressed: () => _selectDate(context, 'Loan End Date', false),
               child: const Text('Select Loan End Date'),
             ),
           ],
@@ -148,10 +143,9 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
         if (loanHistory.isNotEmpty)
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.symmetric(
-                  vertical: 16.0), // Add vertical padding
+              padding: const EdgeInsets.symmetric(vertical: 16.0),
               child: ListView.builder(
-                itemCount: loanHistory.length ~/ 2, // Display each loan session
+                itemCount: loanHistory.length ~/ 2,
                 itemBuilder: (context, index) {
                   final int startIndex = index * 2;
                   final String startDate = loanHistory[startIndex];
@@ -161,25 +155,19 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
                       ListTile(
                         title: Text(
                           'Start Date: $startDate',
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyText1, // Apply the same font style
+                          style: Theme.of(context).textTheme.bodyText1,
                         ),
                         subtitle: Text(
                           'End Date: $endDate',
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyText1, // Apply the same font style
+                          style: Theme.of(context).textTheme.bodyText1,
                         ),
                         trailing: IconButton(
-                          icon: Icon(Icons.delete),
+                          icon: const Icon(Icons.delete),
                           onPressed: () {
                             setState(() {
-                              loanHistory
-                                  .removeAt(startIndex); // Remove start date
-                              loanHistory
-                                  .removeAt(startIndex); // Remove end date
-                              _saveLoanHistory(); // Save updated loan history
+                              loanHistory.removeAt(startIndex);
+                              loanHistory.removeAt(startIndex);
+                              _saveLoanHistory();
                             });
                           },
                         ),
@@ -198,26 +186,22 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
   Widget _buildSavingsHistoryTab(BuildContext context) {
     return Column(
       children: [
-        const SizedBox(height: 16), // Add padding above the date pickers
+        const SizedBox(height: 16),
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Row(
-                children: [
-                  ElevatedButton(
-                    onPressed: () =>
-                        _selectDate(context, 'Savings Start Date', true, false),
-                    child: const Text('Select Savings Start Date'),
-                  ),
-                  const SizedBox(width: 8), // Add spacing between buttons
-                  ElevatedButton(
-                    onPressed: () =>
-                        _selectDate(context, 'Savings End Date', false, false),
-                    child: const Text('Select Savings End Date'),
-                  ),
-                ],
+              ElevatedButton(
+                onPressed: () =>
+                    _selectDate(context, 'Savings Start Date', true),
+                child: const Text('Select Savings Start Date'),
+              ),
+              const SizedBox(width: 8),
+              ElevatedButton(
+                onPressed: () =>
+                    _selectDate(context, 'Savings End Date', false),
+                child: const Text('Select Savings End Date'),
               ),
             ],
           ),
@@ -225,11 +209,9 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
         if (savingsHistory.isNotEmpty)
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.symmetric(
-                  vertical: 16.0), // Add vertical padding
+              padding: const EdgeInsets.symmetric(vertical: 16.0),
               child: ListView.builder(
-                itemCount:
-                    savingsHistory.length ~/ 2, // Display each savings session
+                itemCount: savingsHistory.length ~/ 2,
                 itemBuilder: (context, index) {
                   final int startIndex = index * 2;
                   final String startDate = savingsHistory[startIndex];
@@ -239,30 +221,203 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
                       ListTile(
                         title: Text(
                           'Start Date: $startDate',
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyText1, // Apply the same font style
+                          style: Theme.of(context).textTheme.bodyText1,
                         ),
                         subtitle: Text(
                           'End Date: $endDate',
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyText1, // Apply the same font style
+                          style: Theme.of(context).textTheme.bodyText1,
                         ),
                         trailing: IconButton(
-                          icon: Icon(Icons.delete),
+                          icon: const Icon(Icons.delete),
                           onPressed: () {
                             setState(() {
-                              savingsHistory
-                                  .removeAt(startIndex); // Remove start date
-                              savingsHistory
-                                  .removeAt(startIndex); // Remove end date
-                              _saveSavingsHistory(); // Save updated savings history
+                              savingsHistory.removeAt(startIndex);
+                              savingsHistory.removeAt(startIndex);
+                              _saveSavingsHistory();
                             });
                           },
                         ),
                       ),
                       if (index != savingsHistory.length ~/ 2 - 1)
+                        const Divider(),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Future<void> _selectTransaction(
+      BuildContext context, String title, bool isLoan) async {
+    if (isLoan) {
+      final TextEditingController _amountTakenController =
+          TextEditingController();
+      final TextEditingController _interestController = TextEditingController();
+      final TextEditingController _amountReturnedController =
+          TextEditingController();
+
+      await showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text(title),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: _amountTakenController,
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    decoration:
+                        const InputDecoration(labelText: 'Amount Taken'),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _interestController,
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    decoration:
+                        const InputDecoration(labelText: 'Interest (%)'),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _amountReturnedController,
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    decoration:
+                        const InputDecoration(labelText: 'Amount Returned'),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () {
+                      if (_amountTakenController.text.isNotEmpty &&
+                          _interestController.text.isNotEmpty &&
+                          _amountReturnedController.text.isNotEmpty) {
+                        final double amountTaken =
+                            double.tryParse(_amountTakenController.text) ?? 0.0;
+                        final double interest =
+                            double.tryParse(_interestController.text) ?? 0.0;
+                        final double amountReturned =
+                            double.tryParse(_amountReturnedController.text) ??
+                                0.0;
+                        setState(() {
+                          if (isLoan) {
+                            loanHistory.add(
+                                'Amount Taken: $amountTaken, Interest: $interest%, Amount Returned: $amountReturned');
+                            _saveLoanHistory();
+                          }
+                        });
+                        Navigator.of(context).pop();
+                      }
+                    },
+                    child: const Text('Save'),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    } else {
+      final TextEditingController _amountSavedController =
+          TextEditingController();
+
+      await showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text(title),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: _amountSavedController,
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    decoration:
+                        const InputDecoration(labelText: 'Amount Saved'),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () {
+                      if (_amountSavedController.text.isNotEmpty) {
+                        final double amountSaved =
+                            double.tryParse(_amountSavedController.text) ?? 0.0;
+                        setState(() {
+                          if (!isLoan) {
+                            savingsHistory.add('Amount Saved: $amountSaved');
+                            _saveSavingsHistory();
+                          }
+                        });
+                        Navigator.of(context).pop();
+                      }
+                    },
+                    child: const Text('Save'),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    }
+  }
+
+  Widget _buildTransactionHistoryTab(BuildContext context) {
+    return Column(
+      children: [
+        const SizedBox(height: 16),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ElevatedButton(
+                onPressed: () =>
+                    _selectTransaction(context, 'Add Loan Transaction', true),
+                child: const Text('Add Loan Transaction'),
+              ),
+              const SizedBox(width: 8),
+              ElevatedButton(
+                onPressed: () => _selectTransaction(
+                    context, 'Add Savings Transaction', false),
+                child: const Text('Add Savings Transaction'),
+              ),
+            ],
+          ),
+        ),
+        if (transactionHistory.isNotEmpty)
+          Expanded(
+            flex: 3,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16.0),
+              child: ListView.builder(
+                itemCount: transactionHistory.length,
+                itemBuilder: (context, index) {
+                  final String transaction = transactionHistory[index];
+                  return Column(
+                    children: [
+                      ListTile(
+                        title: Text(
+                          'Transaction: $transaction',
+                          style: Theme.of(context).textTheme.bodyText1,
+                        ),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.delete),
+                          onPressed: () {
+                            setState(() {
+                              transactionHistory.removeAt(index);
+                              _saveTransactionHistory();
+                            });
+                          },
+                        ),
+                      ),
+                      if (index != transactionHistory.length - 1)
                         const Divider(),
                     ],
                   );

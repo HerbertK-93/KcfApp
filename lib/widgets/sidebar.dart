@@ -4,7 +4,7 @@ import 'package:kings_cogent/screens/payment_options_screen.dart';
 import 'package:kings_cogent/screens/settings_screen.dart';
 
 class SideBar extends StatelessWidget {
-  const SideBar({Key? key});
+  const SideBar({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
