@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:kings_cogent/widgets/user_details_page.dart';
+import 'package:kings_cogent/widgets/user_transactionss_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -61,7 +61,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             color: Colors.black,
           ),
         ),
-        backgroundColor: Colors.amberAccent,
+        backgroundColor: const Color.fromARGB(193, 90, 201, 248),
         centerTitle: true,
         elevation: 0,
         toolbarHeight: 60,
@@ -134,11 +134,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => const UserDetailsPage()),
+                        builder: (context) => const UserTransactionsPage()),
                   );
                 },
                 child: const Text(
-                  'User Details',
+                  'User Transactions',
                   textAlign: TextAlign.center,
                 ),
               ),

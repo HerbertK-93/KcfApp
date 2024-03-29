@@ -1,8 +1,7 @@
-// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
+// ignore_for_file: prefer_const_constructors
 
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:carousel_slider/carousel_slider.dart';
 import 'package:kings_cogent/screens/agricultural_loan.dart';
 import 'package:kings_cogent/screens/business_loan.dart';
 import 'package:kings_cogent/screens/emergency_loan.dart';
@@ -11,23 +10,17 @@ import 'package:kings_cogent/screens/profile_screen.dart';
 import 'package:kings_cogent/screens/salary_loan_screen.dart';
 import 'package:kings_cogent/screens/school_fees_loan_screen.dart';
 import 'package:kings_cogent/widgets/sidebar.dart';
-import 'package:shimmer/shimmer.dart';
+import 'package:intl/intl.dart';
+import 'dart:math';
 
-class MobileScreenLayout extends StatefulWidget {
+class MobileScreenLayout extends StatelessWidget {
   const MobileScreenLayout({super.key});
-
-  @override
-  State<MobileScreenLayout> createState() => _MobileScreenLayoutState();
-}
-
-class _MobileScreenLayoutState extends State<MobileScreenLayout> {
-  final CarouselController _carouselController = CarouselController();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.amberAccent,
+        backgroundColor: const Color.fromARGB(193, 90, 201, 248),
         title: const Text(
           'KINGS COGENT',
           style: TextStyle(
@@ -56,236 +49,132 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> {
         ],
       ),
       drawer: const SideBar(),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Container(
-            color: Colors.amberAccent,
-            padding: const EdgeInsets.symmetric(vertical: 10),
-            child: Center(
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(
-                  color: Colors.black,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: const Text(
-                  'Fast and Reliable Loans',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding:
+                  const EdgeInsets.fromLTRB(8, 16, 8, 8), // Reduced padding
+              child: SizedBox(
+                height: 200,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  children: const [
+                    SizedBox(width: 8),
+                    HorizontalCard(
+                      title: 'Loan Balance',
+                      balance: '\$5000', // Sample loan balance
+                      color: Color.fromARGB(255, 175, 139, 76),
+                      width: 300,
+                    ),
+                    SizedBox(width: 8),
+                    HorizontalCard(
+                      title: 'Savings Balance',
+                      balance: '\$1000', // Sample savings balance
+                      color: Color.fromARGB(255, 243, 33, 100),
+                      width: 300,
+                    ),
+                    SizedBox(width: 8),
+                  ],
                 ),
               ),
             ),
-          ),
-          SizedBox(
-            height: 170, // Adjust the height here
-            child: CarouselSlider(
-              carouselController: _carouselController,
-              items: [
-                // Carousel items here
-                SizedBox(
-                  width: double.infinity,
-                  child: Card(
-                    elevation: 4,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Image.asset(
-                      'assets/images/caro 1.png',
-                      fit: BoxFit.fill,
-                    ),
-                  ),
+            const Padding(
+              padding: EdgeInsets.fromLTRB(
+                  16, 1, 0, 1), // Moved "Our Services" to the left
+              child: Text(
+                'Our Services',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
                 ),
-                SizedBox(
-                  width: double.infinity,
-                  child: Card(
-                    elevation: 4,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Image.asset(
-                      'assets/images/caro 2.png',
-                      fit: BoxFit.fill,
-                    ),
-                  ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            GridView.count(
+              physics: const NeverScrollableScrollPhysics(),
+              shrinkWrap: true,
+              crossAxisCount: 2,
+              padding: const EdgeInsets.all(8),
+              childAspectRatio: 1.2,
+              children: [
+                LoanTile(
+                  title: 'School Fees Loans',
+                  imagePath: 'assets/images/school.png',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const SchoolFeesLoanScreen(),
+                      ),
+                    );
+                  },
                 ),
-                SizedBox(
-                  width: double.infinity,
-                  child: Card(
-                    elevation: 4,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Image.asset(
-                      'assets/images/caro 3.png',
-                      fit: BoxFit.fill,
-                    ),
-                  ),
+                LoanTile(
+                  title: 'Salary Loans',
+                  imagePath: 'assets/images/money.png',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const SalaryLoanScreen(),
+                      ),
+                    );
+                  },
                 ),
-                SizedBox(
-                  width: double.infinity,
-                  child: Card(
-                    elevation: 4,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Image.asset(
-                      'assets/images/caro 4.png',
-                      fit: BoxFit.fill,
-                    ),
-                  ),
+                LoanTile(
+                  title: 'Emergency Loans',
+                  imagePath: 'assets/images/emergency.png',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const EmergencyLoanScreen(),
+                      ),
+                    );
+                  },
                 ),
-                SizedBox(
-                  width: double.infinity,
-                  child: Card(
-                    elevation: 4,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Image.asset(
-                      'assets/images/caro 5.png',
-                      fit: BoxFit.fill,
-                    ),
-                  ),
+                LoanTile(
+                  title: 'Personal Loans',
+                  imagePath: 'assets/images/personal loan.png',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const PersonalLoanScreen(),
+                      ),
+                    );
+                  },
+                ),
+                LoanTile(
+                  title: 'Agricultural Loans',
+                  imagePath: 'assets/images/tractor.png',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const AgriculturalLoanScreen(),
+                      ),
+                    );
+                  },
+                ),
+                LoanTile(
+                  title: 'Business Loans',
+                  imagePath: 'assets/images/business.png',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const BusinessLoanScreen(),
+                      ),
+                    );
+                  },
                 ),
               ],
-              options: CarouselOptions(
-                height: 170, // Adjust the height here
-                viewportFraction: 1.0,
-                autoPlay: true,
-                autoPlayInterval: const Duration(seconds: 3),
-                autoPlayAnimationDuration: const Duration(milliseconds: 800),
-                enableInfiniteScroll: true,
-                pauseAutoPlayOnTouch: true,
-                reverse: false,
-                scrollDirection: Axis.horizontal,
-                enlargeCenterPage: true,
-                aspectRatio: 2.0,
-                onPageChanged: (index, reason) {},
-                scrollPhysics: const BouncingScrollPhysics(),
-                padEnds: true,
-              ),
             ),
-          ),
-          Container(
-            color: const Color.fromARGB(137, 37, 37, 37),
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Shimmer.fromColors(
-                baseColor: const Color.fromARGB(255, 222, 151, 234),
-                highlightColor: Colors.grey[100]!,
-                period: const Duration(milliseconds: 1500),
-                child: const Text(
-                  'We Offer...',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ),
-          ),
-          Expanded(
-            child: SingleChildScrollView(
-              child: GridView.count(
-                physics: const NeverScrollableScrollPhysics(),
-                shrinkWrap: true,
-                crossAxisCount: 2,
-                children: [
-                  LoanTile(
-                    title: 'School Fees Loans',
-                    imagePath: 'assets/images/school.png',
-                    imageWidth: 140, // Adjusted width
-                    imageHeight: 120, // Adjusted height
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const SchoolFeesLoanScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                  LoanTile(
-                    title: 'Salary Loans',
-                    imagePath: 'assets/images/money.png',
-                    imageWidth: 130, // Adjusted width
-                    imageHeight: 120, // Adjusted height
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const SalaryLoanScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                  LoanTile(
-                    title: 'Emergency Loans',
-                    imagePath: 'assets/images/emergency.png',
-                    imageWidth: 130, // Adjusted width
-                    imageHeight: 120, // Adjusted height
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const EmergencyLoanScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                  LoanTile(
-                    title: 'Personal Loans',
-                    imagePath: 'assets/images/personal loan.png',
-                    imageWidth: 130, // Adjusted width
-                    imageHeight: 120, // Adjusted height
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const PersonalLoanScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                  LoanTile(
-                    title: 'Agricultural Loans',
-                    imagePath: 'assets/images/tractor.png',
-                    imageWidth: 130, // Adjusted width
-                    imageHeight: 120, // Adjusted height
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const AgriculturalLoanScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                  LoanTile(
-                    title: 'Business Loans',
-                    imagePath: 'assets/images/business.png',
-                    imageWidth: 120, // Adjusted width
-                    imageHeight: 120, // Adjusted height
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const BusinessLoanScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
@@ -294,30 +183,30 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> {
             builder: (context) {
               return AlertDialog(
                 title: const Text('Talk to us'),
-                content: SingleChildScrollView(
+                content: const SingleChildScrollView(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       TextField(
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           labelText: 'Your Name',
                         ),
                       ),
                       TextField(
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           labelText: 'Subject',
                         ),
                       ),
                       TextField(
                         keyboardType: TextInputType.emailAddress,
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           labelText: 'Your Email',
                         ),
                       ),
                       TextField(
                         maxLines: 3,
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           labelText: 'Your Message',
                         ),
                       ),
@@ -344,15 +233,13 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> {
                       final String urlString = emailLaunchUri.toString();
                       if (await canLaunch(urlString)) {
                         await launch(urlString);
-                        // Show a SnackBar to confirm that the message has been sent
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
+                          const SnackBar(
                             content: Text('Your message has been sent!'),
-                            duration: Duration(seconds: 2), // Adjust as needed
+                            duration: Duration(seconds: 2),
                           ),
                         );
-                        Navigator.of(context)
-                            .pop(); // Close the dialog after sending
+                        Navigator.of(context).pop();
                       } else {
                         throw 'Could not launch $urlString';
                       }
@@ -366,27 +253,153 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> {
         },
         backgroundColor: Colors.purple.shade200,
         elevation: 20,
-        child: const Icon(Icons.chat_bubble), // Change the color here
+        child: const Icon(Icons.chat_bubble),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
+}
 
-  Widget _buildPreviousButton() {
-    return IconButton(
-      icon: const Icon(Icons.arrow_back_ios),
-      onPressed: () {
-        _carouselController.previousPage();
-      },
-    );
-  }
+class HorizontalCard extends StatefulWidget {
+  final String title;
+  final String balance;
+  final Color color;
+  final double width;
 
-  Widget _buildNextButton() {
-    return IconButton(
-      icon: const Icon(Icons.arrow_forward_ios),
-      onPressed: () {
-        _carouselController.nextPage();
-      },
+  const HorizontalCard({
+    super.key,
+    required this.title,
+    required this.balance,
+    required this.color,
+    required this.width,
+  });
+
+  @override
+  _HorizontalCardState createState() => _HorizontalCardState();
+}
+
+class _HorizontalCardState extends State<HorizontalCard> {
+  bool showBalance = true;
+
+  @override
+  Widget build(BuildContext context) {
+    // Sample start date and duration (in days) for demonstration purposes
+    DateTime startDate = DateTime.now();
+    int duration = 30; // Duration in days
+
+    // Calculate the end date
+    DateTime endDate = startDate.add(Duration(days: duration));
+
+    // Calculate the number of days left
+    int daysLeft = max(0, endDate.difference(DateTime.now()).inDays);
+
+    String currentDate = DateFormat.yMd().format(DateTime.now());
+    String periodLeft = '$daysLeft days left';
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Container(
+        width: widget.width,
+        decoration: BoxDecoration(
+          color: widget.color,
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.2),
+              spreadRadius: 2,
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+          image: DecorationImage(
+            image: AssetImage('assets/images/card background.jpg'),
+            fit: BoxFit.cover,
+            colorFilter: ColorFilter.mode(
+              Colors.black.withOpacity(0.5),
+              BlendMode.dstATop,
+            ),
+          ),
+        ),
+        child: Stack(
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        widget.title,
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Color.fromARGB(255, 28, 53, 26),
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () {
+                          setState(() {
+                            showBalance = !showBalance;
+                          });
+                        },
+                        icon: Icon(
+                          showBalance ? Icons.visibility : Icons.visibility_off,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        showBalance ? widget.balance : '****',
+                        style: const TextStyle(
+                          fontSize: 24,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        currentDate,
+                        style: const TextStyle(
+                          fontSize: 20,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        periodLeft, // Show the number of days left
+                        style: const TextStyle(
+                          fontSize: 18,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            Positioned(
+              bottom: 8,
+              right: 8,
+              child: Image.asset(
+                'assets/images/logo.png',
+                width: 50,
+                height: 50,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.white
+                    : Colors.black,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -394,16 +407,12 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> {
 class LoanTile extends StatelessWidget {
   final String title;
   final String imagePath;
-  final double imageWidth;
-  final double imageHeight;
   final VoidCallback onTap;
 
   const LoanTile({
     super.key,
     required this.title,
     required this.imagePath,
-    required this.imageWidth,
-    required this.imageHeight,
     required this.onTap,
   });
 
@@ -412,45 +421,31 @@ class LoanTile extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Card(
-        color: Colors.grey,
-        child: SizedBox(
-          height: 150, // Adjusted height
-          child: Align(
-            alignment: Alignment.bottomCenter,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Image.asset(
-                  imagePath,
-                  width: imageWidth,
-                  height: imageHeight,
-                  fit: BoxFit.cover,
-                ),
-                const SizedBox(height: 4),
-                Container(
-                  decoration: const BoxDecoration(
-                    borderRadius: BorderRadius.only(
-                      bottomLeft: Radius.circular(10),
-                      bottomRight: Radius.circular(10),
-                    ),
-                    color: Colors.black,
-                  ),
-                  padding: const EdgeInsets.all(8),
-                  child: Center(
-                    child: Text(
-                      title,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 17.0,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.amber,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+        elevation: 4,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset(
+              imagePath,
+              width: 70,
+              height: 70,
+              fit: BoxFit.cover,
             ),
-          ),
+            const SizedBox(height: 8), // Increased padding here
+            Padding(
+              padding:
+                  const EdgeInsets.all(8.0), // Added padding around the text
+              child: Text(
+                title,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 18.0,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).textTheme.bodyLarge!.color,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

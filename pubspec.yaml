@@ -64,18 +64,23 @@ flutter:
   uses-material-design: true
   assets:
     - assets/images/logo.png
-    - assets/images/caro 1.png
-    - assets/images/caro 2.png
-    - assets/images/caro 3.png
-    - assets/images/caro 4.png
-    - assets/images/caro 5.png
-    - assets/images/Ambulance.png
+    - assets/images/New Logo.jpeg
+    - assets/images/blue school.png
+    - assets/images/card background.jpg
     - assets/images/business.png
     - assets/images/emergency.png
     - assets/images/money.png
     - assets/images/personal loan.png
     - assets/images/school.png
+    - assets/images/school 2.png
     - assets/images/tractor.png
+    - assets/images/blue emergency.png
+    - assets/images/blue market place.png
+    - assets/images/blue personal.png
+    - assets/images/blue school.png
+    - assets/images/blue salary.png
+    - assets/images/blue tractor.png
+    - assets/images/salary.png
   #   - images/a_dot_ham.jpeg
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

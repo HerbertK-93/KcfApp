@@ -20,7 +20,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             fontWeight: FontWeight.bold,
           ),
         ),
-        backgroundColor: Colors.amberAccent,
+        backgroundColor: const Color.fromARGB(193, 90, 201, 248),
       ),
       body: ListView(
         children: [
