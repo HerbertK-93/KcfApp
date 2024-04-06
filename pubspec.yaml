@@ -28,12 +28,11 @@ environment:
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
 dependencies:
-  carousel_slider: ^4.0.0
-  cloud_firestore: ^4.15.9
+  cloud_firestore:
   cupertino_icons: ^1.0.6
-  firebase_auth: ^4.17.9
-  firebase_core: ^2.27.1
-  firebase_storage: ^11.6.10
+  firebase_auth: ^4.19.0
+  firebase_core: ^2.28.0
+  firebase_storage: ^11.7.0
   flutter:
     sdk: flutter
   image_picker: ^1.0.7
