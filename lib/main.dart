@@ -1,3 +1,5 @@
+// ignore_for_file: prefer_const_constructors, unnecessary_import
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:kings_cogent/screens/login_screen.dart';
@@ -11,24 +13,22 @@ import 'package:provider/provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  if (kIsWeb) {
-    await Firebase.initializeApp(
-      options: const FirebaseOptions(
-        apiKey: 'AIzaSyBQCrbMLwMAxgK8Aky5RfkQE8bmquRplnQ',
-        appId: '1:589265652458:web:3787a3dcf5d0e4eb49e593',
-        messagingSenderId: '589265652458',
-        projectId: 'kings-cogent-finance-ltd-ecab6',
-        storageBucket: 'kings-cogent-finance-ltd-ecab6.appspot.com',
-      ),
-    );
-  } else {
-    await Firebase.initializeApp();
-  }
+  await Firebase.initializeApp(
+    options: FirebaseOptions(
+      apiKey: 'AIzaSyBQCrbMLwMAxgK8Aky5RfkQE8bmquRplnQ',
+      authDomain: 'kings-cogent-finance-ltd-ecab6.firebaseapp.com',
+      projectId: 'kings-cogent-finance-ltd-ecab6',
+      storageBucket: 'kings-cogent-finance-ltd-ecab6.appspot.com',
+      messagingSenderId: '589265652458',
+      appId: '1:589265652458:web:3787a3dcf5d0e4eb49e593',
+    ),
+  );
+
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  const MyApp({Key? key}) : super(key: key); 
 
   @override
   Widget build(BuildContext context) {

@@ -1,21 +1,39 @@
 import 'package:flutter/material.dart';
 
+// ignore: must_be_immutable
 class LoansPage extends StatefulWidget {
-  const LoansPage({super.key});
+  LoansPage({
+    super.key,
+    required this.onLoanInfoConfirmed,
+    required this.startDate,
+    required this.loanAmount,
+    required this.endDate,
+    required this.interestRate,
+  });
+
+  final Function(double, DateTime, DateTime, double) onLoanInfoConfirmed;
+  DateTime startDate;
+  final double loanAmount;
+  DateTime endDate;
+  double interestRate;
 
   @override
   _LoansPageState createState() => _LoansPageState();
 }
 
 class _LoansPageState extends State<LoansPage> {
-  double loanAmount = 0.0;
-  DateTime? startDate;
-  DateTime? endDate;
-  double interestRate = 10.0; // Default interest rate
   double amountToReturn = 0.0;
+  double loanAmount = 0.0;
 
   final TextEditingController _startDateController = TextEditingController();
   final TextEditingController _endDateController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    loanAmount = widget.loanAmount;
+    calculateAmountToReturn();
+  }
 
   @override
   void dispose() {
@@ -90,10 +108,11 @@ class _LoansPageState extends State<LoansPage> {
             ),
             const SizedBox(height: 24),
             DropdownButtonFormField<double>(
-              value: interestRate,
+              value: widget.interestRate,
               onChanged: (value) {
                 setState(() {
-                  interestRate = value ?? 0.0;
+                  // Update the interest rate
+                  widget.interestRate = value ?? 0.0;
                   calculateAmountToReturn();
                 });
               },
@@ -110,8 +129,12 @@ class _LoansPageState extends State<LoansPage> {
             const SizedBox(height: 24),
             Center(
               child: ElevatedButton(
-                onPressed: _showPaymentOptions,
-                child: const Text('Payment Options'),
+                onPressed: () {
+                  // Confirm the loan information and proceed
+                  widget.onLoanInfoConfirmed(loanAmount, widget.startDate, widget.endDate, widget.interestRate);
+                  _showPaymentOptions();
+                },
+                child: const Text('Confirm Loan With Payment'),
               ),
             ),
           ],
@@ -130,10 +153,12 @@ class _LoansPageState extends State<LoansPage> {
     if (pickedDate != null) {
       setState(() {
         if (isStartDate) {
-          startDate = pickedDate;
+          // Update startDate and text field for start date
+          widget.startDate = pickedDate;
           _startDateController.text = pickedDate.toString().substring(0, 10);
         } else {
-          endDate = pickedDate;
+          // Update endDate and text field for end date
+          widget.endDate = pickedDate;
           _endDateController.text = pickedDate.toString().substring(0, 10);
         }
       });
@@ -142,7 +167,7 @@ class _LoansPageState extends State<LoansPage> {
 
   void calculateAmountToReturn() {
     setState(() {
-      amountToReturn = loanAmount * (1 + interestRate / 100);
+      amountToReturn = loanAmount * (1 + widget.interestRate / 100);
     });
   }
 

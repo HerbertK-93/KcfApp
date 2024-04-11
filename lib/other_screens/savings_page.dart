@@ -1,21 +1,39 @@
 import 'package:flutter/material.dart';
 
+// ignore: must_be_immutable
 class SavingsPage extends StatefulWidget {
-  const SavingsPage({super.key});
+  SavingsPage({
+    super.key,
+    required this.onSavingsInfoConfirmed,
+    required this.startDate,
+    required this.savingsAmount,
+    required this.endDate,
+    required this.interestRate,
+  });
+
+  final Function(double, DateTime, DateTime, double) onSavingsInfoConfirmed;
+  DateTime startDate;
+  final double savingsAmount;
+  DateTime endDate;
+  double interestRate;
 
   @override
   _SavingsPageState createState() => _SavingsPageState();
 }
 
 class _SavingsPageState extends State<SavingsPage> {
-  double savingsAmount = 0.0;
-  DateTime? startDate;
-  DateTime? endDate;
-  double interestRate = 10.0; // Default interest rate
   double amountToReturn = 0.0;
+  double savingsAmount = 0.0;
 
   final TextEditingController _startDateController = TextEditingController();
   final TextEditingController _endDateController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    savingsAmount = widget.savingsAmount;
+    calculateAmountToReturn();
+  }
 
   @override
   void dispose() {
@@ -90,10 +108,11 @@ class _SavingsPageState extends State<SavingsPage> {
             ),
             const SizedBox(height: 24),
             DropdownButtonFormField<double>(
-              value: interestRate,
+              value: widget.interestRate,
               onChanged: (value) {
                 setState(() {
-                  interestRate = value ?? 0.0;
+                  // Update the interest rate
+                  widget.interestRate = value ?? 0.0;
                   calculateAmountToReturn();
                 });
               },
@@ -110,8 +129,12 @@ class _SavingsPageState extends State<SavingsPage> {
             const SizedBox(height: 24),
             Center(
               child: ElevatedButton(
-                onPressed: _showPaymentOptions,
-                child: const Text('Payment Options'),
+                onPressed: () {
+                  // Confirm the loan information and proceed
+                  widget.onSavingsInfoConfirmed(savingsAmount, widget.startDate, widget.endDate, widget.interestRate);
+                  _showPaymentOptions();
+                },
+                child: const Text('Confirm Savings With Payment'),
               ),
             ),
           ],
@@ -130,10 +153,12 @@ class _SavingsPageState extends State<SavingsPage> {
     if (pickedDate != null) {
       setState(() {
         if (isStartDate) {
-          startDate = pickedDate;
+          // Update startDate and text field for start date
+          widget.startDate = pickedDate;
           _startDateController.text = pickedDate.toString().substring(0, 10);
         } else {
-          endDate = pickedDate;
+          // Update endDate and text field for end date
+          widget.endDate = pickedDate;
           _endDateController.text = pickedDate.toString().substring(0, 10);
         }
       });
@@ -142,7 +167,7 @@ class _SavingsPageState extends State<SavingsPage> {
 
   void calculateAmountToReturn() {
     setState(() {
-      amountToReturn = savingsAmount * (1 + interestRate / 100);
+      amountToReturn = savingsAmount * (1 + widget.interestRate / 100);
     });
   }
 

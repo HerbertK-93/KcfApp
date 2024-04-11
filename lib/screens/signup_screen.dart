@@ -25,11 +25,11 @@ class _SignupScreenState extends State<SignupScreen> {
 
   @override
   void dispose() {
-    super.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     _bioController.dispose();
     _usernameController.dispose();
+    super.dispose();
   }
 
   Future<void> selectImage() async {
@@ -89,6 +89,10 @@ class _SignupScreenState extends State<SignupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    Color logoColor = Theme.of(context).brightness == Brightness.dark
+        ? Colors.white
+        : Colors.black;
+
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
@@ -101,8 +105,9 @@ class _SignupScreenState extends State<SignupScreen> {
                 const SizedBox(height: 50),
                 // Image
                 Image.asset(
-                  'assets/images/logo.png',
+                  'assets/images/L.png',
                   height: 120,
+                  color: logoColor,
                 ),
                 const SizedBox(height: 24),
                 // circular avatar with add photo icon

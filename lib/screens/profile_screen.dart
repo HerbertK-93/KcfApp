@@ -52,6 +52,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final textColor = Theme.of(context).textTheme.bodyLarge!.color;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -144,7 +146,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
             const SizedBox(height: 20),
-            const Center(
+            Center(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
@@ -153,12 +155,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
+                      color: textColor, // Use dynamic color here
                     ),
-                  ),
-                  SizedBox(height: 10),
-                  Image(
-                    image: AssetImage('assets/images/logo.png'),
-                    height: 50,
                   ),
                 ],
               ),
