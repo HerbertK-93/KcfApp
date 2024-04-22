@@ -3,6 +3,7 @@ import "package:cloud_firestore/cloud_firestore.dart";
 import "package:firebase_auth/firebase_auth.dart";
 import "package:kings_cogent/models/user.dart" as model;
 import "package:kings_cogent/resources/storage_methods.dart";
+import "package:kings_cogent/utils/shared_prefs.dart";
 
 class AuthMethods {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -71,10 +72,18 @@ class AuthMethods {
 
     try {
       if (email.isNotEmpty && password.isNotEmpty) {
-        await _auth.signInWithEmailAndPassword(
+        final data = await _auth.signInWithEmailAndPassword(
           email: email,
           password: password,
         );
+
+        // save uid
+        final uid = data.user?.uid;
+        if (uid != null) {
+          await SharedPrefs().storeUid(uid);
+        }
+
+        print('App log ::: ${data.user?.uid}');
         res = "success";
       } else {
         res = "Please enter both email and password";

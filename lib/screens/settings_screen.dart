@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:kings_cogent/utils/shared_prefs.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -89,6 +90,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: const Text('Logout'),
               onPressed: () async {
                 await FirebaseAuth.instance.signOut();
+                await SharedPrefs().logoutApp();
                 Navigator.pushReplacementNamed(context, '/login');
               },
             ),

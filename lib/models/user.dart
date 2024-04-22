@@ -23,6 +23,16 @@ class AppUser {
         "bio": bio,
       };
 
+  static AppUser fromJson(Map<String, dynamic> json) {
+    return AppUser(
+      uid: json['uid'],
+      photoUrl: json['photoUrl'],
+      bio: json['bio'],
+      email: json['email'],
+      username: json['username'],
+    );
+  }
+
   static AppUser fromSnap(DocumentSnapshot snap) {
     var snapshot = snap.data() as Map<String, dynamic>;
 
