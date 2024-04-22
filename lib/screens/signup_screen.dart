@@ -3,9 +3,6 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:kings_cogent/resources/auth_methods.dart';
-import 'package:kings_cogent/responsive/mobile_screen_layout.dart';
-import 'package:kings_cogent/responsive/responsive_layout_scrteen.dart';
-import 'package:kings_cogent/responsive/web_screen_layout.dart';
 import 'package:kings_cogent/screens/login_screen.dart';
 import 'package:kings_cogent/utils/utils.dart';
 import 'package:kings_cogent/widgets/text_field_layout.dart';
@@ -28,11 +25,11 @@ class _SignupScreenState extends State<SignupScreen> {
 
   @override
   void dispose() {
-    super.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     _bioController.dispose();
     _usernameController.dispose();
+    super.dispose();
   }
 
   Future<void> selectImage() async {
@@ -92,6 +89,10 @@ class _SignupScreenState extends State<SignupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    Color logoColor = Theme.of(context).brightness == Brightness.dark
+        ? Colors.white
+        : Colors.black;
+
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
@@ -104,8 +105,9 @@ class _SignupScreenState extends State<SignupScreen> {
                 const SizedBox(height: 50),
                 // Image
                 Image.asset(
-                  'assets/images/logo.png',
+                  'assets/images/L.png',
                   height: 120,
+                  color: logoColor,
                 ),
                 const SizedBox(height: 24),
                 // circular avatar with add photo icon

@@ -28,16 +28,16 @@ environment:
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
 dependencies:
-  carousel_slider: ^4.0.0
-  cloud_firestore: ^4.15.9
+  cloud_firestore: ^4.16.1
   cupertino_icons: ^1.0.6
-  firebase_auth: ^4.17.9
-  firebase_core: ^2.27.1
-  firebase_storage: ^11.6.10
+  firebase_auth: ^4.19.0
+  firebase_core: ^2.28.0
+  firebase_storage: ^11.7.0
   flutter:
     sdk: flutter
   image_picker: ^1.0.7
   intl: ^0.19.0
+  permission_handler: ^11.3.1
   provider: ^6.1.2
   shared_preferences: ^2.2.2
   shimmer: ^3.0.0
@@ -64,18 +64,24 @@ flutter:
   uses-material-design: true
   assets:
     - assets/images/logo.png
-    - assets/images/caro 1.png
-    - assets/images/caro 2.png
-    - assets/images/caro 3.png
-    - assets/images/caro 4.png
-    - assets/images/caro 5.png
-    - assets/images/Ambulance.png
+    - assets/images/New Logo.jpeg
+    - assets/images/blue school.png
+    - assets/images/card background.jpg
     - assets/images/business.png
     - assets/images/emergency.png
     - assets/images/money.png
     - assets/images/personal loan.png
     - assets/images/school.png
+    - assets/images/school 2.png
     - assets/images/tractor.png
+    - assets/images/blue emergency.png
+    - assets/images/blue market place.png
+    - assets/images/blue personal.png
+    - assets/images/blue school.png
+    - assets/images/blue salary.png
+    - assets/images/blue tractor.png
+    - assets/images/salary.png
+    - assets/images/L.png
   #   - images/a_dot_ham.jpeg
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

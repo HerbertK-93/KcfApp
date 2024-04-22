@@ -4,7 +4,7 @@ import 'package:kings_cogent/utils/shared_prefs.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class SettingsScreen extends StatefulWidget {
-  const SettingsScreen({Key? key}) : super(key: key);
+  const SettingsScreen({super.key});
 
   @override
   _SettingsScreenState createState() => _SettingsScreenState();
@@ -21,7 +21,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             fontWeight: FontWeight.bold,
           ),
         ),
-        backgroundColor: Colors.amberAccent,
+        backgroundColor: const Color.fromARGB(193, 90, 201, 248),
       ),
       body: ListView(
         children: [

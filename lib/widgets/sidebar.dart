@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:kings_cogent/screens/more.dart';
-import 'package:kings_cogent/screens/payment_options_screen.dart';
 import 'package:kings_cogent/screens/settings_screen.dart';
 
 class SideBar extends StatelessWidget {
-  const SideBar({Key? key});
+  const SideBar({Key? key}) : super(key: key); 
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +15,7 @@ class SideBar extends StatelessWidget {
           Container(
             height: 60,
             decoration: const BoxDecoration(
-              color: Colors.amberAccent,
+              color: Color.fromARGB(193, 90, 201, 248),
             ),
             child: const Center(
               child: Text(
@@ -29,9 +28,6 @@ class SideBar extends StatelessWidget {
               ),
             ),
           ),
-          const Divider(),
-          _buildPaymentOptionsTile(context), // Add the payment options ListTile
-          const Divider(),
           _buildListTileWithIcon(
             title: 'Settings',
             icon: Icons.settings,
@@ -42,7 +38,7 @@ class SideBar extends StatelessWidget {
               );
             },
           ),
-          const Divider(),
+          const Divider(), // Add a divider here
           _buildListTileWithIcon(
             title: 'More',
             icon: Icons.more_horiz,
@@ -66,21 +62,6 @@ class SideBar extends StatelessWidget {
       leading: Icon(icon), // Icon on the left side
       title: Text(title),
       onTap: () => onTap(),
-      trailing: const Icon(Icons.arrow_forward), // Arrow icon on the right side
-    );
-  }
-
-  // Method to build the ListTile for Payment Options
-  Widget _buildPaymentOptionsTile(BuildContext context) {
-    return ListTile(
-      leading: const Icon(Icons.payment), // Icon for payment options
-      title: const Text('Payment Options'),
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const PaymentOptionsScreen()),
-        );
-      },
       trailing: const Icon(Icons.arrow_forward), // Arrow icon on the right side
     );
   }

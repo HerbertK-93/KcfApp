@@ -1,11 +1,11 @@
-import "package:flutter/material.dart";
-import "package:kings_cogent/resources/auth_methods.dart";
-import "package:kings_cogent/responsive/mobile_screen_layout.dart";
-import "package:kings_cogent/responsive/responsive_layout_scrteen.dart";
-import "package:kings_cogent/responsive/web_screen_layout.dart";
-import "package:kings_cogent/screens/signup_screen.dart";
-import "package:kings_cogent/utils/utils.dart";
-import "package:kings_cogent/widgets/text_field_layout.dart";
+import 'package:flutter/material.dart';
+import 'package:kings_cogent/resources/auth_methods.dart';
+import 'package:kings_cogent/responsive/mobile_screen_layout.dart';
+import 'package:kings_cogent/responsive/responsive_layout_scrteen.dart';
+import 'package:kings_cogent/responsive/web_screen_layout.dart';
+import 'package:kings_cogent/screens/signup_screen.dart';
+import 'package:kings_cogent/utils/utils.dart';
+import 'package:kings_cogent/widgets/text_field_layout.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -21,9 +21,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   void dispose() {
-    super.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    super.dispose();
   }
 
   void loginUser() async {
@@ -31,7 +31,9 @@ class _LoginScreenState extends State<LoginScreen> {
       _isLoading = true;
     });
     String res = await AuthMethods().loginUser(
-        email: _emailController.text, password: _passwordController.text);
+      email: _emailController.text,
+      password: _passwordController.text,
+    );
     if (res == "success") {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
@@ -59,6 +61,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    Color logoColor = Theme.of(context).brightness == Brightness.dark
+        ? Colors.white
+        : Colors.black;
+
     return Scaffold(
       body: SafeArea(
         child: Container(
@@ -70,8 +76,9 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 50),
               // Image
               Image.asset(
-                'assets/images/logo.png',
+                'assets/images/L.png',
                 height: 120,
+                color: logoColor,
               ),
               const SizedBox(height: 24),
               // Email TextField
