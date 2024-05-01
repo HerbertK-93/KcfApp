@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 // ignore: must_be_immutable
 class LoansPage extends StatefulWidget {
@@ -111,7 +112,6 @@ class _LoansPageState extends State<LoansPage> {
               value: widget.interestRate,
               onChanged: (value) {
                 setState(() {
-                  // Update the interest rate
                   widget.interestRate = value ?? 0.0;
                   calculateAmountToReturn();
                 });
@@ -130,8 +130,8 @@ class _LoansPageState extends State<LoansPage> {
             Center(
               child: ElevatedButton(
                 onPressed: () {
-                  // Confirm the loan information and proceed
-                  widget.onLoanInfoConfirmed(loanAmount, widget.startDate, widget.endDate, widget.interestRate);
+                  widget.onLoanInfoConfirmed(loanAmount, widget.startDate,
+                      widget.endDate, widget.interestRate);
                   _showPaymentOptions();
                 },
                 child: const Text('Confirm Loan With Payment'),
@@ -153,11 +153,9 @@ class _LoansPageState extends State<LoansPage> {
     if (pickedDate != null) {
       setState(() {
         if (isStartDate) {
-          // Update startDate and text field for start date
           widget.startDate = pickedDate;
           _startDateController.text = pickedDate.toString().substring(0, 10);
         } else {
-          // Update endDate and text field for end date
           widget.endDate = pickedDate;
           _endDateController.text = pickedDate.toString().substring(0, 10);
         }
@@ -172,40 +170,43 @@ class _LoansPageState extends State<LoansPage> {
   }
 
   void _showPaymentOptions() {
-    showModalBottomSheet(
-      context: context,
-      builder: (BuildContext context) {
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              title: const Text('MTN Mobile Money'),
-              onTap: () {
-                // Handle MTN Mobile Money option
+  showModalBottomSheet(
+    context: context,
+    builder: (BuildContext context) {
+      return Container(
+        height: MediaQuery.of(context).size.height * 0.2, // Adjust the height as per your requirement
+        child: Center(
+          child: ListTile(
+            title: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+                elevation: 6,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+              ),
+              onPressed: () async {
+                const url = 'https://flutterwave.com/pay/g3vpxdi0d3n8';
+                if (await canLaunch(url)) {
+                  await launch(url);
+                } else {
+                  print('Could not launch $url');
+                }
                 Navigator.pop(context);
               },
+              child: const Text(
+                'Tap here to initiate payment',
+                style: TextStyle(color: Colors.white),
+              ),
             ),
-            ListTile(
-              title: const Text('Airtel Money'),
-              onTap: () {
-                // Handle Airtel Money option
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              title: const Text('Bank Transfer'),
-              onTap: () {
-                // Handle Bank Transfer option
-                Navigator.pop(context);
-              },
-            ),
-          ],
-        );
-      },
-      isScrollControlled: true, // Makes the sheet draggable and centered
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-    );
-  }
+          ),
+        ),
+      );
+    },
+    isScrollControlled: true,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    ),
+  );
+}
 }

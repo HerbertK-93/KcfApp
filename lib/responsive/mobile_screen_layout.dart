@@ -1,35 +1,26 @@
-// ignore_for_file: prefer_const_constructors
-
 import 'package:flutter/material.dart';
+import 'package:kings_cogent/screens/daily_screen.dart';
+import 'package:kings_cogent/screens/monthly_screen.dart';
+import 'package:kings_cogent/screens/once_screen.dart';
+import 'package:kings_cogent/screens/weekly_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:kings_cogent/screens/agricultural_loan.dart';
-import 'package:kings_cogent/screens/business_loan.dart';
-import 'package:kings_cogent/screens/emergency_loan.dart';
-import 'package:kings_cogent/screens/personal_loan.dart';
 import 'package:kings_cogent/screens/profile_screen.dart';
-import 'package:kings_cogent/screens/salary_loan_screen.dart';
-import 'package:kings_cogent/screens/school_fees_loan_screen.dart';
 import 'package:kings_cogent/widgets/sidebar.dart';
-import 'package:intl/intl.dart';
-import 'dart:math';
+import 'package:fl_chart/fl_chart.dart';
 
 class MobileScreenLayout extends StatelessWidget {
-  const MobileScreenLayout({super.key});
+  const MobileScreenLayout({Key? key});
 
   @override
   Widget build(BuildContext context) {
+    Brightness currentBrightness = Theme.of(context).brightness;
+
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color.fromARGB(193, 90, 201, 248),
-        title: const Text(
-          'KINGS COGENT',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 24,
-            fontFamily: 'MadimiOne-Regular',
-            color: Colors.black,
-          ),
-        ),
+        backgroundColor: currentBrightness == Brightness.dark
+            ? Colors.grey[900]
+            : Colors.white,
+        title: const Text(''),
         centerTitle: true,
         actions: [
           IconButton(
@@ -53,38 +44,11 @@ class MobileScreenLayout extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Padding(
-              padding:
-                  const EdgeInsets.fromLTRB(8, 16, 8, 8), // Reduced padding
-              child: SizedBox(
-                height: 200,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  children: const [
-                    SizedBox(width: 8),
-                    HorizontalCard(
-                      title: 'Loan Balance',
-                      balance: '\$5000', // Sample loan balance
-                      color: Color.fromARGB(255, 175, 139, 76),
-                      width: 300,
-                    ),
-                    SizedBox(width: 8),
-                    HorizontalCard(
-                      title: 'Savings Balance',
-                      balance: '\$1000', // Sample savings balance
-                      color: Color.fromARGB(255, 243, 33, 100),
-                      width: 300,
-                    ),
-                    SizedBox(width: 8),
-                  ],
-                ),
-              ),
-            ),
             const Padding(
               padding: EdgeInsets.fromLTRB(
                   16, 1, 0, 1), // Moved "Our Services" to the left
               child: Text(
-                'Our Services',
+                'Saving plans',
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
@@ -96,81 +60,95 @@ class MobileScreenLayout extends StatelessWidget {
               physics: const NeverScrollableScrollPhysics(),
               shrinkWrap: true,
               crossAxisCount: 2,
+              crossAxisSpacing: 10, // Horizontal spacing between tiles
+              mainAxisSpacing: 15, // Vertical spacing between tiles
               padding: const EdgeInsets.all(8),
-              childAspectRatio: 1.2,
+              childAspectRatio: 1.4,
               children: [
-                LoanTile(
-                  title: 'School Fees Loans',
-                  imagePath: 'assets/images/school.png',
+                ServiceCard(
+                  title: 'Monthly',
+                  icon: Icons.calendar_today_outlined,
                   onTap: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const SchoolFeesLoanScreen(),
+                        builder: (context) => MonthlyScreen(),
                       ),
                     );
                   },
                 ),
-                LoanTile(
-                  title: 'Salary Loans',
-                  imagePath: 'assets/images/money.png',
+                ServiceCard(
+                  title: 'Weekly',
+                  icon: Icons.calendar_view_week_outlined,
                   onTap: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const SalaryLoanScreen(),
+                        builder: (context) => WeeklyScreen(),
                       ),
                     );
                   },
                 ),
-                LoanTile(
-                  title: 'Emergency Loans',
-                  imagePath: 'assets/images/emergency.png',
+                ServiceCard(
+                  title: 'Daily',
+                  icon: Icons.today_outlined,
                   onTap: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const EmergencyLoanScreen(),
+                        builder: (context) => DailyScreen(),
                       ),
                     );
                   },
                 ),
-                LoanTile(
-                  title: 'Personal Loans',
-                  imagePath: 'assets/images/personal loan.png',
+                ServiceCard(
+                  title: 'Once',
+                  icon: Icons.calendar_view_day_outlined,
                   onTap: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const PersonalLoanScreen(),
+                        builder: (context) => OnceScreen(),
                       ),
                     );
                   },
                 ),
-                LoanTile(
-                  title: 'Agricultural Loans',
-                  imagePath: 'assets/images/tractor.png',
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const AgriculturalLoanScreen(),
-                      ),
-                    );
-                  },
-                ),
-                LoanTile(
-                  title: 'Business Loans',
-                  imagePath: 'assets/images/business.png',
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const BusinessLoanScreen(),
-                      ),
-                    );
-                  },
-                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            // Graph for Savings Progress
+            const GraphWidget(
+              title: 'Savings Progress',
+              data: [
+                // Sample data for demonstration, replace with actual data
+                FlSpot(0, 100),
+                FlSpot(1, 150),
+                FlSpot(2, 200),
+                FlSpot(3, 250),
+              ],
+            ),
+            const SizedBox(height: 20),
+            // Graph for Funds Accumulation
+            const GraphWidget(
+              title: 'Funds Accumulation',
+              data: [
+                // Sample data for demonstration, replace with actual data
+                FlSpot(0, 500),
+                FlSpot(1, 600),
+                FlSpot(2, 700),
+                FlSpot(3, 800),
+              ],
+            ),
+            const SizedBox(height: 20),
+            // Graph for Future Projection
+            const GraphWidget(
+              title: 'Future Projection',
+              data: [
+                // Sample data for demonstration, replace with actual data
+                FlSpot(0, 1000),
+                FlSpot(1, 1100),
+                FlSpot(2, 1200),
+                FlSpot(3, 1300),
               ],
             ),
           ],
@@ -260,193 +238,133 @@ class MobileScreenLayout extends StatelessWidget {
   }
 }
 
-class HorizontalCard extends StatefulWidget {
+class ServiceCard extends StatelessWidget {
   final String title;
-  final String balance;
-  final Color color;
-  final double width;
+  final IconData icon;
+  final VoidCallback onTap;
 
-  const HorizontalCard({
-    super.key,
+  const ServiceCard({
     required this.title,
-    required this.balance,
-    required this.color,
-    required this.width,
+    required this.icon,
+    required this.onTap,
   });
 
   @override
-  _HorizontalCardState createState() => _HorizontalCardState();
-}
-
-class _HorizontalCardState extends State<HorizontalCard> {
-  bool showBalance = true;
-
-  @override
   Widget build(BuildContext context) {
-    // Sample start date and duration (in days) for demonstration purposes
-    DateTime startDate = DateTime.now();
-    int duration = 30; // Duration in days
+    // Define a boolean to check if the title is "Monthly"
+    bool isMonthly = title == 'Monthly';
 
-    // Calculate the end date
-    DateTime endDate = startDate.add(Duration(days: duration));
-
-    // Calculate the number of days left
-    int daysLeft = max(0, endDate.difference(DateTime.now()).inDays);
-
-    String currentDate = DateFormat.yMd().format(DateTime.now());
-    String periodLeft = '$daysLeft days left';
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Container(
-        width: widget.width,
-        decoration: BoxDecoration(
-          color: widget.color,
-          borderRadius: BorderRadius.circular(8),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.2),
-              spreadRadius: 2,
-              blurRadius: 4,
-              offset: const Offset(0, 2),
-            ),
-          ],
-          image: DecorationImage(
-            image: AssetImage('assets/images/card background.jpg'),
-            fit: BoxFit.cover,
-            colorFilter: ColorFilter.mode(
-              Colors.black.withOpacity(0.5),
-              BlendMode.dstATop,
-            ),
-          ),
-        ),
-        child: Stack(
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        widget.title,
-                        style: const TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: Color.fromARGB(255, 28, 53, 26),
-                        ),
-                      ),
-                      IconButton(
-                        onPressed: () {
-                          setState(() {
-                            showBalance = !showBalance;
-                          });
-                        },
-                        icon: Icon(
-                          showBalance ? Icons.visibility : Icons.visibility_off,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
+    return InkWell(
+      onTap: onTap,
+      child: Card(
+        elevation: 4,
+        child: Container(
+          height: 60, // Adjust this value to control the height directly
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    icon,
+                    size: 30,
+                    color: Theme.of(context).iconTheme.color,
                   ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        showBalance ? widget.balance : '****',
-                        style: const TextStyle(
-                          fontSize: 24,
-                          color: Colors.white,
-                        ),
+                  const SizedBox(height: 4),
+                  Padding(
+                    padding: const EdgeInsets.all(4.0),
+                    child: Text(
+                      title,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 18.0,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).textTheme.bodyText1!.color,
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        currentDate,
-                        style: const TextStyle(
-                          fontSize: 20,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        periodLeft, // Show the number of days left
-                        style: const TextStyle(
-                          fontSize: 18,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
-                ),
-              ],
-            ),
-            Positioned(
-              bottom: 8,
-              right: 8,
-              child: Image.asset(
-                'assets/images/logo.png',
-                width: 50,
-                height: 50,
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? Colors.white
-                    : Colors.black,
+                ],
               ),
-            ),
-          ],
+              // Display a recommended tag if the title is "Monthly"
+              if (isMonthly)
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 75,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: Colors.green,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Text(
+                      'Recommended',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
-class LoanTile extends StatelessWidget {
-  final String title;
-  final String imagePath;
-  final VoidCallback onTap;
 
-  const LoanTile({
-    super.key,
+
+
+class GraphWidget extends StatelessWidget {
+  final String title;
+  final List<FlSpot> data;
+
+  const GraphWidget({
     required this.title,
-    required this.imagePath,
-    required this.onTap,
+    required this.data,
   });
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      child: Card(
-        elevation: 4,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.asset(
-              imagePath,
-              width: 70,
-              height: 70,
-              fit: BoxFit.cover,
-            ),
-            const SizedBox(height: 8), // Increased padding here
-            Padding(
-              padding:
-                  const EdgeInsets.all(8.0), // Added padding around the text
-              child: Text(
-                title,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 18.0,
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).textTheme.bodyLarge!.color,
+    return Container(
+      padding: const EdgeInsets.all(8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          ),
+          AspectRatio(
+            aspectRatio: 2.0,
+            child: LineChart(
+              LineChartData(
+                titlesData: const FlTitlesData(
+                  // Remove titles from here
                 ),
+                borderData: FlBorderData(show: true),
+                gridData: const FlGridData(show: true),
+                lineBarsData: [
+                  LineChartBarData(
+                    spots: data,
+                    isCurved: true,
+                    color: Colors.blue,
+                    barWidth: 4,
+                    isStrokeCapRound: true,
+                    belowBarData: BarAreaData(
+                      show: true,
+                      color: Colors.blue,
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
