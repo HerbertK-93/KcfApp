@@ -227,8 +227,8 @@ class ServiceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Define a boolean to check if the title is "Monthly"
-    bool isMonthly = title == 'Monthly';
+    // Define a boolean to check if the title is "Monthly", "Weekly", "Daily", or "Once"
+    bool isBlueIcon = title == 'Monthly' || title == 'Weekly' || title == 'Daily' || title == 'Once';
 
     return InkWell(
       onTap: onTap,
@@ -245,7 +245,7 @@ class ServiceCard extends StatelessWidget {
                   Icon(
                     icon,
                     size: 30,
-                    color: Theme.of(context).iconTheme.color,
+                    color: isBlueIcon ? Colors.blue : Theme.of(context).iconTheme.color,
                   ),
                   const SizedBox(height: 4),
                   Padding(
@@ -263,11 +263,11 @@ class ServiceCard extends StatelessWidget {
                 ],
               ),
               // Display a recommended tag if the title is "Monthly"
-              if (isMonthly)
+              if (isBlueIcon && title == 'Monthly')
                 Positioned(
                   top: 0,
                   left: 0,
-                  right: 75,
+                  right: 100,
                   child: Container(
                     padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
@@ -278,7 +278,7 @@ class ServiceCard extends StatelessWidget {
                       'Recommended',
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: 12,
+                        fontSize: 8,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -291,6 +291,7 @@ class ServiceCard extends StatelessWidget {
     );
   }
 }
+
 
 class GraphWidget extends StatelessWidget {
   final String title;

@@ -31,14 +31,6 @@ class OurTeamScreen extends StatelessWidget {
               description:
                   'I am an energetic, ambitious person who has developed a mature and responsible approach to any task that I undertake. As a graduate with over 4 years experience in management, I am excellent in working with others to achieve objectives. I also have the ability to work under pressure with minimal supervision. I am also comfortable in both solitary and group situations, and have excellent communication skills which are very useful in times of contact with the clients. I also have good observational and listening skills which are highly effective when interacting with both present and prospective clientele.',
             ),
-            Divider(),
-            _buildTeamMember(
-              name: 'ATIM FIONA',
-              position: 'Interim Deputy Director',
-              categories: 'Management',
-              description:
-                  'Atim Fiona is an energetic, detail oriented credit officer with one year experience in a financial institution and 4 years experience in customer service previously at K holdings limited at the front office. I graduated from Nkumba university in 2019 with a bachelor’s degree in petroleum and mineral Geoscience and did training at Ministry of energy and mineral Development. Started with King’s Cogent in July 2022 as credit controller and in January 2023 to present as interim deputy director assistant.',
-            ),
           ],
         ),
       ),

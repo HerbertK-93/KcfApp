@@ -44,4 +44,12 @@ class SharedPrefs {
     await sharedPreferences?.remove(tagUid);
     await sharedPreferences?.remove(tagUserData);
   }
+
+  getMonthlySavings() {}
+
+  getWeeklySavings() {}
+
+  getDailySavings() {}
+
+  getOneTimeSavings() {}
 }

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:kings_cogent/models/user.dart';
 import 'package:kings_cogent/resources/user_methods.dart';
@@ -13,16 +15,43 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  AppUser? appUser;
+  late UserMethods _userMethods;
+  late SharedPrefs _sharedPrefs;
+  late StreamController<AppUser?> _userStreamController;
+  double _currentBalance = 0.0;
 
   @override
   void initState() {
     super.initState();
+    _userMethods = UserMethods(sharedPrefs: SharedPrefs());
+    _sharedPrefs = SharedPrefs();
+    _userStreamController = StreamController<AppUser?>();
+    _updateUserProfile();
+    _calculateCurrentBalance();
   }
 
-  Stream<AppUser?> getUserProfile() {
-    final userMethods = UserMethods(sharedPrefs: SharedPrefs());
-    return Stream.fromFuture(userMethods.getUserProfile());
+  @override
+  void dispose() {
+    _userStreamController.close();
+    super.dispose();
+  }
+
+  void _updateUserProfile() {
+  _userMethods.getUserProfile().then((user) {
+    _userStreamController.add(user);
+  });
+}
+
+
+  Future<void> _calculateCurrentBalance() async {
+    double monthlySavings = await _sharedPrefs.getMonthlySavings() ?? 0.0;
+    double weeklySavings = await _sharedPrefs.getWeeklySavings() ?? 0.0;
+    double dailySavings = await _sharedPrefs.getDailySavings() ?? 0.0;
+    double oneTimeSavings = await _sharedPrefs.getOneTimeSavings() ?? 0.0;
+
+    setState(() {
+      _currentBalance = monthlySavings + weeklySavings + dailySavings + oneTimeSavings;
+    });
   }
 
   void showSnackBar(BuildContext context, String message) {
@@ -59,82 +88,122 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
       ),
       body: StreamBuilder<AppUser?>(
-          stream: getUserProfile(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            } else if (snapshot.hasError) {
-              return Center(child: Text('Error: ${snapshot.error}'));
-            }
+        stream: _userStreamController.stream,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
 
-            final userData = snapshot.data;
-            return SingleChildScrollView(
-              padding: const EdgeInsets.all(20.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Card(
-                    elevation: 4,
+          final userData = snapshot.data;
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Card(
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 40.0, horizontal: 20.0),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).cardColor,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Row(
+                      children: [
+                        ClipOval(
+                          child: CachedNetworkImage(
+                            imageUrl: userData?.photoUrl ?? '',
+                            width: 100,
+                            height: 100,
+                            fit: BoxFit.cover,
+                            placeholder: (context, url) =>
+                                const Icon(Icons.person, size: 100), // Placeholder Icon
+                            errorWidget: (context, url, error) =>
+                                const Icon(Icons.error),
+                          ),
+                        ),
+                        const SizedBox(width: 20),
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Hello,',
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              userData?.username ?? '',
+                              style: const TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                const Divider(),
+                _buildProfileField('Email', userData?.email ?? '', context),
+                const Divider(),
+                _buildProfileField('Bio', userData?.bio ?? '', context),
+                const SizedBox(height: 20),
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 20), // Adjust margin for stretching to screen edges
+                  child: Card(
+                    elevation: 4, // Add elevation for shadow effect
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 40.0, horizontal: 20.0),
+                      width: double.infinity, // Ensure the container stretches horizontally
+                      padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
-                        color: Theme.of(context).cardColor,
                         borderRadius: BorderRadius.circular(10),
+                        color: Theme.of(context).cardColor, // Use the system theme's card color
                       ),
-                      child: Row(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          ClipOval(
-                            child: CachedNetworkImage(
-                              imageUrl: userData?.photoUrl ?? '',
-                              width: 100,
-                              height: 100,
-                              fit: BoxFit.cover,
-                              placeholder: (context, url) =>
-                                  Icon(Icons.person, size: 100), // Placeholder Icon
-                              errorWidget: (context, url, error) =>
-                                  const Icon(Icons.error),
+                          Text(
+                            'Current Saving Balance',
+                            style: TextStyle(
+                              fontSize: 23,
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).textTheme.bodyText1!.color, // Use the system theme's text color
                             ),
                           ),
-                          const SizedBox(width: 20),
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Hello,',
-                                style: TextStyle(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                          const SizedBox(height: 25),
+                          Center( // Center the text horizontally
+                            child: Text(
+                              '\$$_currentBalance', // Display actual balance
+                              style: TextStyle(
+                                fontSize: 20,
+                                color: Theme.of(context).textTheme.bodyText2!.color, // Use the system theme's secondary text color
                               ),
-                              Text(
-                                userData?.username ?? '',
-                                style: const TextStyle(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
+                            ),
                           ),
                         ],
                       ),
                     ),
                   ),
-                  const SizedBox(height: 20),
-                  const Divider(),
-                  _buildProfileField('Email', userData?.email ?? '', context),
-                  const Divider(),
-                  _buildProfileField('Bio', userData?.bio ?? '', context),
-                  const SizedBox(height: 20),
-                ],
-              ),
-            );
-          }),
+                ),
+              ],
+            ),
+          );
+        }),
     );
   }
 
