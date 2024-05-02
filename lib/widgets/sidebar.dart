@@ -3,26 +3,28 @@ import 'package:kings_cogent/screens/more.dart';
 import 'package:kings_cogent/screens/settings_screen.dart';
 
 class SideBar extends StatelessWidget {
-  const SideBar({Key? key}) : super(key: key); 
+  const SideBar({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final textColor = Theme.of(context).textTheme.bodyText1!.color;
+
     return Drawer(
-      width: MediaQuery.of(context).size.width * 0.8, // Increase the width
+      width: MediaQuery.of(context).size.width * 0.8,
       child: ListView(
         padding: const EdgeInsets.fromLTRB(10, 20, 10, 10),
         children: <Widget>[
           Container(
             height: 60,
-            decoration: const BoxDecoration(
-              color: Color.fromARGB(193, 90, 201, 248),
+            decoration: BoxDecoration(
+              color: Theme.of(context).backgroundColor,
             ),
-            child: const Center(
+            child: Center(
               child: Text(
                 'MENU',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  color: Colors.black,
+                  color: textColor,
                   fontSize: 24,
                 ),
               ),
@@ -38,7 +40,7 @@ class SideBar extends StatelessWidget {
               );
             },
           ),
-          const Divider(), // Add a divider here
+          const Divider(),
           _buildListTileWithIcon(
             title: 'More',
             icon: Icons.more_horiz,
@@ -59,10 +61,10 @@ class SideBar extends StatelessWidget {
       required IconData icon,
       required Function onTap}) {
     return ListTile(
-      leading: Icon(icon), // Icon on the left side
+      leading: Icon(icon),
       title: Text(title),
       onTap: () => onTap(),
-      trailing: const Icon(Icons.arrow_forward), // Arrow icon on the right side
+      trailing: const Icon(Icons.arrow_forward),
     );
   }
 }

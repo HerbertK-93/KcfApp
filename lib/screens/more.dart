@@ -9,15 +9,18 @@ class MoreScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textColor = Theme.of(context).textTheme.bodyText1!.color;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'More',
           style: TextStyle(
             fontWeight: FontWeight.bold,
+            color: textColor,
           ),
         ),
-        backgroundColor: const Color.fromARGB(193, 90, 201, 248),
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
       ),
       body: ListView(
         children: [

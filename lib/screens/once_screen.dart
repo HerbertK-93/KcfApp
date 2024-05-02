@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class OnceScreen extends StatefulWidget {
   @override
@@ -7,68 +8,105 @@ class OnceScreen extends StatefulWidget {
 }
 
 class _OnceScreenState extends State<OnceScreen> {
-  late DateTime _selectedDate;
-  double _monthlyDeposit = 0.0;
+  double _onceDeposit = 0.0;
   double _interestRate = 0.1; // Default interest rate (10%)
-  List<double> _investmentData = []; // List to store investment growth data
-  List<Map<String, dynamic>> _savedData = []; // List to store saved data
+  double _totalSavings = 0.0; // Total savings accumulated over time
 
   @override
   void initState() {
     super.initState();
-    // Initialize selected date to the current date
-    _selectedDate = DateTime.now();
-    // Load saved investment data
-    _loadInvestmentData();
-    // Initial calculation
-    _calculateInvestmentGrowth();
+    // Fetch data from Firestore and update UI
+    _fetchDataAndUpdateUI();
   }
 
-  // Function to calculate the investment growth over time
-  void _calculateInvestmentGrowth() {
-    _investmentData.clear();
-    double principal = 0.0; // No initial investment
-    int numberOfMonths = DateTime.now().difference(_selectedDate).inDays ~/ 30;
-
-    for (int i = 0; i < numberOfMonths; i++) {
-      double interest = principal * _interestRate / 12;
-      principal += _monthlyDeposit + interest;
-      _investmentData.add(principal);
+  // Function to fetch data from Firestore and update UI
+  void _fetchDataAndUpdateUI() async {
+    try {
+      // Fetch user's information from Firestore
+      final DocumentSnapshot documentSnapshot =
+          await FirebaseFirestore.instance.collection('one-time_plan').doc('user_data').get();
+      if (documentSnapshot.exists) {
+        final userData = documentSnapshot.data() as Map<String, dynamic>;
+        setState(() {
+          _onceDeposit = userData['one-time_deposit'];
+          _interestRate = userData['interest_rate'];
+          _calculateTotalSavings();
+        });
+      }
+    } catch (error) {
+      print("Failed to fetch data: $error");
     }
   }
 
-  // Function to load saved investment data from shared preferences
-  Future<void> _loadInvestmentData() async {
-    final prefs = await SharedPreferences.getInstance();
-    if (prefs.containsKey('investmentData')) {
-      setState(() {
-        _investmentData = prefs.getStringList('investmentData')!.map((e) => double.parse(e)).toList();
-      });
+  // Function to calculate the total savings over time
+  void _calculateTotalSavings() {
+    _totalSavings = 0.0; // Reset total savings
+    int numberOfDays = DateTime.now().difference(DateTime(2024, 5, 1)).inDays;
+
+    double principal = 0.0; // Initial investment
+    for (int i = 0; i < numberOfDays; i++) {
+      double interest = principal * _interestRate / 365;
+      principal += _onceDeposit + interest;
+      _totalSavings += principal;
+    }
+    setState(() {}); // Update UI after calculating total savings
+  }
+
+  // Function to handle saving user data to Firestore
+  Future<void> _saveUserDataToFirestore() async {
+    // Show confirmation dialog before saving
+    bool confirmed = await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Confirmation"),
+          content: const Text("Are you sure want to save?"),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(false); // Return false when user clicks No
+              },
+              child: const Text("No"),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(true); // Return true when user clicks Yes
+              },
+              child: const Text("Yes"),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed != null && confirmed) {
+      try {
+        await FirebaseFirestore.instance.collection('one-time_plan').doc('user_data').set({
+          'one-time_deposit': _onceDeposit,
+          'interest_rate': _interestRate,
+        });
+        print("User data saved successfully!");
+      } catch (error) {
+        print("Failed to save user data: $error");
+      }
     }
   }
 
-  // Function to save investment data to shared preferences
-  Future<void> _saveInvestmentData() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setStringList('investmentData', _investmentData.map((e) => e.toString()).toList());
-  }
-
-  // Function to save the selected date, monthly deposit, and interest rate
-  void _saveData() {
-    // Save the selected date, monthly deposit, and interest rate
-    Map<String, dynamic> data = {
-      'Date': _selectedDate,
-      'Monthly Deposit': _monthlyDeposit,
-      'Interest Rate': _interestRate,
-    };
-    _savedData.add(data);
+  // Function to launch payment URL
+  void _launchPaymentUrl() async {
+    const url = 'https://flutterwave.com/pay/g3vpxdi0d3n8';
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      print('Could not launch $url');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('One-Time Plan'),
+        title: const Text('One-time Plan'),
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -76,9 +114,9 @@ class _OnceScreenState extends State<OnceScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 8), // Added a SizedBox to maintain spacing
+              const SizedBox(height: 16),
               const Text(
-                'One-Time Deposit:',
+                'One-time Deposit:',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
@@ -90,9 +128,8 @@ class _OnceScreenState extends State<OnceScreen> {
                 ),
                 onChanged: (value) {
                   setState(() {
-                    _monthlyDeposit = double.tryParse(value) ?? 0.0;
-                    _calculateInvestmentGrowth();
-                    _saveInvestmentData();
+                    _onceDeposit = double.tryParse(value) ?? 0.0;
+                    _calculateTotalSavings();
                   });
                 },
               ),
@@ -110,8 +147,7 @@ class _OnceScreenState extends State<OnceScreen> {
                       onChanged: (value) {
                         setState(() {
                           _interestRate = value!;
-                          _calculateInvestmentGrowth();
-                          _saveInvestmentData();
+                          _calculateTotalSavings();
                         });
                       },
                       items: const [
@@ -133,48 +169,60 @@ class _OnceScreenState extends State<OnceScreen> {
                 ],
               ),
               const SizedBox(height: 8),
-              Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () {
-                        _saveData();
-                        setState(() {
-                          // Clear the investment data to reflect the changes
-                          _investmentData.clear();
-                          // Recalculate investment growth after saving data
-                          _calculateInvestmentGrowth();
-                        });
-                      },
-                      child: const Text('Save'),
+              // Save button
+              ElevatedButton(
+                onPressed: () {
+                  // Save user data to Firestore
+                  _saveUserDataToFirestore();
+                },
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 12.0), // Adjust padding
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10), // Rounded edges
+                  ),
+                ),
+                child: const SizedBox(
+                  width: double.infinity, // Stretch horizontally to the edges of the screen
+                  child: Center(
+                    child: Text(
+                      'Save',
+                      style: TextStyle(fontSize: 16),
                     ),
                   ),
-                ],
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Investment Growth Over Time:',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                height: 100,
+                child: AnimatedProgressIndicator(totalSavings: _totalSavings),
               ),
               const SizedBox(height: 16),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Investment Growth Over Time:',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              // Payment button
+              ElevatedButton(
+                onPressed: _launchPaymentUrl,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10), // Rounded edges
                   ),
-                  const SizedBox(height: 8),
-                  Container(
-                    height: 300,
-                    child: _investmentData.isEmpty
-                        ? const Center(child: Text('No data available'))
-                        : ListView.builder(
-                            itemCount: _investmentData.length,
-                            itemBuilder: (context, index) {
-                              return ListTile(
-                                title: Text('Month ${index + 1}'),
-                                subtitle: Text('\$${_investmentData[index].toStringAsFixed(2)}'),
-                              );
-                            },
-                          ),
+                ),
+                child: const SizedBox(
+                  width: double.infinity, // Stretch horizontally to the edges of the screen
+                  child: Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: Center(
+                      child: Text(
+                        'Tap here to initiate saving payment',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
                   ),
-                ],
+                ),
               ),
             ],
           ),
@@ -184,3 +232,42 @@ class _OnceScreenState extends State<OnceScreen> {
   }
 }
 
+class AnimatedProgressIndicator extends StatelessWidget {
+  final double totalSavings;
+
+  const AnimatedProgressIndicator({Key? key, required this.totalSavings}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Stack(
+        children: [
+          Container(
+            height: 20,
+            decoration: BoxDecoration(
+              color: Colors.grey[300],
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 500),
+            width: MediaQuery.of(context).size.width * totalSavings / 1000,
+            height: 20,
+            decoration: BoxDecoration(
+              color: Colors.green,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Container(
+                width: 4, // Width of the vertical bar
+                color: Colors.white, // Color of the vertical bar
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

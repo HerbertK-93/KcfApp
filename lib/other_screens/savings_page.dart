@@ -1,215 +1,260 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-// ignore: must_be_immutable
-class SavingsPage extends StatefulWidget {
-  SavingsPage({
-    super.key,
-    required this.onSavingsInfoConfirmed,
-    required this.startDate,
-    required this.savingsAmount,
-    required this.endDate,
-    required this.interestRate,
-  });
-
-  final Function(double, DateTime, DateTime, double) onSavingsInfoConfirmed;
-  DateTime startDate;
-  final double savingsAmount;
-  DateTime endDate;
-  double interestRate;
-
+class MonthlyScreen extends StatefulWidget {
   @override
-  _SavingsPageState createState() => _SavingsPageState();
+  _MonthlyScreenState createState() => _MonthlyScreenState();
 }
 
-class _SavingsPageState extends State<SavingsPage> {
-  double amountToReturn = 0.0;
-  double savingsAmount = 0.0;
-
-  final TextEditingController _startDateController = TextEditingController();
-  final TextEditingController _endDateController = TextEditingController();
+class _MonthlyScreenState extends State<MonthlyScreen> {
+  late DateTime _selectedDate;
+  double _monthlyDeposit = 0.0;
+  double _interestRate = 0.1; // Default interest rate (10%)
+  double _totalSavings = 0.0; // Total savings accumulated over time
 
   @override
   void initState() {
     super.initState();
-    savingsAmount = widget.savingsAmount;
-    calculateAmountToReturn();
+    // Initialize selected date to the current date
+    _selectedDate = DateTime.now();
+    // Calculate total savings
+    _fetchDataAndUpdateUI();
   }
 
-  @override
-  void dispose() {
-    _startDateController.dispose();
-    _endDateController.dispose();
-    super.dispose();
+  // Function to fetch data from Firestore and update UI
+  void _fetchDataAndUpdateUI() async {
+    try {
+      // Fetch user's information from Firestore
+      final querySnapshot = await FirebaseFirestore.instance.collection('monthly_plan').get();
+      if (querySnapshot.docs.isNotEmpty) {
+        // Retrieve the first document (assuming there's only one document)
+        final userData = querySnapshot.docs.first.data() as Map<String, dynamic>;
+        setState(() {
+          // Update local variables with retrieved data
+          _selectedDate = userData['selected_date'].toDate();
+          _monthlyDeposit = userData['monthly_deposit'];
+          _interestRate = userData['interest_rate'];
+          // Calculate total savings based on retrieved data
+          _calculateTotalSavings();
+        });
+      }
+    } catch (error) {
+      // Handle errors
+      print("Failed to fetch data: $error");
+    }
+  }
+
+  // Function to update the selected date
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2101),
+    );
+    if (picked != null && picked != _selectedDate) {
+      setState(() {
+        _selectedDate = picked;
+        _calculateTotalSavings();
+      });
+    }
+  }
+
+  // Function to calculate the total savings over time
+  void _calculateTotalSavings() {
+    _totalSavings = 0.0; // Reset total savings
+    int numberOfMonths = _selectedDate.year * 12 + _selectedDate.month - (DateTime.now().year * 12 + DateTime.now().month);
+
+    double principal = 0.0; // Initial investment
+    for (int i = 0; i < numberOfMonths; i++) {
+      double interest = principal * _interestRate / 12;
+      principal += _monthlyDeposit + interest;
+      _totalSavings += principal;
+    }
+    setState(() {}); // Update UI after calculating total savings
+  }
+
+  // Function to handle saving
+  void _save() {
+    // Save user's information in Firestore
+    FirebaseFirestore.instance.collection('monthly_plan').add({
+      'selected_date': _selectedDate,
+      'monthly_deposit': _monthlyDeposit,
+      'interest_rate': _interestRate,
+    }).then((value) {
+      // If saved successfully, fetch updated data and update UI
+      _fetchDataAndUpdateUI();
+      print("Data saved successfully!");
+    }).catchError((error) {
+      // Handle errors
+      print("Failed to save data: $error");
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(60.0),
-        child: Container(
-          decoration: BoxDecoration(
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withOpacity(0.5),
-                spreadRadius: 2,
-                blurRadius: 5,
-                offset: const Offset(0, 3),
+      appBar: AppBar(
+        title: const Text('Monthly Plan'),
+      ),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Select Start Date:',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () => _selectDate(context),
+                      child: Text('Selected Date: ${_selectedDate.toString().split(' ')[0]}'),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Monthly Deposit:',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              TextFormField(
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  hintText: 'Enter monthly deposit amount',
+                  border: OutlineInputBorder(),
+                ),
+                onChanged: (value) {
+                  setState(() {
+                    _monthlyDeposit = double.tryParse(value) ?? 0.0;
+                    _calculateTotalSavings();
+                  });
+                },
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Interest Rate:',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: DropdownButton<double>(
+                      value: _interestRate,
+                      onChanged: (value) {
+                        setState(() {
+                          _interestRate = value!;
+                          _calculateTotalSavings();
+                        });
+                      },
+                      items: const [
+                        DropdownMenuItem(
+                          value: 0.1,
+                          child: Text('10%'),
+                        ),
+                        DropdownMenuItem(
+                          value: 0.15,
+                          child: Text('15%'),
+                        ),
+                        DropdownMenuItem(
+                          value: 0.2,
+                          child: Text('20%'),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              // Save button
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        _save();
+                        print("Save button pressed!");
+                      },
+                      child: Text('Save'),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Investment Growth Over Time:',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                height: 100,
+                child: AnimatedProgressIndicator(totalSavings: _totalSavings),
               ),
             ],
           ),
-          child: AppBar(
-            title: const Text('Savings'),
-          ),
-        ),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            TextField(
-              decoration: const InputDecoration(labelText: 'Savings Amount'),
-              keyboardType: TextInputType.number,
-              onChanged: (value) {
-                setState(() {
-                  savingsAmount = double.tryParse(value) ?? 0.0;
-                  calculateAmountToReturn();
-                });
-              },
-            ),
-            const SizedBox(height: 24),
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _startDateController,
-                    readOnly: true,
-                    decoration: const InputDecoration(
-                      labelText: 'Start Date',
-                      suffixIcon: Icon(Icons.calendar_today),
-                    ),
-                    onTap: () => _selectDate(true),
-                  ),
-                ),
-                const SizedBox(width: 24),
-                Expanded(
-                  child: TextField(
-                    controller: _endDateController,
-                    readOnly: true,
-                    decoration: const InputDecoration(
-                      labelText: 'End Date',
-                      suffixIcon: Icon(Icons.calendar_today),
-                    ),
-                    onTap: () => _selectDate(false),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-            DropdownButtonFormField<double>(
-              value: widget.interestRate,
-              onChanged: (value) {
-                setState(() {
-                  // Update the interest rate
-                  widget.interestRate = value ?? 0.0;
-                  calculateAmountToReturn();
-                });
-              },
-              decoration: const InputDecoration(labelText: 'Interest Rate (%)'),
-              items: [10.0, 15.0, 20.0].map((rate) {
-                return DropdownMenuItem<double>(
-                  value: rate,
-                  child: Text('$rate %'),
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: 24),
-            Text('Amount to Return: $amountToReturn'),
-            const SizedBox(height: 24),
-            Center(
-              child: ElevatedButton(
-                onPressed: () {
-                  // Confirm the loan information and proceed
-                  widget.onSavingsInfoConfirmed(savingsAmount, widget.startDate, widget.endDate, widget.interestRate);
-                  _showPaymentOptions();
-                },
-                child: const Text('Confirm Savings With Payment'),
-              ),
-            ),
-          ],
         ),
       ),
     );
   }
-
-  Future<void> _selectDate(bool isStartDate) async {
-    final DateTime? pickedDate = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime.now(),
-      lastDate: DateTime(2101),
-    );
-    if (pickedDate != null) {
-      setState(() {
-        if (isStartDate) {
-          // Update startDate and text field for start date
-          widget.startDate = pickedDate;
-          _startDateController.text = pickedDate.toString().substring(0, 10);
-        } else {
-          // Update endDate and text field for end date
-          widget.endDate = pickedDate;
-          _endDateController.text = pickedDate.toString().substring(0, 10);
-        }
-      });
-    }
-  }
-
-  void calculateAmountToReturn() {
-    setState(() {
-      amountToReturn = savingsAmount * (1 + widget.interestRate / 100);
-    });
-  }
-
-  void _showPaymentOptions() {
-  showModalBottomSheet(
-    context: context,
-    builder: (BuildContext context) {
-      return Container(
-        height: MediaQuery.of(context).size.height * 0.2, // Adjust the height as per your requirement
-        child: Center(
-          child: ListTile(
-            title: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                elevation: 6,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-              ),
-              onPressed: () async {
-                const url = 'https://flutterwave.com/pay/g3vpxdi0d3n8';
-                if (await canLaunch(url)) {
-                  await launch(url);
-                } else {
-                  print('Could not launch $url');
-                }
-                Navigator.pop(context);
-              },
-              child: const Text(
-                'Tap here to initiate payment',
-                style: TextStyle(color: Colors.white),
-              ),
-            ),
-          ),
-        ),
-      );
-    },
-    isScrollControlled: true,
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-    ),
-  );
 }
+
+class AnimatedProgressIndicator extends StatelessWidget {
+  final double totalSavings;
+
+  const AnimatedProgressIndicator({Key? key, required this.totalSavings}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final percentage = totalSavings > 0 ? totalSavings / 1000 : 0.0; // Normalize total savings to 1000 for percentage calculation
+
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Stack(
+        children: [
+          Container(
+            height: 20,
+            decoration: BoxDecoration(
+              color: Colors.grey[300],
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 500),
+            width: MediaQuery.of(context).size.width * percentage,
+            height: 20,
+            decoration: BoxDecoration(
+              color: Colors.green,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Container(
+                width: 4, // Width of the vertical bar
+                color: Colors.white, // Color of the vertical bar
+              ),
+            ),
+          ),
+          const Positioned.fill(
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 8.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('\$0'),
+                  Text('\$1000'),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

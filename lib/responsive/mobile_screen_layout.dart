@@ -127,30 +127,6 @@ class MobileScreenLayout extends StatelessWidget {
                 FlSpot(3, 250),
               ],
             ),
-            const SizedBox(height: 20),
-            // Graph for Funds Accumulation
-            const GraphWidget(
-              title: 'Funds Accumulation',
-              data: [
-                // Sample data for demonstration, replace with actual data
-                FlSpot(0, 500),
-                FlSpot(1, 600),
-                FlSpot(2, 700),
-                FlSpot(3, 800),
-              ],
-            ),
-            const SizedBox(height: 20),
-            // Graph for Future Projection
-            const GraphWidget(
-              title: 'Future Projection',
-              data: [
-                // Sample data for demonstration, replace with actual data
-                FlSpot(0, 1000),
-                FlSpot(1, 1100),
-                FlSpot(2, 1200),
-                FlSpot(3, 1300),
-              ],
-            ),
           ],
         ),
       ),
@@ -316,55 +292,59 @@ class ServiceCard extends StatelessWidget {
   }
 }
 
-
-
-
 class GraphWidget extends StatelessWidget {
   final String title;
   final List<FlSpot> data;
+  final double height; // New property for custom height
 
   const GraphWidget({
     required this.title,
     required this.data,
+    this.height = 400, // Increased height to 400
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            title,
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-          ),
-          AspectRatio(
-            aspectRatio: 2.0,
-            child: LineChart(
-              LineChartData(
-                titlesData: const FlTitlesData(
-                  // Remove titles from here
-                ),
-                borderData: FlBorderData(show: true),
-                gridData: const FlGridData(show: true),
-                lineBarsData: [
-                  LineChartBarData(
-                    spots: data,
-                    isCurved: true,
-                    color: Colors.blue,
-                    barWidth: 4,
-                    isStrokeCapRound: true,
-                    belowBarData: BarAreaData(
-                      show: true,
-                      color: Colors.blue,
+    return SizedBox(
+      height: height, // Set the height of the container
+      child: Padding(
+        padding: const EdgeInsets.all(8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              title,
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            Expanded(
+              child: AspectRatio(
+                aspectRatio: 2.0,
+                child: LineChart(
+                  LineChartData(
+                    titlesData: const FlTitlesData(
+                      // Remove titles from here
                     ),
+                    borderData: FlBorderData(show: true),
+                    gridData: const FlGridData(show: true),
+                    lineBarsData: [
+                      LineChartBarData(
+                        spots: data,
+                        isCurved: true,
+                        color: Colors.blue,
+                        barWidth: 4,
+                        isStrokeCapRound: true,
+                        belowBarData: BarAreaData(
+                          show: true,
+                          color: Colors.blue,
+                        ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
