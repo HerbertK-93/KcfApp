@@ -8,14 +8,15 @@ class OnceScreen extends StatefulWidget {
 }
 
 class _OnceScreenState extends State<OnceScreen> {
-  double _onceDeposit = 0.0;
-  double _interestRate = 0.1; // Default interest rate (10%)
+  TextEditingController _amountController = TextEditingController();
+  double _oneTimeAmount = 20.0; // Default one-time saving amount
+  double _interestRate = 0.12; // Fixed interest rate (12%)
   double _totalSavings = 0.0; // Total savings accumulated over time
 
   @override
   void initState() {
     super.initState();
-    // Fetch data from Firestore and update UI
+    // Calculate total savings
     _fetchDataAndUpdateUI();
   }
 
@@ -23,54 +24,56 @@ class _OnceScreenState extends State<OnceScreen> {
   void _fetchDataAndUpdateUI() async {
     try {
       // Fetch user's information from Firestore
-      final DocumentSnapshot documentSnapshot =
-          await FirebaseFirestore.instance.collection('one-time_plan').doc('user_data').get();
-      if (documentSnapshot.exists) {
-        final userData = documentSnapshot.data() as Map<String, dynamic>;
-        setState(() {
-          _onceDeposit = userData['one-time_deposit'];
-          _interestRate = userData['interest_rate'];
-          _calculateTotalSavings();
-        });
+      final querySnapshot =
+          await FirebaseFirestore.instance.collection('once_plan').get();
+      if (querySnapshot.docs.isNotEmpty) {
+        // Retrieve the first document (assuming there's only one document)
+        final userData = querySnapshot.docs.first.data();
+        if (userData != null && userData is Map<String, dynamic>) {
+          setState(() {
+            // Update local variables with retrieved data
+            _oneTimeAmount = userData['one_time_amount'] ?? 20.0; // Default amount option
+            _interestRate = userData['interest_rate'] ?? 0.12; // Default to 12%
+            // Calculate total savings based on retrieved data
+            _calculateTotalSavings();
+          });
+        } else {
+          print("Invalid user data format");
+        }
+      } else {
+        print("No documents found in collection");
       }
     } catch (error) {
+      // Handle errors
       print("Failed to fetch data: $error");
     }
   }
 
   // Function to calculate the total savings over time
   void _calculateTotalSavings() {
-    _totalSavings = 0.0; // Reset total savings
-    int numberOfDays = DateTime.now().difference(DateTime(2024, 5, 1)).inDays;
-
-    double principal = 0.0; // Initial investment
-    for (int i = 0; i < numberOfDays; i++) {
-      double interest = principal * _interestRate / 365;
-      principal += _onceDeposit + interest;
-      _totalSavings += principal;
-    }
+    _totalSavings = _oneTimeAmount * (1 + _interestRate);
     setState(() {}); // Update UI after calculating total savings
   }
 
-  // Function to handle saving user data to Firestore
-  Future<void> _saveUserDataToFirestore() async {
-    // Show confirmation dialog before saving
-    bool confirmed = await showDialog(
+  // Function to handle saving with confirmation dialog
+  void _saveWithConfirmation() {
+    showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text("Confirmation"),
-          content: const Text("Are you sure want to save?"),
-          actions: <Widget>[
+          title: const Text("Confirm"),
+          content: const Text("Are you sure you want to save?"),
+          actions: [
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(false); // Return false when user clicks No
+                Navigator.of(context).pop(); // Close the dialog
               },
               child: const Text("No"),
             ),
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(true); // Return true when user clicks Yes
+                Navigator.of(context).pop(); // Close the dialog
+                _save(); // Proceed with saving
               },
               child: const Text("Yes"),
             ),
@@ -78,18 +81,23 @@ class _OnceScreenState extends State<OnceScreen> {
         );
       },
     );
+  }
 
-    if (confirmed != null && confirmed) {
-      try {
-        await FirebaseFirestore.instance.collection('one-time_plan').doc('user_data').set({
-          'one-time_deposit': _onceDeposit,
-          'interest_rate': _interestRate,
-        });
-        print("User data saved successfully!");
-      } catch (error) {
-        print("Failed to save user data: $error");
-      }
-    }
+  // Function to handle saving
+  void _save() {
+    double enteredAmount = double.tryParse(_amountController.text) ?? 0.0;
+    // Save user's information in Firestore
+    FirebaseFirestore.instance.collection('once_plan').add({
+      'one_time_amount': enteredAmount,
+      'interest_rate': _interestRate,
+    }).then((value) {
+      // If saved successfully, fetch updated data and update UI
+      _fetchDataAndUpdateUI();
+      print("Data saved successfully!");
+    }).catchError((error) {
+      // Handle errors
+      print("Failed to save data: $error");
+    });
   }
 
   // Function to launch payment URL
@@ -106,7 +114,7 @@ class _OnceScreenState extends State<OnceScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('One-time Plan'),
+        title: const Text('One-Time Plan'), // Updated title
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -114,24 +122,18 @@ class _OnceScreenState extends State<OnceScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 16),
               const Text(
-                'One-time Deposit:',
+                'Enter Amount:',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
               TextFormField(
                 keyboardType: TextInputType.number,
                 decoration: const InputDecoration(
-                  hintText: 'Enter one-time deposit amount',
+                  labelText: 'Enter amount',
                   border: OutlineInputBorder(),
                 ),
-                onChanged: (value) {
-                  setState(() {
-                    _onceDeposit = double.tryParse(value) ?? 0.0;
-                    _calculateTotalSavings();
-                  });
-                },
+                controller: _amountController,
               ),
               const SizedBox(height: 16),
               const Text(
@@ -139,59 +141,40 @@ class _OnceScreenState extends State<OnceScreen> {
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
+              const Text(
+                '12%', // Fixed interest rate
+                style: TextStyle(fontSize: 16),
+              ),
+              const SizedBox(height: 16),
+              // Save button
               Row(
                 children: [
                   Expanded(
-                    child: DropdownButton<double>(
-                      value: _interestRate,
-                      onChanged: (value) {
-                        setState(() {
-                          _interestRate = value!;
-                          _calculateTotalSavings();
-                        });
+                    child: ElevatedButton(
+                      onPressed: () {
+                        _saveWithConfirmation();
+                        print("Save button pressed!");
                       },
-                      items: const [
-                        DropdownMenuItem(
-                          value: 0.1,
-                          child: Text('10%'),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 12.0),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
                         ),
-                        DropdownMenuItem(
-                          value: 0.15,
-                          child: Text('15%'),
+                      ),
+                      child: const SizedBox(
+                        width: double.infinity,
+                        child: Center(
+                          child: Text(
+                            'Review & Save',
+                            style: TextStyle(fontSize: 16),
+                          ),
                         ),
-                        DropdownMenuItem(
-                          value: 0.2,
-                          child: Text('20%'),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
-              // Save button
-              ElevatedButton(
-                onPressed: () {
-                  // Save user data to Firestore
-                  _saveUserDataToFirestore();
-                },
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 12.0), // Adjust padding
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10), // Rounded edges
-                  ),
-                ),
-                child: const SizedBox(
-                  width: double.infinity, // Stretch horizontally to the edges of the screen
-                  child: Center(
-                    child: Text(
-                      'Save',
-                      style: TextStyle(fontSize: 16),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 16),
               const Text(
                 'Investment Growth Over Time:',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -208,11 +191,11 @@ class _OnceScreenState extends State<OnceScreen> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10), // Rounded edges
+                    borderRadius: BorderRadius.circular(10),
                   ),
                 ),
                 child: const SizedBox(
-                  width: double.infinity, // Stretch horizontally to the edges of the screen
+                  width: double.infinity,
                   child: Padding(
                     padding: EdgeInsets.all(16.0),
                     child: Center(
@@ -235,7 +218,8 @@ class _OnceScreenState extends State<OnceScreen> {
 class AnimatedProgressIndicator extends StatelessWidget {
   final double totalSavings;
 
-  const AnimatedProgressIndicator({Key? key, required this.totalSavings}) : super(key: key);
+  const AnimatedProgressIndicator({Key? key, required this.totalSavings})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -252,7 +236,7 @@ class AnimatedProgressIndicator extends StatelessWidget {
           ),
           AnimatedContainer(
             duration: const Duration(milliseconds: 500),
-            width: MediaQuery.of(context).size.width * totalSavings / 1000,
+            width: MediaQuery.of(context).size.width * totalSavings / 10000,
             height: 20,
             decoration: BoxDecoration(
               color: Colors.green,
@@ -261,8 +245,20 @@ class AnimatedProgressIndicator extends StatelessWidget {
             child: Align(
               alignment: Alignment.centerLeft,
               child: Container(
-                width: 4, // Width of the vertical bar
-                color: Colors.white, // Color of the vertical bar
+                width: 4,
+                color: Colors.white,
+              ),
+            ),
+          ),
+          const Positioned.fill(
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 8.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('\$0'),
+                  Text('\$10000'),
+                ],
               ),
             ),
           ),

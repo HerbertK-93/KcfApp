@@ -10,8 +10,10 @@ class MonthlyScreen extends StatefulWidget {
 class _MonthlyScreenState extends State<MonthlyScreen> {
   late DateTime _selectedDate;
   double _monthlyDeposit = 0.0;
-  double _interestRate = 0.1; // Default interest rate (10%)
+  double _interestRate = 0.12; // Fixed interest rate (12%)
   double _totalSavings = 0.0; // Total savings accumulated over time
+  String _period = '6 months'; // Default period option
+  double _amount = 20; // Default amount option
 
   @override
   void initState() {
@@ -29,15 +31,23 @@ class _MonthlyScreenState extends State<MonthlyScreen> {
       final querySnapshot = await FirebaseFirestore.instance.collection('monthly_plan').get();
       if (querySnapshot.docs.isNotEmpty) {
         // Retrieve the first document (assuming there's only one document)
-        final userData = querySnapshot.docs.first.data() as Map<String, dynamic>;
-        setState(() {
-          // Update local variables with retrieved data
-          _selectedDate = userData['selected_date'].toDate();
-          _monthlyDeposit = userData['monthly_deposit'];
-          _interestRate = userData['interest_rate'];
-          // Calculate total savings based on retrieved data
-          _calculateTotalSavings();
-        });
+        final userData = querySnapshot.docs.first.data();
+        if (userData != null && userData is Map<String, dynamic>) {
+          setState(() {
+            // Update local variables with retrieved data
+            _selectedDate = (userData['selected_date'] as Timestamp).toDate();
+            _monthlyDeposit = userData['monthly_deposit'] ?? 0.0;
+            _interestRate = userData['interest_rate'] ?? 0.12; // Default to 12%
+            _period = userData['period'] ?? '6 months'; // Default period option
+            _amount = userData['amount'] ?? 20; // Default amount option
+            // Calculate total savings based on retrieved data
+            _calculateTotalSavings();
+          });
+        } else {
+          print("Invalid user data format");
+        }
+      } else {
+        print("No documents found in collection");
       }
     } catch (error) {
       // Handle errors
@@ -64,7 +74,9 @@ class _MonthlyScreenState extends State<MonthlyScreen> {
   // Function to calculate the total savings over time
   void _calculateTotalSavings() {
     _totalSavings = 0.0; // Reset total savings
-    int numberOfMonths = _selectedDate.year * 12 + _selectedDate.month - (DateTime.now().year * 12 + DateTime.now().month);
+    int numberOfMonths = _selectedDate.year * 12 +
+        _selectedDate.month -
+        (DateTime.now().year * 12 + DateTime.now().month);
 
     double principal = 0.0; // Initial investment
     for (int i = 0; i < numberOfMonths; i++) {
@@ -110,6 +122,8 @@ class _MonthlyScreenState extends State<MonthlyScreen> {
       'selected_date': _selectedDate,
       'monthly_deposit': _monthlyDeposit,
       'interest_rate': _interestRate,
+      'period': _period,
+      'amount': _amount,
     }).then((value) {
       // If saved successfully, fetch updated data and update UI
       _fetchDataAndUpdateUI();
@@ -152,33 +166,54 @@ class _MonthlyScreenState extends State<MonthlyScreen> {
                   Expanded(
                     child: ElevatedButton(
                       onPressed: () => _selectDate(context),
-                      child: Text('Selected Date: ${_selectedDate.toString().split(' ')[0]}'),
+                      child: Text(
+                          'Selected Date: ${_selectedDate.toString().split(' ')[0]}'),
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 16),
               const Text(
-                'Monthly Deposit:',
+                'Select Period:',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
-              TextFormField(
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  hintText: 'Enter monthly deposit amount',
-                  border: OutlineInputBorder(),
-                ),
-                onChanged: (value) {
-                  setState(() {
-                    _monthlyDeposit = double.tryParse(value) ?? 0.0;
-                    _calculateTotalSavings();
-                  });
-                },
+              Row(
+                children: [
+                  Expanded(
+                    child: DropdownButton<String>(
+                      value: _period,
+                      onChanged: (value) {
+                        setState(() {
+                          _period = value!;
+                          _calculateTotalSavings();
+                        });
+                      },
+                      items: const [
+                        DropdownMenuItem(
+                          value: '6 months',
+                          child: Text('6 months'),
+                        ),
+                        DropdownMenuItem(
+                          value: '1 year',
+                          child: Text('1 year'),
+                        ),
+                        DropdownMenuItem(
+                          value: '1.5 years',
+                          child: Text('1.5 years'),
+                        ),
+                        DropdownMenuItem(
+                          value: '2 years',
+                          child: Text('2 years'),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 16),
               const Text(
-                'Interest Rate:',
+                'Select Amount:',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
@@ -186,30 +221,40 @@ class _MonthlyScreenState extends State<MonthlyScreen> {
                 children: [
                   Expanded(
                     child: DropdownButton<double>(
-                      value: _interestRate,
+                      value: _amount,
                       onChanged: (value) {
                         setState(() {
-                          _interestRate = value!;
+                          _amount = value!;
                           _calculateTotalSavings();
                         });
                       },
                       items: const [
                         DropdownMenuItem(
-                          value: 0.1,
-                          child: Text('10%'),
+                          value: 20,
+                          child: Text('\$20 every month'),
                         ),
                         DropdownMenuItem(
-                          value: 0.15,
-                          child: Text('15%'),
+                          value: 50,
+                          child: Text('\$50 every month'),
                         ),
                         DropdownMenuItem(
-                          value: 0.2,
-                          child: Text('20%'),
+                          value: 100,
+                          child: Text('\$100 every month'),
                         ),
                       ],
                     ),
                   ),
                 ],
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Interest Rate:',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                '12%', // Fixed interest rate
+                style: TextStyle(fontSize: 16),
               ),
               const SizedBox(height: 16),
               // Save button
@@ -222,16 +267,16 @@ class _MonthlyScreenState extends State<MonthlyScreen> {
                         print("Save button pressed!");
                       },
                       style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 12.0), // Adjust padding
+                        padding: const EdgeInsets.symmetric(vertical: 12.0),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10), // Rounded edges
+                          borderRadius: BorderRadius.circular(10),
                         ),
                       ),
                       child: const SizedBox(
-                        width: double.infinity, // Stretch horizontally to the edges of the screen
+                        width: double.infinity,
                         child: Center(
                           child: Text(
-                            'Save',
+                            'Review & Save',
                             style: TextStyle(fontSize: 16),
                           ),
                         ),
@@ -257,11 +302,11 @@ class _MonthlyScreenState extends State<MonthlyScreen> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10), // Rounded edges
+                    borderRadius: BorderRadius.circular(10),
                   ),
                 ),
                 child: const SizedBox(
-                  width: double.infinity, // Stretch horizontally to the edges of the screen
+                  width: double.infinity,
                   child: Padding(
                     padding: EdgeInsets.all(16.0),
                     child: Center(
@@ -284,7 +329,8 @@ class _MonthlyScreenState extends State<MonthlyScreen> {
 class AnimatedProgressIndicator extends StatelessWidget {
   final double totalSavings;
 
-  const AnimatedProgressIndicator({Key? key, required this.totalSavings}) : super(key: key);
+  const AnimatedProgressIndicator({Key? key, required this.totalSavings})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -301,7 +347,7 @@ class AnimatedProgressIndicator extends StatelessWidget {
           ),
           AnimatedContainer(
             duration: const Duration(milliseconds: 500),
-            width: MediaQuery.of(context).size.width * totalSavings / 10000, // Adjusted value for totalSavings
+            width: MediaQuery.of(context).size.width * totalSavings / 10000,
             height: 20,
             decoration: BoxDecoration(
               color: Colors.green,
@@ -310,8 +356,8 @@ class AnimatedProgressIndicator extends StatelessWidget {
             child: Align(
               alignment: Alignment.centerLeft,
               child: Container(
-                width: 4, // Width of the vertical bar
-                color: Colors.white, // Color of the vertical bar
+                width: 4,
+                color: Colors.white,
               ),
             ),
           ),
@@ -322,7 +368,7 @@ class AnimatedProgressIndicator extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text('\$0'),
-                  Text('\$10000'), // Adjusted value for totalSavings
+                  Text('\$10000'),
                 ],
               ),
             ),
@@ -332,4 +378,3 @@ class AnimatedProgressIndicator extends StatelessWidget {
     );
   }
 }
-

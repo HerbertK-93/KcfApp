@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class WeeklyScreen extends StatefulWidget {
   @override
@@ -8,83 +8,82 @@ class WeeklyScreen extends StatefulWidget {
 }
 
 class _WeeklyScreenState extends State<WeeklyScreen> {
-  late String _selectedDay;
-  double _monthlyDeposit = 0.0;
-  double _interestRate = 0.1; // Default interest rate (10%)
-  List<double> _investmentData = []; // List to store investment growth data
-  List<Map<String, dynamic>> _savedData = []; // List to store saved data
-  List<String> _daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  List<String> _selectedDays = ['Monday']; // Default selected days
+  double _weeklyDeposit = 0.0;
+  double _interestRate = 0.12; // Fixed interest rate (12%)
+  double _totalSavings = 0.0; // Total savings accumulated over time
+  String _period = '6 months'; // Default period option
+  double _amount = 20; // Default amount option
 
   @override
   void initState() {
     super.initState();
-    // Initialize selected day to Monday
-    _selectedDay = _daysOfWeek[0];
-    // Load saved investment data
-    _loadInvestmentData();
-    // Initial calculation
-    _calculateInvestmentGrowth();
+    // Calculate total savings
+    _fetchDataAndUpdateUI();
   }
 
-  // Function to update the selected day
-  Future<void> _selectDay(BuildContext context) async {
-    await showModalBottomSheet(
-      context: context,
-      builder: (BuildContext context) {
-        return Container(
-          height: MediaQuery.of(context).size.height * 0.5, // Adjust height as needed
-          child: ListView.builder(
-            itemCount: _daysOfWeek.length,
-            itemBuilder: (context, index) {
-              return ListTile(
-                title: Text(_daysOfWeek[index]),
-                onTap: () {
-                  setState(() {
-                    _selectedDay = _daysOfWeek[index];
-                    _calculateInvestmentGrowth();
-                  });
-                  Navigator.pop(context);
-                },
-              );
-            },
-          ),
-        );
-      },
-    );
-  }
-
-  // Function to load investment data from Firestore
-  void _loadInvestmentData() {
-    // Assuming the collection in Firestore is named 'weekly_plan'
-    FirebaseFirestore.instance.collection('weekly_plan').get().then((querySnapshot) {
-      // Clear the investment data list before adding new data
-      _investmentData.clear();
-      // Iterate through the documents
-      querySnapshot.docs.forEach((doc) {
-        // Extract the investment amount from each document
-        dynamic investmentValue = doc.data()['investment'];
-        // Check if investmentValue is not null and is of type double
-        if (investmentValue != null && investmentValue is double) {
-          double investment = investmentValue;
-          // Add the investment amount to the list
-          _investmentData.add(investment);
+  // Function to fetch data from Firestore and update UI
+  void _fetchDataAndUpdateUI() async {
+    try {
+      // Fetch user's information from Firestore
+      final querySnapshot = await FirebaseFirestore.instance.collection('weekly_plan').get();
+      if (querySnapshot.docs.isNotEmpty) {
+        // Retrieve the first document (assuming there's only one document)
+        final userData = querySnapshot.docs.first.data();
+        if (userData != null && userData is Map<String, dynamic>) {
+          setState(() {
+            // Update local variables with retrieved data
+            _weeklyDeposit = userData['weekly_deposit'] ?? 0.0;
+            _interestRate = userData['interest_rate'] ?? 0.12; // Default to 12%
+            _period = userData['period'] ?? '6 months'; // Default period option
+            _amount = userData['amount'] ?? 20; // Default amount option
+            // Calculate total savings based on retrieved data
+            _calculateTotalSavings();
+          });
+        } else {
+          print("Invalid user data format");
         }
-      });
-      // After loading data, recalculate investment growth
-      _calculateInvestmentGrowth();
-    }).catchError((error) {
+      } else {
+        print("No documents found in collection");
+      }
+    } catch (error) {
       // Handle errors
-      print("Failed to load investment data: $error");
-    });
+      print("Failed to fetch data: $error");
+    }
   }
 
-  // Function to calculate investment growth (Simulated function)
-  void _calculateInvestmentGrowth() {
-    // Simulated function for calculating investment growth
+  // Function to calculate the total savings over time
+  void _calculateTotalSavings() {
+    _totalSavings = 0.0; // Reset total savings
+    int numberOfWeeks = _getNumberOfWeeks();
+
+    double principal = 0.0; // Initial investment
+    for (int i = 0; i < numberOfWeeks; i++) {
+      double interest = principal * _interestRate / 52; // Assuming 52 weeks in a year
+      principal += _weeklyDeposit + interest;
+      _totalSavings += principal;
+    }
+    setState(() {}); // Update UI after calculating total savings
+  }
+
+  // Function to get the number of weeks based on selected period
+  int _getNumberOfWeeks() {
+    switch (_period) {
+      case '6 months':
+        return 26 * 6; // Approximate number of weeks in 6 months
+      case '1 year':
+        return 52; // Number of weeks in a year
+      case '1.5 years':
+        return 78; // Approximate number of weeks in 1.5 years
+      case '2 years':
+        return 104; // Approximate number of weeks in 2 years
+      default:
+        return 0;
+    }
   }
 
   // Function to handle saving with confirmation dialog
-  void _saveWithConfirmationDialog() {
+  void _saveWithConfirmation() {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -111,16 +110,17 @@ class _WeeklyScreenState extends State<WeeklyScreen> {
     );
   }
 
-  // Function to handle saving (Simulated function)
+  // Function to handle saving
   void _save() {
-    // Save data to Firestore
+    // Save user's information in Firestore
     FirebaseFirestore.instance.collection('weekly_plan').add({
-      'selected_day': _selectedDay,
-      'monthly_deposit': _monthlyDeposit,
+      'weekly_deposit': _weeklyDeposit,
       'interest_rate': _interestRate,
+      'period': _period,
+      'amount': _amount,
     }).then((value) {
-      // If saved successfully, reload investment data
-      _loadInvestmentData();
+      // If saved successfully, fetch updated data and update UI
+      _fetchDataAndUpdateUI();
       print("Data saved successfully!");
     }).catchError((error) {
       // Handle errors
@@ -151,68 +151,64 @@ class _WeeklyScreenState extends State<WeeklyScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                'Select Start Day:',
+                'Select Day of the Week:',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
-              Row(
+              // Widget to select days of the week
+              Wrap(
+                spacing: 8.0,
                 children: [
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () => _selectDay(context),
-                      child: Text('Selected Day: $_selectedDay'),
+                  for (String day in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'])
+                    ChoiceChip(
+                      label: Text(day),
+                      selected: _selectedDays.contains(day),
+                      onSelected: (selected) {
+                        setState(() {
+                          if (selected) {
+                            _selectedDays.add(day);
+                          } else {
+                            _selectedDays.remove(day);
+                          }
+                          _calculateTotalSavings();
+                        });
+                      },
                     ),
-                  ),
                 ],
               ),
               const SizedBox(height: 16),
               const Text(
-                'Monthly Deposit:',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              TextFormField(
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  hintText: 'Enter monthly deposit amount',
-                  border: OutlineInputBorder(),
-                ),
-                onChanged: (value) {
-                  setState(() {
-                    _monthlyDeposit = double.tryParse(value) ?? 0.0;
-                    _calculateInvestmentGrowth();
-                  });
-                },
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Interest Rate:',
+                'Select Period:',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
               Row(
                 children: [
                   Expanded(
-                    child: DropdownButton<double>(
-                      value: _interestRate,
+                    child: DropdownButton<String>(
+                      value: _period,
                       onChanged: (value) {
                         setState(() {
-                          _interestRate = value!;
-                          _calculateInvestmentGrowth();
+                          _period = value!;
+                          _calculateTotalSavings();
                         });
                       },
                       items: const [
                         DropdownMenuItem(
-                          value: 0.1,
-                          child: Text('10%'),
+                          value: '6 months',
+                          child: Text('6 months'),
                         ),
                         DropdownMenuItem(
-                          value: 0.15,
-                          child: Text('15%'),
+                          value: '1 year',
+                          child: Text('1 year'),
                         ),
                         DropdownMenuItem(
-                          value: 0.2,
-                          child: Text('20%'),
+                          value: '1.5 years',
+                          child: Text('1.5 years'),
+                        ),
+                        DropdownMenuItem(
+                          value: '2 years',
+                          child: Text('2 years'),
                         ),
                       ],
                     ),
@@ -220,35 +216,79 @@ class _WeeklyScreenState extends State<WeeklyScreen> {
                 ],
               ),
               const SizedBox(height: 16),
+              const Text(
+                'Select Amount:',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: DropdownButton<double>(
+                      value: _amount,
+                      onChanged: (value) {
+                        setState(() {
+                          _amount = value!;
+                          _calculateTotalSavings();
+                        });
+                      },
+                      items: const [
+                        DropdownMenuItem(
+                          value: 20,
+                          child: Text('\$20 every week'),
+                        ),
+                        DropdownMenuItem(
+                          value: 50,
+                          child: Text('\$50 every week'),
+                        ),
+                        DropdownMenuItem(
+                          value: 100,
+                          child: Text('\$100 every week'),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Interest Rate:',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                '12%', // Fixed interest rate
+                style: TextStyle(fontSize: 16),
+              ),
+              const SizedBox(height: 16),
               // Save button
-Row(
-  children: [
-    Expanded(
-      child: ElevatedButton(
-        onPressed: () {
-          _saveWithConfirmationDialog();
-          print("Save button pressed!");
-        },
-        style: ElevatedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 12.0), // Adjust padding
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10), // Rounded edges
-          ),
-        ),
-        child: const SizedBox(
-          width: double.infinity, // Stretch horizontally to the edges of the screen
-          child: Center(
-            child: Text(
-              'Save',
-              style: TextStyle(fontSize: 16),
-            ),
-          ),
-        ),
-      ),
-    ),
-  ],
-),
-
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        _saveWithConfirmation();
+                        print("Save button pressed!");
+                      },
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 12.0),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: const SizedBox(
+                        width: double.infinity,
+                        child: Center(
+                          child: Text(
+                            'Review & Save',
+                            style: TextStyle(fontSize: 16),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
               const SizedBox(height: 16),
               const Text(
                 'Investment Growth Over Time:',
@@ -257,32 +297,31 @@ Row(
               const SizedBox(height: 8),
               Container(
                 height: 100,
-                child: AnimatedProgressIndicator(totalSavings: _investmentData),
+                child: AnimatedProgressIndicator(totalSavings: _totalSavings),
               ),
               const SizedBox(height: 16),
               // Payment button
               ElevatedButton(
-  onPressed: _launchPaymentUrl,
-  style: ElevatedButton.styleFrom(
-    backgroundColor: Colors.blue,
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(10), // Rounded edges
-    ),
-  ),
-  child: const SizedBox(
-    width: double.infinity, // Stretch horizontally to the edges of the screen
-    child: Padding(
-      padding: EdgeInsets.all(16.0),
-      child: Center(
-        child: Text(
-          'Tap here to initiate saving payment',
-          style: TextStyle(color: Colors.white),
-        ),
-      ),
-    ),
-  ),
-),
-
+                onPressed: _launchPaymentUrl,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                child: const SizedBox(
+                  width: double.infinity,
+                  child: Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: Center(
+                      child: Text(
+                        'Tap here to initiate saving payment',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             ],
           ),
         ),
@@ -292,13 +331,13 @@ Row(
 }
 
 class AnimatedProgressIndicator extends StatelessWidget {
-  final List<double> totalSavings;
+  final double totalSavings;
 
-  const AnimatedProgressIndicator({Key? key, required this.totalSavings}) : super(key: key);
+  const AnimatedProgressIndicator({Key? key, required this.totalSavings})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    double maxTotalSavings = totalSavings.isNotEmpty ? totalSavings.reduce((a, b) => a > b ? a : b) : 0.0;
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Stack(
@@ -312,7 +351,7 @@ class AnimatedProgressIndicator extends StatelessWidget {
           ),
           AnimatedContainer(
             duration: const Duration(milliseconds: 500),
-            width: maxTotalSavings * MediaQuery.of(context).size.width / 1000,
+            width: MediaQuery.of(context).size.width * totalSavings / 10000,
             height: 20,
             decoration: BoxDecoration(
               color: Colors.green,
@@ -321,8 +360,8 @@ class AnimatedProgressIndicator extends StatelessWidget {
             child: Align(
               alignment: Alignment.centerLeft,
               child: Container(
-                width: 4, // Width of the vertical bar
-                color: Colors.white, // Color of the vertical bar
+                width: 4,
+                color: Colors.white,
               ),
             ),
           ),
@@ -333,7 +372,7 @@ class AnimatedProgressIndicator extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text('\$0'),
-                  Text('\$1000'),
+                  Text('\$10000'),
                 ],
               ),
             ),
