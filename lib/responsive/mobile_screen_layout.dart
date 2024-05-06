@@ -8,6 +8,14 @@ import 'package:kings_cogent/screens/profile_screen.dart';
 import 'package:kings_cogent/widgets/sidebar.dart';
 import 'package:fl_chart/fl_chart.dart';
 
+class SavingPlan {
+  double amount;
+  String frequency;
+  double expectedReturns;
+
+  SavingPlan({required this.amount, required this.frequency, required this.expectedReturns});
+}
+
 class MobileScreenLayout extends StatelessWidget {
   const MobileScreenLayout({Key? key});
 
@@ -46,7 +54,7 @@ class MobileScreenLayout extends StatelessWidget {
           children: [
             const Padding(
               padding: EdgeInsets.fromLTRB(
-                  16, 1, 0, 1), // Moved "Our Services" to the left
+                  16, 1, 0, 1),
               child: Text(
                 'Saving plans',
                 style: TextStyle(
@@ -60,8 +68,8 @@ class MobileScreenLayout extends StatelessWidget {
               physics: const NeverScrollableScrollPhysics(),
               shrinkWrap: true,
               crossAxisCount: 2,
-              crossAxisSpacing: 10, // Horizontal spacing between tiles
-              mainAxisSpacing: 15, // Vertical spacing between tiles
+              crossAxisSpacing: 10,
+              mainAxisSpacing: 15,
               padding: const EdgeInsets.all(8),
               childAspectRatio: 1.4,
               children: [
@@ -119,13 +127,8 @@ class MobileScreenLayout extends StatelessWidget {
             // Graph for Savings Progress
             const GraphWidget(
               title: 'Savings Progress',
-              data: [
-                // Sample data for demonstration, replace with actual data
-                FlSpot(0, 100),
-                FlSpot(1, 150),
-                FlSpot(2, 200),
-                FlSpot(3, 250),
-              ],
+              savingsProgress: 100, // Sample value for Savings Progress
+              expectedReturns: 150, // Sample value for Expected Returns
             ),
           ],
         ),
@@ -227,7 +230,6 @@ class ServiceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Define a boolean to check if the title is "Monthly", "Weekly", "Daily", or "Once"
     bool isBlueIcon = title == 'Monthly' || title == 'Weekly' || title == 'Daily' || title == 'Once';
 
     return InkWell(
@@ -235,7 +237,7 @@ class ServiceCard extends StatelessWidget {
       child: Card(
         elevation: 4,
         child: Container(
-          height: 60, // Adjust this value to control the height directly
+          height: 60,
           child: Stack(
             alignment: Alignment.center,
             children: [
@@ -262,7 +264,6 @@ class ServiceCard extends StatelessWidget {
                   ),
                 ],
               ),
-              // Display a recommended tag if the title is "Monthly"
               if (isBlueIcon && title == 'Monthly')
                 Positioned(
                   top: 0,
@@ -292,22 +293,21 @@ class ServiceCard extends StatelessWidget {
   }
 }
 
-
 class GraphWidget extends StatelessWidget {
   final String title;
-  final List<FlSpot> data;
-  final double height; // New property for custom height
+  final double savingsProgress;
+  final double expectedReturns;
 
   const GraphWidget({
     required this.title,
-    required this.data,
-    this.height = 400, // Increased height to 400
+    required this.savingsProgress,
+    required this.expectedReturns,
   });
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: height, // Set the height of the container
+      height: 400,
       child: Padding(
         padding: const EdgeInsets.all(8),
         child: Column(
@@ -318,31 +318,46 @@ class GraphWidget extends StatelessWidget {
               style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             Expanded(
-              child: AspectRatio(
-                aspectRatio: 2.0,
-                child: LineChart(
-                  LineChartData(
-                    titlesData: const FlTitlesData(
-                      // Remove titles from here
+              child: PieChart(
+                PieChartData(
+                  sections: [
+                    PieChartSectionData(
+                      value: savingsProgress,
+                      title: '\$${savingsProgress.toInt()}',
+                      color: Colors.red, // Color for Savings Progress
                     ),
-                    borderData: FlBorderData(show: true),
-                    gridData: const FlGridData(show: true),
-                    lineBarsData: [
-                      LineChartBarData(
-                        spots: data,
-                        isCurved: true,
-                        color: Colors.blue,
-                        barWidth: 4,
-                        isStrokeCapRound: true,
-                        belowBarData: BarAreaData(
-                          show: true,
-                          color: Colors.blue,
-                        ),
-                      ),
-                    ],
-                  ),
+                    PieChartSectionData(
+                      value: expectedReturns,
+                      title: '\$${expectedReturns.toInt()}',
+                      color: Colors.blue, // Color for Expected Returns
+                    ),
+                  ],
+                  centerSpaceRadius: 100,
+                  sectionsSpace: 0,
+                  startDegreeOffset: 200,
                 ),
               ),
+            ),
+            // Key for representing the colors
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  margin: const EdgeInsets.only(right: 10),
+                  width: 20,
+                  height: 20,
+                  color: Colors.red,
+                ),
+                const Text('Progress'),
+                const SizedBox(width: 20),
+                Container(
+                  margin: const EdgeInsets.only(right: 10),
+                  width: 20,
+                  height: 20,
+                  color: Colors.blue,
+                ),
+                const Text('Returns'),
+              ],
             ),
           ],
         ),
