@@ -286,16 +286,6 @@ class _MonthlyScreenState extends State<MonthlyScreen> {
                 ],
               ),
               const SizedBox(height: 16),
-              const Text(
-                'Investment Growth Over Time:',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              Container(
-                height: 100,
-                child: AnimatedProgressIndicator(totalSavings: _totalSavings),
-              ),
-              const SizedBox(height: 16),
               // Payment button
               ElevatedButton(
                 onPressed: _launchPaymentUrl,
@@ -321,59 +311,6 @@ class _MonthlyScreenState extends State<MonthlyScreen> {
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class AnimatedProgressIndicator extends StatelessWidget {
-  final double totalSavings;
-
-  const AnimatedProgressIndicator({Key? key, required this.totalSavings})
-      : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Stack(
-        children: [
-          Container(
-            height: 20,
-            decoration: BoxDecoration(
-              color: Colors.grey[300],
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 500),
-            width: MediaQuery.of(context).size.width * totalSavings / 10000,
-            height: 20,
-            decoration: BoxDecoration(
-              color: Colors.green,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Container(
-                width: 4,
-                color: Colors.white,
-              ),
-            ),
-          ),
-          const Positioned.fill(
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 8.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('\$0'),
-                  Text('\$10000'),
-                ],
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }
