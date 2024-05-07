@@ -13,7 +13,11 @@ class SavingPlan {
   String frequency;
   double expectedReturns;
 
-  SavingPlan({required this.amount, required this.frequency, required this.expectedReturns});
+  SavingPlan({
+    required this.amount,
+    required this.frequency,
+    required this.expectedReturns,
+  });
 }
 
 class MobileScreenLayout extends StatelessWidget {
@@ -49,84 +53,76 @@ class MobileScreenLayout extends StatelessWidget {
       ),
       drawer: const SideBar(),
       body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 16), // Added horizontal padding
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const Padding(
-              padding: EdgeInsets.fromLTRB(
-                  16, 1, 0, 1),
+              padding: EdgeInsets.fromLTRB(0, 16, 0, 8), // Adjusted top and bottom padding
               child: Text(
-                'Saving plans',
+                'Saving Plan',
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
                 ),
               ),
             ),
-            const SizedBox(height: 8),
-            GridView.count(
-              physics: const NeverScrollableScrollPhysics(),
-              shrinkWrap: true,
-              crossAxisCount: 2,
-              crossAxisSpacing: 10,
-              mainAxisSpacing: 15,
-              padding: const EdgeInsets.all(8),
-              childAspectRatio: 1.4,
-              children: [
-                ServiceCard(
-                  title: 'Monthly',
-                  icon: Icons.calendar_today_outlined,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => MonthlyScreen(),
-                      ),
-                    );
-                  },
-                ),
-                ServiceCard(
-                  title: 'Weekly',
-                  icon: Icons.calendar_view_week_outlined,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => WeeklyScreen(),
-                      ),
-                    );
-                  },
-                ),
-                ServiceCard(
-                  title: 'Daily',
-                  icon: Icons.today_outlined,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => DailyScreen(),
-                      ),
-                    );
-                  },
-                ),
-                ServiceCard(
-                  title: 'Once',
-                  icon: Icons.calendar_view_day_outlined,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => OnceScreen(),
-                      ),
-                    );
-                  },
-                ),
-              ],
+            const SizedBox(height: 4),
+            ServiceCard(
+              title: 'Monthly',
+              icon: Icons.calendar_today_outlined,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => MonthlyScreen(),
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 4),
+            ServiceCard(
+              title: 'Weekly',
+              icon: Icons.calendar_view_week_outlined,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => WeeklyScreen(),
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 4),
+            ServiceCard(
+              title: 'Daily',
+              icon: Icons.today_outlined,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => DailyScreen(),
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 4),
+            ServiceCard(
+              title: 'Once',
+              icon: Icons.calendar_view_day_outlined,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => OnceScreen(),
+                  ),
+                );
+              },
             ),
             const SizedBox(height: 20),
             // Graph for Savings Progress
             const GraphWidget(
-              title: 'Savings Progress',
+              title: 'Saving Progress',
               savingsProgress: 100, // Sample value for Savings Progress
               expectedReturns: 150, // Sample value for Expected Returns
             ),
@@ -211,6 +207,9 @@ class MobileScreenLayout extends StatelessWidget {
         backgroundColor: Colors.purple.shade200,
         elevation: 20,
         child: const Icon(Icons.chat_bubble),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20), // Rounded shape
+        ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
@@ -230,64 +229,24 @@ class ServiceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    bool isBlueIcon = title == 'Monthly' || title == 'Weekly' || title == 'Daily' || title == 'Once';
-
-    return InkWell(
-      onTap: onTap,
-      child: Card(
-        elevation: 4,
-        child: Container(
-          height: 60,
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    icon,
-                    size: 30,
-                    color: isBlueIcon ? Colors.blue : Theme.of(context).iconTheme.color,
-                  ),
-                  const SizedBox(height: 4),
-                  Padding(
-                    padding: const EdgeInsets.all(4.0),
-                    child: Text(
-                      title,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 18.0,
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).textTheme.bodyText1!.color,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              if (isBlueIcon && title == 'Monthly')
-                Positioned(
-                  top: 0,
-                  left: 0,
-                  right: 100,
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: Colors.green,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Text(
-                      'Recommended',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 8,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-            ],
+    return Card(
+      elevation: 4,
+      child: ListTile(
+        leading: Icon(
+          icon,
+          size: 30,
+          color: Colors.blue,
+        ),
+        title: Text(
+          title,
+          style: TextStyle(
+            fontSize: 18.0,
+            fontWeight: FontWeight.bold,
+            color: Theme.of(context).textTheme.bodyText1!.color,
           ),
         ),
+        trailing: const Icon(Icons.arrow_forward_ios_rounded),
+        onTap: onTap,
       ),
     );
   }
@@ -315,7 +274,7 @@ class GraphWidget extends StatelessWidget {
           children: [
             Text(
               title,
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             Expanded(
               child: PieChart(
@@ -324,12 +283,12 @@ class GraphWidget extends StatelessWidget {
                     PieChartSectionData(
                       value: savingsProgress,
                       title: '\$${savingsProgress.toInt()}',
-                      color: Colors.red, // Color for Savings Progress
+                      color: Colors.red,
                     ),
                     PieChartSectionData(
                       value: expectedReturns,
                       title: '\$${expectedReturns.toInt()}',
-                      color: Colors.blue, // Color for Expected Returns
+                      color: Colors.blue,
                     ),
                   ],
                   centerSpaceRadius: 100,
