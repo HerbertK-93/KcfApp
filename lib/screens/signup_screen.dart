@@ -1,3 +1,5 @@
+// ignore_for_file: prefer_const_constructors
+
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -9,7 +11,7 @@ import 'package:kings_cogent/widgets/text_field_layout.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SignupScreen extends StatefulWidget {
-  const SignupScreen({super.key});
+  const SignupScreen({Key? key}) : super(key: key);
 
   @override
   _SignupScreenState createState() => _SignupScreenState();
@@ -22,6 +24,7 @@ class _SignupScreenState extends State<SignupScreen> {
   final TextEditingController _usernameController = TextEditingController();
   Uint8List? _image;
   bool _isLoading = false;
+  bool _obscurePassword = true; // To toggle password visibility
 
   @override
   void dispose() {
@@ -151,13 +154,39 @@ class _SignupScreenState extends State<SignupScreen> {
                 ),
                 const SizedBox(height: 24),
                 // Password TextField
-                TextFieldInput(
-                  hintText: 'Enter your password',
-                  textInputType: TextInputType.text,
-                  textEditingController: _passwordController,
-                  isPass: true,
+                TextField(
+                  controller: _passwordController,
+                  decoration: InputDecoration(
+                    hintText: 'Enter your password',
+                    border: const OutlineInputBorder(),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscurePassword
+                            ? Icons.visibility
+                            : Icons.visibility_off,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _obscurePassword = !_obscurePassword;
+                        });
+                      },
+                    ),
+                  ),
+                  keyboardType: TextInputType.text,
+                  obscureText: _obscurePassword,
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: const [
+                    Text(
+                      'Password must have more than six characters',
+                      style: TextStyle(color: Colors.red),
+                    ),
+                    SizedBox(width: 8), // Spacer
+                  ],
+                ),
+                const SizedBox(height: 12),
                 // bio
                 TextFieldInput(
                   hintText: 'Enter your bio',
@@ -166,26 +195,34 @@ class _SignupScreenState extends State<SignupScreen> {
                 ),
                 const SizedBox(height: 24),
                 // Sign Up Button
-                InkWell(
-                  onTap: signUpUser,
-                  child: Container(
-                    width: double.infinity,
-                    alignment: Alignment.center,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(4),
-                      color: Colors.amberAccent,
+                Column(
+                  children: [
+                    InkWell(
+                      onTap: signUpUser,
+                      child: Container(
+                        width: double.infinity,
+                        alignment: Alignment.center,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(4),
+                          color: Colors.amberAccent,
+                        ),
+                        child: _isLoading
+                            ? const Center(
+                                child: CircularProgressIndicator(
+                                  color: Colors.black, // Set color to black
+                                ),
+                              )
+                            : const Text('Sign Up'),
+                      ),
                     ),
-                    child: _isLoading
-                        ? const Center(
-                            child: CircularProgressIndicator(
-                              color: Colors.black, // Set color to black
-                            ),
-                          )
-                        : const Text('Sign Up'),
-                  ),
+                    const SizedBox(height: 12),
+                    const Text(
+                      'Please enter all fields to be able to sign up',
+                      style: TextStyle(color: Colors.red),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 12),
               ],
             ),
           ),

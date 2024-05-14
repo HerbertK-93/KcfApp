@@ -8,7 +8,7 @@ import 'package:kings_cogent/utils/utils.dart';
 import 'package:kings_cogent/widgets/text_field_layout.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  const LoginScreen({Key? key}) : super(key: key);
 
   @override
   _LoginScreenState createState() => _LoginScreenState();
@@ -18,6 +18,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
+  bool _obscurePassword = true; // To toggle password visibility
 
   @override
   void dispose() {
@@ -89,11 +90,26 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 24),
               // Password TextField
-              TextFieldInput(
-                hintText: 'Enter your password',
-                textInputType: TextInputType.text,
-                textEditingController: _passwordController,
-                isPass: true,
+              TextField(
+                controller: _passwordController,
+                decoration: InputDecoration(
+                  hintText: 'Enter your password',
+                  border: const OutlineInputBorder(),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscurePassword
+                          ? Icons.visibility
+                          : Icons.visibility_off,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _obscurePassword = !_obscurePassword;
+                      });
+                    },
+                  ),
+                ),
+                keyboardType: TextInputType.text,
+                obscureText: _obscurePassword,
               ),
               const SizedBox(height: 24),
               // Login Button
