@@ -1,3 +1,5 @@
+// ignore_for_file: prefer_const_constructors
+
 import 'package:flutter/material.dart';
 import 'package:kings_cogent/screens/daily_screen.dart';
 import 'package:kings_cogent/screens/monthly_screen.dart';
@@ -79,6 +81,7 @@ class MobileScreenLayout extends StatelessWidget {
                   ),
                 );
               },
+              isRecommended: true, // Added this line for the recommended tag
             ),
             const SizedBox(height: 4),
             ServiceCard(
@@ -220,11 +223,13 @@ class ServiceCard extends StatelessWidget {
   final String title;
   final IconData icon;
   final VoidCallback onTap;
+  final bool isRecommended;
 
   const ServiceCard({
     required this.title,
     required this.icon,
     required this.onTap,
+    this.isRecommended = false,
   });
 
   @override
@@ -237,15 +242,36 @@ class ServiceCard extends StatelessWidget {
           size: 30,
           color: Colors.blue,
         ),
-        title: Text(
-          title,
-          style: TextStyle(
-            fontSize: 18.0,
-            fontWeight: FontWeight.bold,
-            color: Theme.of(context).textTheme.bodyText1!.color,
-          ),
+        title: Row(
+          children: [
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 18.0,
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).textTheme.bodyText1!.color,
+              ),
+            ),
+            if (isRecommended)
+              Container(
+                margin: const EdgeInsets.only(left: 70),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.green,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: const Text(
+                  'Recommended',
+                  style: TextStyle(
+                    fontSize: 8,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+          ],
         ),
-        trailing: const Icon(Icons.arrow_forward_ios_rounded),
+        trailing: Icon(Icons.arrow_forward_ios_rounded, size: 20, color: Colors.grey), // Adjusted size and color
         onTap: onTap,
       ),
     );
