@@ -65,6 +65,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    print('Building ProfileScreen...');
     final appBarTextColor = Theme.of(context).brightness == Brightness.dark
         ? Colors.white
         : Colors.black;
@@ -97,6 +98,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           }
 
           final userData = snapshot.data;
+          print('User Data Available: ${userData != null}');
           return SingleChildScrollView(
             padding: const EdgeInsets.all(20.0),
             child: Column(
