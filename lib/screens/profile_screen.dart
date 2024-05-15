@@ -37,11 +37,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _updateUserProfile() {
-  _userMethods.getUserProfile().then((user) {
-    _userStreamController.add(user);
-  });
-}
-
+    _userMethods.getUserProfile().then((user) {
+      _userStreamController.add(user);
+    });
+  }
 
   Future<void> _calculateCurrentBalance() async {
     double monthlySavings = await _sharedPrefs.getMonthlySavings() ?? 0.0;
@@ -50,7 +49,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     double oneTimeSavings = await _sharedPrefs.getOneTimeSavings() ?? 0.0;
 
     setState(() {
-      _currentBalance = monthlySavings + weeklySavings + dailySavings + oneTimeSavings;
+      _currentBalance =
+          monthlySavings + weeklySavings + dailySavings + oneTimeSavings;
     });
   }
 
@@ -102,77 +102,63 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Card(
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 40.0, horizontal: 20.0),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).cardColor,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Row(
-                      children: [
-                        ClipOval(
-                          child: CachedNetworkImage(
-                            imageUrl: userData?.photoUrl ?? '',
-                            width: 100,
-                            height: 100,
-                            fit: BoxFit.cover,
-                            placeholder: (context, url) =>
-                                const Icon(Icons.person, size: 100), // Placeholder Icon
-                            errorWidget: (context, url, error) =>
-                                const Icon(Icons.error),
-                          ),
-                        ),
-                        const SizedBox(width: 20),
-                        Column(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Hello,',
-                              style: TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            Text(
-                              userData?.username ?? '',
-                              style: const TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
+                Center(
+                  child: ClipOval(
+                    child: CachedNetworkImage(
+                      imageUrl: userData?.photoUrl ?? '',
+                      width: 100,
+                      height: 100,
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) =>
+                          const Icon(Icons.person, size: 100), // Placeholder Icon
+                      errorWidget: (context, url, error) =>
+                          const Icon(Icons.error),
                     ),
                   ),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 15),
+                Padding(
+                  padding: const EdgeInsets.only(left: 3),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Hello,',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        userData?.username ?? '',
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 5),
                 const Divider(),
-                _buildProfileField('Email', userData?.email ?? '', context),
+                _buildProfileField(
+                    'Email', userData?.email ?? '', context),
                 const Divider(),
                 _buildProfileField('Bio', userData?.bio ?? '', context),
                 const SizedBox(height: 20),
                 Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 20), // Adjust margin for stretching to screen edges
+                  margin: const EdgeInsets.symmetric(horizontal: 20),
                   child: Card(
-                    elevation: 4, // Add elevation for shadow effect
+                    elevation: 4,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Container(
-                      width: double.infinity, // Ensure the container stretches horizontally
+                      width: double.infinity,
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(10),
-                        color: Theme.of(context).cardColor, // Use the system theme's card color
+                        color: Theme.of(context).cardColor,
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -182,16 +168,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             style: TextStyle(
                               fontSize: 23,
                               fontWeight: FontWeight.bold,
-                              color: Theme.of(context).textTheme.bodyText1!.color, // Use the system theme's text color
+                              color: Theme.of(context)
+                                  .textTheme
+                                  .bodyText1!
+                                  .color,
                             ),
                           ),
                           const SizedBox(height: 25),
-                          Center( // Center the text horizontally
+                          Center(
                             child: Text(
-                              '\$$_currentBalance', // Display actual balance
+                              '\$$_currentBalance',
                               style: TextStyle(
                                 fontSize: 20,
-                                color: Theme.of(context).textTheme.bodyText2!.color, // Use the system theme's secondary text color
+                                color: Theme.of(context)
+                                    .textTheme
+                                    .bodyText2!
+                                    .color,
                               ),
                             ),
                           ),
@@ -203,11 +195,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ],
             ),
           );
-        }),
+        },
+      ),
     );
   }
 
-  Widget _buildProfileField(String label, String value, BuildContext context) {
+  Widget _buildProfileField(
+      String label, String value, BuildContext context) {
     final textColor = Theme.of(context).textTheme.bodyText1!.color;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

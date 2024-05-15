@@ -83,10 +83,16 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 24),
               // Email TextField
-              TextFieldInput(
-                hintText: 'Enter your email',
-                textInputType: TextInputType.emailAddress,
-                textEditingController: _emailController,
+              TextField(
+                controller: _emailController,
+                decoration: const InputDecoration(
+                  hintText: 'Enter your email',
+                  border: OutlineInputBorder(),
+                  suffixIcon: Icon(
+                    Icons.email,
+                  ),
+                ),
+                keyboardType: TextInputType.emailAddress,
               ),
               const SizedBox(height: 24),
               // Password TextField
@@ -113,23 +119,25 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 24),
               // Login Button
-              InkWell(
-                onTap: loginUser,
-                child: Container(
-                  width: double.infinity,
-                  alignment: Alignment.center,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(4),
-                    color: Colors.amberAccent,
+              SizedBox( // Wrap InkWell with SizedBox
+                width: double.infinity,
+                height: 48, // Set fixed height for the button
+                child: InkWell(
+                  onTap: loginUser,
+                  child: Container(
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(4),
+                      color: Colors.amberAccent,
+                    ),
+                    child: _isLoading
+                        ? const Center(
+                            child: CircularProgressIndicator(
+                              color: Colors.black,
+                            ),
+                          )
+                        : const Text('Log in'),
                   ),
-                  child: _isLoading
-                      ? const Center(
-                          child: CircularProgressIndicator(
-                            color: Colors.black,
-                          ),
-                        )
-                      : const Text('Log in'),
                 ),
               ),
               const SizedBox(height: 12),

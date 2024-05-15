@@ -1,5 +1,3 @@
-// ignore_for_file: prefer_const_constructors
-
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -140,17 +138,23 @@ class _SignupScreenState extends State<SignupScreen> {
                   height: 24,
                 ),
                 // username
-                TextFieldInput(
-                  hintText: 'Enter your username',
-                  textInputType: TextInputType.text,
-                  textEditingController: _usernameController,
+                TextField(
+                  controller: _usernameController,
+                  decoration: const InputDecoration(
+                    hintText: 'Enter your username',
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.text,
                 ),
                 const SizedBox(height: 24),
                 // Email TextField
-                TextFieldInput(
-                  hintText: 'Enter your email',
-                  textInputType: TextInputType.emailAddress,
-                  textEditingController: _emailController,
+                TextField(
+                  controller: _emailController,
+                  decoration: const InputDecoration(
+                    hintText: 'Enter your email',
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.emailAddress,
                 ),
                 const SizedBox(height: 24),
                 // Password TextField
@@ -175,23 +179,27 @@ class _SignupScreenState extends State<SignupScreen> {
                   keyboardType: TextInputType.text,
                   obscureText: _obscurePassword,
                 ),
-                const SizedBox(height: 12),
-                Row(
+                const SizedBox(height: 8),
+                // Text widget with adjusted style
+                const Row(
                   mainAxisAlignment: MainAxisAlignment.end,
-                  children: const [
+                  children: [
                     Text(
                       'Password must have more than six characters',
-                      style: TextStyle(color: Colors.red),
+                      style: TextStyle(color: Colors.red, fontSize: 10), // Adjusted font size to 12
                     ),
-                    SizedBox(width: 8), // Spacer
+                    SizedBox(width: 3), // Spacer
                   ],
                 ),
                 const SizedBox(height: 12),
                 // bio
-                TextFieldInput(
-                  hintText: 'Enter your bio',
-                  textInputType: TextInputType.text,
-                  textEditingController: _bioController,
+                TextField(
+                  controller: _bioController,
+                  decoration: const InputDecoration(
+                    hintText: 'Enter your bio',
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.text,
                 ),
                 const SizedBox(height: 24),
                 // Sign Up Button
@@ -218,7 +226,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     ),
                     const SizedBox(height: 12),
                     const Text(
-                      'Please enter all fields to be able to sign up',
+                      'Please enter all fields to be able to Sign Up',
                       style: TextStyle(color: Colors.red),
                     ),
                   ],
