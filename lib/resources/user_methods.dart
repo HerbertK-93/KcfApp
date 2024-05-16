@@ -9,26 +9,30 @@ class UserMethods {
   UserMethods({required this.sharedPrefs});
 
   Future<model.AppUser?> getUserProfile() async {
-    final existingProfile = await sharedPrefs.getUser();
-    if (existingProfile != null) {
-      return existingProfile;
-    }
-
-    final uid = await sharedPrefs.getUid();
-    if (uid == null) {
-      return null;
-    }
-
-    QuerySnapshot querySnapshot =
-        await _firestore.collection('users').where('uid', isEqualTo: uid).get();
-
-    final data = querySnapshot.docs.first;
-    if (data.data() == null) {
-      return null;
-    }
-
-    final user = model.AppUser.fromSnap(querySnapshot.docs.first);
-    await sharedPrefs.storeUserData(user);
-    return user;
+  final existingProfile = await sharedPrefs.getUser();
+  if (existingProfile != null) {
+    return existingProfile;
   }
+
+  final uid = await sharedPrefs.getUid();
+  if (uid == null) {
+    return null; // Handle the case where UID is not available
+  }
+
+  QuerySnapshot querySnapshot =
+      await _firestore.collection('users').where('uid', isEqualTo: uid).get();
+
+  if (querySnapshot.docs.isEmpty) {
+    return null; // Handle the case where no user data is found for the given UID
+  }
+
+  final data = querySnapshot.docs.first;
+  if (data.data() == null) {
+    return null;
+  }
+
+  final user = model.AppUser.fromSnap(data);
+  await sharedPrefs.storeUserData(user);
+  return user;
+}
 }

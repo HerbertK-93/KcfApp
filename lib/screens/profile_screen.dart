@@ -120,7 +120,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
                 const SizedBox(height: 15),
                 Padding(
-                  padding: const EdgeInsets.only(left: 3),
+                  padding: const EdgeInsets.only(left: 0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
