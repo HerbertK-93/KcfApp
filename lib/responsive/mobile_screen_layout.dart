@@ -6,6 +6,7 @@ import 'package:kings_cogent/screens/weekly_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:kings_cogent/screens/profile_screen.dart';
 import 'package:kings_cogent/widgets/sidebar.dart';
+import 'package:fl_chart/fl_chart.dart';
 
 class SavingPlan {
   double amount;
@@ -120,10 +121,9 @@ class MobileScreenLayout extends StatelessWidget {
               },
             ),
             const SizedBox(height: 20),
-            // Dual Progress Bars for Savings Progress and Expected Returns
             const DualProgressBar(
-              savingsProgress: 100, // Sample value for Savings Progress
-              expectedReturns: 150, // Sample value for Expected Returns
+              savingsProgress: 50, // Example value for savings progress
+              expectedReturns: 70, // Example value for expected returns
             ),
           ],
         ),
@@ -291,15 +291,15 @@ class DualProgressBar extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _buildProgressIndicator('Savings Progress', savingsProgress, Colors.green),
-          SizedBox(height: 12),
-          _buildProgressIndicator('Expected Returns', expectedReturns, Colors.blue),
+          _buildBarChart('Savings Progress', savingsProgress, Colors.green),
+          const SizedBox(height: 12),
+          _buildBarChart('Expected Returns', expectedReturns, Colors.blue),
         ],
       ),
     );
   }
 
-  Widget _buildProgressIndicator(String label, double value, Color color) {
+  Widget _buildBarChart(String label, double value, Color color) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -311,31 +311,34 @@ class DualProgressBar extends StatelessWidget {
             color: Colors.grey[800],
           ),
         ),
-        SizedBox(height: 8),
-        Row(
-          children: [
-            Expanded(
-              flex: 3,
-              child: LinearProgressIndicator(
-                backgroundColor: Colors.grey[300],
-                valueColor: AlwaysStoppedAnimation<Color>(color),
-                value: value / 100,
+        const SizedBox(height: 8),
+        Container(
+          height: 20,
+          child: Stack(
+            children: [
+              Container(
+                width: double.infinity,
+                height: 10,
+                color: Colors.grey[300],
               ),
-            ),
-            SizedBox(width: 8),
-            Expanded(
-              flex: 1,
-              child: Text(
-                '${value.toInt()}%',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
+              FractionallySizedBox(
+                widthFactor: value / 100,
+                child: Container(
+                  height: 10,
                   color: color,
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          '${value.toInt()}%',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: color,
+          ),
         ),
       ],
     );
