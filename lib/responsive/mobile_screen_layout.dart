@@ -1,5 +1,3 @@
-// ignore_for_file: prefer_const_constructors
-
 import 'package:flutter/material.dart';
 import 'package:kings_cogent/screens/daily_screen.dart';
 import 'package:kings_cogent/screens/monthly_screen.dart';
@@ -8,7 +6,6 @@ import 'package:kings_cogent/screens/weekly_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:kings_cogent/screens/profile_screen.dart';
 import 'package:kings_cogent/widgets/sidebar.dart';
-import 'package:fl_chart/fl_chart.dart';
 
 class SavingPlan {
   double amount;
@@ -55,12 +52,12 @@ class MobileScreenLayout extends StatelessWidget {
       ),
       drawer: const SideBar(),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 16), // Added horizontal padding
+        padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const Padding(
-              padding: EdgeInsets.fromLTRB(0, 16, 0, 8), // Adjusted top and bottom padding
+              padding: EdgeInsets.fromLTRB(0, 16, 0, 8),
               child: Text(
                 'Saving Plan',
                 style: TextStyle(
@@ -81,7 +78,7 @@ class MobileScreenLayout extends StatelessWidget {
                   ),
                 );
               },
-              isRecommended: true, // Added this line for the recommended tag
+              isRecommended: true,
             ),
             const SizedBox(height: 4),
             ServiceCard(
@@ -123,9 +120,8 @@ class MobileScreenLayout extends StatelessWidget {
               },
             ),
             const SizedBox(height: 20),
-            // Graph for Savings Progress
-            const GraphWidget(
-              title: 'Saving Progress',
+            // Dual Progress Bars for Savings Progress and Expected Returns
+            const DualProgressBar(
               savingsProgress: 100, // Sample value for Savings Progress
               expectedReturns: 150, // Sample value for Expected Returns
             ),
@@ -211,7 +207,7 @@ class MobileScreenLayout extends StatelessWidget {
         elevation: 20,
         child: const Icon(Icons.chat_bubble),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20), // Rounded shape
+          borderRadius: BorderRadius.circular(20),
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
@@ -271,82 +267,77 @@ class ServiceCard extends StatelessWidget {
               ),
           ],
         ),
-        trailing: Icon(Icons.arrow_forward_ios_rounded, size: 20, color: Colors.grey), // Adjusted size and color
+        trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 20, color: Colors.grey),
         onTap: onTap,
       ),
     );
   }
 }
 
-class GraphWidget extends StatelessWidget {
-  final String title;
+class DualProgressBar extends StatelessWidget {
   final double savingsProgress;
   final double expectedReturns;
 
-  const GraphWidget({
-    required this.title,
+  const DualProgressBar({
     required this.savingsProgress,
     required this.expectedReturns,
   });
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 400,
-      child: Padding(
-        padding: const EdgeInsets.all(8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _buildProgressIndicator('Savings Progress', savingsProgress, Colors.green),
+          SizedBox(height: 12),
+          _buildProgressIndicator('Expected Returns', expectedReturns, Colors.blue),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProgressIndicator(String label, double value, Color color) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+            color: Colors.grey[800],
+          ),
+        ),
+        SizedBox(height: 8),
+        Row(
           children: [
-            Text(
-              title,
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
             Expanded(
-              child: PieChart(
-                PieChartData(
-                  sections: [
-                    PieChartSectionData(
-                      value: savingsProgress,
-                      title: '\$${savingsProgress.toInt()}',
-                      color: Colors.red,
-                    ),
-                    PieChartSectionData(
-                      value: expectedReturns,
-                      title: '\$${expectedReturns.toInt()}',
-                      color: Colors.blue,
-                    ),
-                  ],
-                  centerSpaceRadius: 100,
-                  sectionsSpace: 0,
-                  startDegreeOffset: 200,
+              flex: 3,
+              child: LinearProgressIndicator(
+                backgroundColor: Colors.grey[300],
+                valueColor: AlwaysStoppedAnimation<Color>(color),
+                value: value / 100,
+              ),
+            ),
+            SizedBox(width: 8),
+            Expanded(
+              flex: 1,
+              child: Text(
+                '${value.toInt()}%',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: color,
                 ),
               ),
             ),
-            // Key for representing the colors
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  margin: const EdgeInsets.only(right: 10),
-                  width: 20,
-                  height: 20,
-                  color: Colors.red,
-                ),
-                const Text('Progress'),
-                const SizedBox(width: 20),
-                Container(
-                  margin: const EdgeInsets.only(right: 10),
-                  width: 20,
-                  height: 20,
-                  color: Colors.blue,
-                ),
-                const Text('Returns'),
-              ],
-            ),
           ],
         ),
-      ),
+      ],
     );
   }
 }

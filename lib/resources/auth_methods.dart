@@ -18,22 +18,21 @@ class AuthMethods {
     return model.AppUser.fromSnap(snap);
   }
 
-  //signup user
+  // Sign up user
   Future<String> signUpUser({
     required String email,
     required String password,
     required String username,
     required String bio,
     required Uint8List file,
-    // required Uint8List file,
   }) async {
-    String res = "Some error occured";
+    String res = "Some error occurred";
     try {
       if (email.isNotEmpty ||
           password.isNotEmpty ||
           username.isNotEmpty ||
           bio.isNotEmpty) {
-        // register user
+        // Register user
         UserCredential cred = await _auth.createUserWithEmailAndPassword(
             email: email, password: password);
 
@@ -41,7 +40,7 @@ class AuthMethods {
 
         String photoUrl =
             await StorageMethods().uploadImageToStorage('profilePics', file);
-        // add user to database
+        // Add user to database
 
         model.AppUser user = model.AppUser(
           username: username,
@@ -63,7 +62,7 @@ class AuthMethods {
     return res;
   }
 
-  // logging in user
+  // Log in user
   Future<String> loginUser({
     required String email,
     required String password,
@@ -77,7 +76,7 @@ class AuthMethods {
           password: password,
         );
 
-        // save uid
+        // Save uid
         final uid = data.user?.uid;
         if (uid != null) {
           await SharedPrefs().storeUid(uid);
@@ -87,6 +86,22 @@ class AuthMethods {
         res = "success";
       } else {
         res = "Please enter both email and password";
+      }
+    } catch (err) {
+      res = err.toString();
+    }
+    return res;
+  }
+
+  // Forgot Password
+  Future<String> resetPassword({required String email}) async {
+    String res = "Some error occurred";
+    try {
+      if (email.isNotEmpty) {
+        await _auth.sendPasswordResetEmail(email: email);
+        res = "Password reset email sent";
+      } else {
+        res = "Please enter your email";
       }
     } catch (err) {
       res = err.toString();

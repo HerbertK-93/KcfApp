@@ -3,6 +3,7 @@ import 'package:kings_cogent/resources/auth_methods.dart';
 import 'package:kings_cogent/responsive/mobile_screen_layout.dart';
 import 'package:kings_cogent/responsive/responsive_layout_scrteen.dart';
 import 'package:kings_cogent/responsive/web_screen_layout.dart';
+import 'package:kings_cogent/screens/forgot_password_screen.dart'; // Import the ForgotPasswordScreen
 import 'package:kings_cogent/screens/signup_screen.dart';
 import 'package:kings_cogent/utils/utils.dart';
 import 'package:kings_cogent/widgets/text_field_layout.dart';
@@ -60,14 +61,23 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    Color logoColor = Theme.of(context).brightness == Brightness.dark
-        ? Colors.white
-        : Colors.black;
+  void navigateToForgotPassword() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const ForgotPasswordScreen(),
+      ),
+    );
+  }
 
-    return Scaffold(
-      body: SafeArea(
+  @override
+Widget build(BuildContext context) {
+  Color logoColor = Theme.of(context).brightness == Brightness.dark
+      ? Colors.white
+      : Colors.black;
+
+  return Scaffold(
+    body: SafeArea(
+      child: SingleChildScrollView( // Wrap with SingleChildScrollView
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 32),
           width: double.infinity,
@@ -117,9 +127,24 @@ class _LoginScreenState extends State<LoginScreen> {
                 keyboardType: TextInputType.text,
                 obscureText: _obscurePassword,
               ),
+              const SizedBox(height: 8), // Adjusted spacing here
+              // Forgot Password
+              Align(
+                alignment: Alignment.centerRight,
+                child: GestureDetector(
+                  onTap: navigateToForgotPassword,
+                  child: const Text(
+                    'Forgot password?',
+                    style: TextStyle(
+                      color: Colors.red,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+              ),
               const SizedBox(height: 24),
               // Login Button
-              SizedBox( // Wrap InkWell with SizedBox
+              SizedBox(
                 width: double.infinity,
                 height: 48, // Set fixed height for the button
                 child: InkWell(
@@ -132,10 +157,10 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     child: _isLoading
                         ? const Center(
-                            child: CircularProgressIndicator(
-                              color: Colors.black,
-                            ),
-                          )
+                      child: CircularProgressIndicator(
+                        color: Colors.black,
+                      ),
+                    )
                         : const Text('Log in'),
                   ),
                 ),
@@ -154,12 +179,13 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: const Text("Don't have an account?"),
                     ),
                   ),
+                  const SizedBox(width: 6), // Add spacing here
                   GestureDetector(
                     onTap: navigateToSignup,
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 8),
                       child: const Text(
-                        "Sign up",
+                        "Sign Up",
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ),
@@ -170,6 +196,7 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }

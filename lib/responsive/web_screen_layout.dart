@@ -6,7 +6,6 @@ import 'package:kings_cogent/screens/once_screen.dart';
 import 'package:kings_cogent/screens/weekly_screen.dart';
 import 'package:kings_cogent/screens/profile_screen.dart';
 import 'package:kings_cogent/widgets/sidebar.dart';
-import 'package:fl_chart/fl_chart.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class SavingPlan {
@@ -120,12 +119,7 @@ class WebScreenLayout extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 32),
-            // Graph for Savings Progress
-            const GraphWidget(
-              title: 'Savings Progress',
-              savingsProgress: 100, // Sample value for Savings Progress
-              expectedReturns: 150, // Sample value for Expected Returns
-            ),
+            // Removed Graph for Savings Progress
           ],
         ),
       ),
