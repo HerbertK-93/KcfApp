@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:kings_cogent/screens/daily_screen.dart';
 import 'package:kings_cogent/screens/monthly_screen.dart';
 import 'package:kings_cogent/screens/once_screen.dart';
@@ -20,8 +21,16 @@ class SavingPlan {
   });
 }
 
-class MobileScreenLayout extends StatelessWidget {
-  const MobileScreenLayout({Key? key});
+class MobileScreenLayout extends StatefulWidget {
+  const MobileScreenLayout({Key? key}) : super(key: key);
+
+  @override
+  _MobileScreenLayoutState createState() => _MobileScreenLayoutState();
+}
+
+class _MobileScreenLayoutState extends State<MobileScreenLayout> {
+  double? savingsProgress;
+  double? expectedReturns;
 
   @override
   Widget build(BuildContext context) {
@@ -52,13 +61,13 @@ class MobileScreenLayout extends StatelessWidget {
         ],
       ),
       drawer: const SideBar(),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const Padding(
-              padding: EdgeInsets.fromLTRB(0, 16, 0, 8),
+              padding: EdgeInsets.fromLTRB(0, 8, 0, 4),
               child: Text(
                 'Saving Plan',
                 style: TextStyle(
@@ -67,7 +76,6 @@ class MobileScreenLayout extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 4),
             ServiceCard(
               title: 'Monthly',
               icon: Icons.calendar_today_outlined,
@@ -81,7 +89,6 @@ class MobileScreenLayout extends StatelessWidget {
               },
               isRecommended: true,
             ),
-            const SizedBox(height: 4),
             ServiceCard(
               title: 'Weekly',
               icon: Icons.calendar_view_week_outlined,
@@ -94,7 +101,6 @@ class MobileScreenLayout extends StatelessWidget {
                 );
               },
             ),
-            const SizedBox(height: 4),
             ServiceCard(
               title: 'Daily',
               icon: Icons.today_outlined,
@@ -107,7 +113,6 @@ class MobileScreenLayout extends StatelessWidget {
                 );
               },
             ),
-            const SizedBox(height: 4),
             ServiceCard(
               title: 'Once',
               icon: Icons.calendar_view_day_outlined,
@@ -120,11 +125,13 @@ class MobileScreenLayout extends StatelessWidget {
                 );
               },
             ),
-            const SizedBox(height: 20),
-            const DualProgressBar(
-              savingsProgress: 50, // Example value for savings progress
-              expectedReturns: 70, // Example value for expected returns
+            const SizedBox(height: 8),
+            DualProgressBar(
+              savingsProgress: this.savingsProgress ?? 0,
+              expectedReturns: this.expectedReturns ?? 0,
             ),
+            const SizedBox(height: 8),
+            const FinancialTipsCarousel(),
           ],
         ),
       ),
@@ -215,6 +222,7 @@ class MobileScreenLayout extends StatelessWidget {
   }
 }
 
+
 class ServiceCard extends StatelessWidget {
   final String title;
   final IconData icon;
@@ -250,7 +258,7 @@ class ServiceCard extends StatelessWidget {
             ),
             if (isRecommended)
               Container(
-                margin: const EdgeInsets.only(left: 70),
+                margin: const EdgeInsets.only(left: 90),
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
                   color: Colors.green,
@@ -275,25 +283,26 @@ class ServiceCard extends StatelessWidget {
 }
 
 class DualProgressBar extends StatelessWidget {
-  final double savingsProgress;
-  final double expectedReturns;
+  final double? savingsProgress;
+  final double? expectedReturns;
 
   const DualProgressBar({
-    required this.savingsProgress,
-    required this.expectedReturns,
+    this.savingsProgress,
+    this.expectedReturns,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 16),
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _buildBarChart('Savings Progress', savingsProgress, Colors.green),
-          const SizedBox(height: 12),
-          _buildBarChart('Expected Returns', expectedReturns, Colors.blue),
+          if (savingsProgress != null)
+            _buildBarChart('Savings Progress', savingsProgress!, Colors.green),
+          const SizedBox(height: 15),
+          if (expectedReturns != null)
+            _buildBarChart('Expected Returns', expectedReturns!, Colors.orange),
         ],
       ),
     );
@@ -305,26 +314,26 @@ class DualProgressBar extends StatelessWidget {
       children: [
         Text(
           label,
-          style: TextStyle(
+          style: const TextStyle(
             fontWeight: FontWeight.bold,
-            fontSize: 18,
-            color: Colors.grey[800],
+            fontSize: 24,
+            color: Color.fromARGB(255, 91, 90, 90),
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 4),
         Container(
-          height: 20,
+          height: 50,
           child: Stack(
             children: [
               Container(
                 width: double.infinity,
-                height: 10,
-                color: Colors.grey[300],
+                height: 50,
+                color: const Color.fromARGB(255, 174, 173, 173),
               ),
               FractionallySizedBox(
                 widthFactor: value / 100,
                 child: Container(
-                  height: 10,
+                  height: 50,
                   color: color,
                 ),
               ),
@@ -335,12 +344,104 @@ class DualProgressBar extends StatelessWidget {
         Text(
           '${value.toInt()}%',
           style: TextStyle(
-            fontSize: 16,
+            fontSize: 20,
             fontWeight: FontWeight.bold,
             color: color,
           ),
         ),
       ],
+    );
+  }
+}
+
+
+class FinancialTipsCarousel extends StatelessWidget {
+  const FinancialTipsCarousel({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final List<Map<String, String>> financialTips = [
+      {
+        'title': 'Start Saving Early',
+        'description': 'The earlier you start saving, the more you benefit from compound interest.',
+      },
+      {
+        'title': 'Diversify Investments',
+        'description': 'Spread your investments to manage risk effectively.',
+      },
+      {
+        'title': 'Set Financial Goals',
+        'description': 'Having clear goals helps you stay focused and motivated.',
+      },
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Financial Tips',
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 10),
+        AspectRatio(
+          aspectRatio: 16 / 4,
+          child: CarouselSlider(
+            options: CarouselOptions(
+              autoPlay: true,
+              enlargeCenterPage: true,
+              enableInfiniteScroll: true,
+            ),
+            items: financialTips.map((tip) {
+              return Builder(
+                builder: (BuildContext context) {
+                  return TipCard(
+                    title: tip['title']!,
+                    description: tip['description']!,
+                  );
+                },
+              );
+            }).toList(),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class TipCard extends StatelessWidget {
+  final String title;
+  final String description;
+
+  const TipCard({
+    required this.title,
+    required this.description,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 4,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(description),
+          ],
+        ),
+      ),
     );
   }
 }

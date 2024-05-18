@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui'; // Import for ImageFilter
 
 import 'package:flutter/material.dart';
 import 'package:kings_cogent/models/user.dart';
@@ -19,6 +20,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   late SharedPrefs _sharedPrefs;
   late StreamController<AppUser?> _userStreamController;
   double _currentBalance = 0.0;
+  bool _isBalanceVisible = true; // Flag to track the visibility of the balance
 
   @override
   void initState() {
@@ -153,44 +155,69 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: Card(
                     elevation: 4,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(15),
                     ),
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10),
-                        color: Theme.of(context).cardColor,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Current Saving Balance',
-                            style: TextStyle(
-                              fontSize: 23,
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context)
-                                  .textTheme
-                                  .bodyText1!
-                                  .color,
-                            ),
-                          ),
-                          const SizedBox(height: 25),
-                          Center(
-                            child: Text(
-                              '\$$_currentBalance',
-                              style: TextStyle(
-                                fontSize: 20,
-                                color: Theme.of(context)
-                                    .textTheme
-                                    .bodyText2!
-                                    .color,
+                    child: Stack(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(15),
+                            image: DecorationImage(
+                              image: const AssetImage('assets/images/wave-bw.png'), // Path to your image asset
+                              fit: BoxFit.cover,
+                              colorFilter: ColorFilter.mode(
+                                const Color.fromARGB(255, 35, 49, 35).withOpacity(0.7), // Fading effect
+                                BlendMode.darken, // Adjust the blend mode as needed
                               ),
                             ),
                           ),
-                        ],
-                      ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        'Current Saving Balance',
+                                        style: TextStyle(
+                                          fontSize: 21,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white, // Text Color
+                                        ),
+                                      ),
+                                      const SizedBox(height: 40),
+                                      Center(
+                                        child: Text(
+                                          _isBalanceVisible ? '\$$_currentBalance' : '*****',
+                                          style: const TextStyle(
+                                            fontSize: 20,
+                                            color: Colors.white, // Text Color
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        _isBalanceVisible = !_isBalanceVisible;
+                                      });
+                                    },
+                                    child: Icon(
+                                      _isBalanceVisible ? Icons.visibility : Icons.visibility_off,
+                                      color: Colors.white, // Icon Color
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -216,12 +243,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
             color: textColor,
           ),
         ),
-        const SizedBox(height: 5),
+        const SizedBox(height: 10),
         Text(
           value,
-          style: TextStyle(fontSize: 18, color: textColor),
+                    style: TextStyle(fontSize: 18, color: textColor),
         ),
       ],
     );
   }
 }
+

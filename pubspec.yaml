@@ -29,6 +29,7 @@ environment:
 # versions available, run `flutter pub outdated`.
 dependencies:
   cached_network_image: ^3.3.1
+  carousel_slider: ^4.2.1
   cloud_firestore: ^4.16.1
   cupertino_icons: ^1.0.6
   firebase_auth: ^4.19.0
@@ -86,6 +87,7 @@ flutter:
     - assets/images/L.png
     - assets/images/splashscreen1.png
     - assets/images/S-S.png
+    - assets/images/wave-bw.png
   #   - images/a_dot_ham.jpeg
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
