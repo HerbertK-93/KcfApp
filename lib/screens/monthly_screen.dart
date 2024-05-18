@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class MonthlyScreen extends StatefulWidget {
@@ -14,45 +15,32 @@ class _MonthlyScreenState extends State<MonthlyScreen> {
   double _totalSavings = 0.0; // Total savings accumulated over time
   String _period = '6 months'; // Default period option
   double _amount = 20; // Default amount option
+  double _calculatedAmount = 0.0; // Amount after adding interest rate
 
   @override
   void initState() {
     super.initState();
-    // Initialize selected date to the current date
-    _selectedDate = DateTime.now();
-    // Calculate total savings
-    _fetchDataAndUpdateUI();
+    _loadDefaults(); // Load saved defaults
   }
 
-  // Function to fetch data from Firestore and update UI
-  void _fetchDataAndUpdateUI() async {
-    try {
-      // Fetch user's information from Firestore
-      final querySnapshot = await FirebaseFirestore.instance.collection('monthly_plan').get();
-      if (querySnapshot.docs.isNotEmpty) {
-        // Retrieve the first document (assuming there's only one document)
-        final userData = querySnapshot.docs.first.data();
-        if (userData != null && userData is Map<String, dynamic>) {
-          setState(() {
-            // Update local variables with retrieved data
-            _selectedDate = (userData['selected_date'] as Timestamp).toDate();
-            _monthlyDeposit = userData['monthly_deposit'] ?? 0.0;
-            _interestRate = userData['interest_rate'] ?? 0.12; // Default to 12%
-            _period = userData['period'] ?? '6 months'; // Default period option
-            _amount = userData['amount'] ?? 20; // Default amount option
-            // Calculate total savings based on retrieved data
-            _calculateTotalSavings();
-          });
-        } else {
-          print("Invalid user data format");
-        }
-      } else {
-        print("No documents found in collection");
-      }
-    } catch (error) {
-      // Handle errors
-      print("Failed to fetch data: $error");
-    }
+  // Function to load saved defaults
+  void _loadDefaults() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _selectedDate = DateTime.parse(prefs.getString('selected_date') ?? DateTime.now().toString());
+      _period = prefs.getString('period') ?? '6 months';
+      _amount = prefs.getDouble('amount') ?? 20.0;
+      _monthlyDeposit = _amount;
+      _calculateTotalSavings();
+    });
+  }
+
+  // Function to save defaults
+  void _saveDefaults() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setString('selected_date', _selectedDate.toString());
+    prefs.setString('period', _period);
+    prefs.setDouble('amount', _amount);
   }
 
   // Function to update the selected date
@@ -74,6 +62,8 @@ class _MonthlyScreenState extends State<MonthlyScreen> {
   // Function to calculate the total savings over time
   void _calculateTotalSavings() {
     _totalSavings = 0.0; // Reset total savings
+    _calculatedAmount = _amount + (_amount * _interestRate); // Calculate amount with interest
+
     int numberOfMonths = _selectedDate.year * 12 +
         _selectedDate.month -
         (DateTime.now().year * 12 + DateTime.now().month);
@@ -125,13 +115,45 @@ class _MonthlyScreenState extends State<MonthlyScreen> {
       'period': _period,
       'amount': _amount,
     }).then((value) {
-      // If saved successfully, fetch updated data and update UI
+      // If saved successfully, save defaults locally and fetch updated data
+      _saveDefaults(); // Save the defaults locally
       _fetchDataAndUpdateUI();
       print("Data saved successfully!");
     }).catchError((error) {
       // Handle errors
       print("Failed to save data: $error");
     });
+  }
+
+  // Function to fetch data from Firestore and update UI
+  void _fetchDataAndUpdateUI() async {
+    try {
+      // Fetch user's information from Firestore
+      final querySnapshot = await FirebaseFirestore.instance.collection('monthly_plan').get();
+      if (querySnapshot.docs.isNotEmpty) {
+        // Retrieve the first document (assuming there's only one document)
+        final userData = querySnapshot.docs.first.data();
+        if (userData != null && userData is Map<String, dynamic>) {
+          setState(() {
+            // Update local variables with retrieved data
+            _selectedDate = (userData['selected_date'] as Timestamp).toDate();
+            _monthlyDeposit = userData['monthly_deposit'] ?? 0.0;
+            _interestRate = userData['interest_rate'] ?? 0.12; // Default to 12%
+            _period = userData['period'] ?? '6 months'; // Default period option
+            _amount = userData['amount'] ?? 20.0; // Default amount option
+            // Calculate total savings based on retrieved data
+            _calculateTotalSavings();
+          });
+        } else {
+          print("Invalid user data format");
+        }
+      } else {
+        print("No documents found in collection");
+      }
+    } catch (error) {
+      // Handle errors
+      print("Failed to fetch data: $error");
+    }
   }
 
   // Function to launch payment URL
@@ -225,6 +247,7 @@ class _MonthlyScreenState extends State<MonthlyScreen> {
                       onChanged: (value) {
                         setState(() {
                           _amount = value!;
+                          _monthlyDeposit = _amount;
                           _calculateTotalSavings();
                         });
                       },
@@ -255,6 +278,11 @@ class _MonthlyScreenState extends State<MonthlyScreen> {
               const Text(
                 '12%', // Fixed interest rate
                 style: TextStyle(fontSize: 16),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Amount with Interest: \$$_calculatedAmount', // Display calculated amount
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
               // Save button

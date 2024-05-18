@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class DailyScreen extends StatefulWidget {
@@ -13,49 +14,52 @@ class _DailyScreenState extends State<DailyScreen> {
   double _totalSavings = 0.0; // Total savings accumulated over time
   String _period = '6 months'; // Default period option
   double _amount = 20; // Default amount option
+  double _totalAmountWithInterest = 0.0; // Amount after adding interest rate
 
   @override
   void initState() {
     super.initState();
+    // Load saved defaults
+    _loadDefaults();
     // Calculate total savings
-    _fetchDataAndUpdateUI();
+    _calculateTotalSavings();
   }
 
-  // Function to fetch data from Firestore and update UI
-  void _fetchDataAndUpdateUI() async {
-    try {
-      // Fetch user's information from Firestore
-      final querySnapshot =
-          await FirebaseFirestore.instance.collection('daily_plan').get();
-      if (querySnapshot.docs.isNotEmpty) {
-        // Retrieve the first document (assuming there's only one document)
-        final userData = querySnapshot.docs.first.data();
-        if (userData != null && userData is Map<String, dynamic>) {
-          setState(() {
-            // Update local variables with retrieved data
-            _dailyDeposit = userData['daily_deposit'] ?? 0.0;
-            _interestRate = userData['interest_rate'] ?? 0.12; // Default to 12%
-            _period = userData['period'] ?? '6 months'; // Default period option
-            _amount = userData['amount'] ?? 20; // Default amount option
-            // Calculate total savings based on retrieved data
-            _calculateTotalSavings();
-          });
-        } else {
-          print("Invalid user data format");
-        }
-      } else {
-        print("No documents found in collection");
-      }
-    } catch (error) {
-      // Handle errors
-      print("Failed to fetch data: $error");
-    }
+  // Function to load saved defaults
+  void _loadDefaults() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _period = prefs.getString('period') ?? '6 months';
+      _amount = prefs.getDouble('amount') ?? 20.0;
+      _dailyDeposit = _amount;
+    });
+  }
+
+  // Function to save defaults
+  void _saveDefaults() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setString('period', _period);
+    prefs.setDouble('amount', _amount);
   }
 
   // Function to calculate the total savings over time
   void _calculateTotalSavings() {
     _totalSavings = 0.0; // Reset total savings
-    int numberOfDays = int.parse(_period.split(' ')[0]) * 30;
+    _totalAmountWithInterest = _amount * (1 + _interestRate); // Calculate amount with interest
+
+    int numberOfDays;
+    if (_period == '6 months') {
+      numberOfDays = 6 * 30;
+    } else if (_period == '1 year') {
+      numberOfDays = 12 * 30;
+    } else if (_period == '1.5 years') {
+      numberOfDays = (18 * 30).toInt();
+    } else if (_period == '2 years') {
+      numberOfDays = 24 * 30;
+    } else {
+      // Handle unexpected period
+      return;
+    }
 
     double principal = 0.0; // Initial investment
     for (int i = 0; i < numberOfDays; i++) {
@@ -104,12 +108,44 @@ class _DailyScreenState extends State<DailyScreen> {
       'amount': _amount,
     }).then((value) {
       // If saved successfully, fetch updated data and update UI
+      _saveDefaults(); // Save defaults locally
       _fetchDataAndUpdateUI();
       print("Data saved successfully!");
     }).catchError((error) {
       // Handle errors
       print("Failed to save data: $error");
     });
+  }
+
+  // Function to fetch data from Firestore and update UI
+  void _fetchDataAndUpdateUI() async {
+    try {
+      // Fetch user's information from Firestore
+      final querySnapshot =
+          await FirebaseFirestore.instance.collection('daily_plan').get();
+      if (querySnapshot.docs.isNotEmpty) {
+        // Retrieve the first document (assuming there's only one document)
+        final userData = querySnapshot.docs.first.data();
+        if (userData != null && userData is Map<String, dynamic>) {
+          setState(() {
+            // Update local variables with retrieved data
+            _dailyDeposit = userData['daily_deposit'] ?? 0.0;
+            _interestRate = userData['interest_rate'] ?? 0.12; // Default to 12%
+            _period = userData['period'] ?? '6 months'; // Default period option
+            _amount = userData['amount'] ?? 20; // Default amount option
+            // Calculate total savings based on retrieved data
+            _calculateTotalSavings();
+          });
+        } else {
+          print("Invalid user data format");
+        }
+      } else {
+        print("No documents found in collection");
+      }
+    } catch (error) {
+      // Handle errors
+      print("Failed to fetch data: $error");
+    }
   }
 
   // Function to launch payment URL
@@ -148,6 +184,7 @@ class _DailyScreenState extends State<DailyScreen> {
                         setState(() {
                           _period = value!;
                           _calculateTotalSavings();
+                          _saveDefaults(); // Save selected period
                         });
                       },
                       items: const [
@@ -185,8 +222,11 @@ class _DailyScreenState extends State<DailyScreen> {
                       value: _amount,
                       onChanged: (value) {
                         setState(() {
-                          _amount = value!;
+                          _amount =
+ value!;
+                          _dailyDeposit = _amount; // Update daily deposit
                           _calculateTotalSavings();
+                          _saveDefaults(); // Save selected amount
                         });
                       },
                       items: const [
@@ -216,6 +256,11 @@ class _DailyScreenState extends State<DailyScreen> {
               const Text(
                 '12%', // Fixed interest rate
                 style: TextStyle(fontSize: 16),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Total Amount with Interest: \$${_totalAmountWithInterest.toStringAsFixed(2)}',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
               // Save button

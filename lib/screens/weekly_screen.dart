@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class WeeklyScreen extends StatefulWidget {
@@ -8,81 +9,86 @@ class WeeklyScreen extends StatefulWidget {
 }
 
 class _WeeklyScreenState extends State<WeeklyScreen> {
-  List<String> _selectedDays = ['Monday']; // Default selected days
+  late List<String> _selectedDays;
   double _weeklyDeposit = 0.0;
-  double _interestRate = 0.12; // Fixed interest rate (12%)
-  double _totalSavings = 0.0; // Total savings accumulated over time
-  String _period = '6 months'; // Default period option
-  double _amount = 20; // Default amount option
+  double _interestRate = 0.12;
+  double _totalSavings = 0.0;
+  String _period = '';
+  double _amount = 0;
+  double _totalAmountWithInterest = 0.0;
 
   @override
   void initState() {
     super.initState();
-    // Calculate total savings
-    _fetchDataAndUpdateUI();
+    _loadDefaults(); // Load saved defaults
   }
 
-  // Function to fetch data from Firestore and update UI
+  void _loadDefaults() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _selectedDays = prefs.getStringList('selected_days') ?? ['Monday'];
+      _period = prefs.getString('weekly_period') ?? '6 months';
+      _amount = prefs.getDouble('weekly_amount') ?? 20.0;
+      _weeklyDeposit = _amount;
+      _calculateTotalSavings();
+    });
+  }
+
+  void _saveDefaults() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setStringList('selected_days', _selectedDays);
+    prefs.setString('weekly_period', _period);
+    prefs.setDouble('weekly_amount', _amount);
+  }
+
   void _fetchDataAndUpdateUI() async {
     try {
-      // Fetch user's information from Firestore
-      final querySnapshot = await FirebaseFirestore.instance.collection('weekly_plan').get();
-      if (querySnapshot.docs.isNotEmpty) {
-        // Retrieve the first document (assuming there's only one document)
-        final userData = querySnapshot.docs.first.data();
-        if (userData != null && userData is Map<String, dynamic>) {
-          setState(() {
-            // Update local variables with retrieved data
-            _weeklyDeposit = userData['weekly_deposit'] ?? 0.0;
-            _interestRate = userData['interest_rate'] ?? 0.12; // Default to 12%
-            _period = userData['period'] ?? '6 months'; // Default period option
-            _amount = userData['amount'] ?? 20; // Default amount option
-            // Calculate total savings based on retrieved data
-            _calculateTotalSavings();
-          });
-        } else {
-          print("Invalid user data format");
-        }
-      } else {
-        print("No documents found in collection");
+      final docSnapshot = await FirebaseFirestore.instance.collection('weekly_plan').doc('weekly_data').get();
+      if (docSnapshot.exists) {
+        setState(() {
+          var userData = docSnapshot.data()!;
+          _selectedDays = List<String>.from(userData['selected_days']);
+          _weeklyDeposit = userData['weekly_deposit'] ?? 0.0;
+          _interestRate = userData['interest_rate'] ?? 0.12;
+          _period = userData['period'] ?? '6 months';
+          _amount = userData['amount'] ?? 20;
+          _calculateTotalSavings();
+        });
       }
     } catch (error) {
-      // Handle errors
-      print("Failed to fetch data: $error");
+      _showErrorDialog("Failed to fetch data: $error");
     }
   }
 
-  // Function to calculate the total savings over time
   void _calculateTotalSavings() {
-    _totalSavings = 0.0; // Reset total savings
+    _totalSavings = 0.0;
+    _totalAmountWithInterest = _amount * (1 + _interestRate);
     int numberOfWeeks = _getNumberOfWeeks();
 
-    double principal = 0.0; // Initial investment
+    double principal = 0.0;
     for (int i = 0; i < numberOfWeeks; i++) {
-      double interest = principal * _interestRate / 52; // Assuming 52 weeks in a year
+      double interest = principal * _interestRate / 52;
       principal += _weeklyDeposit + interest;
       _totalSavings += principal;
     }
-    setState(() {}); // Update UI after calculating total savings
+    setState(() {});
   }
 
-  // Function to get the number of weeks based on selected period
   int _getNumberOfWeeks() {
     switch (_period) {
       case '6 months':
-        return 26 * 6; // Approximate number of weeks in 6 months
+        return 26;
       case '1 year':
-        return 52; // Number of weeks in a year
+        return 52;
       case '1.5 years':
-        return 78; // Approximate number of weeks in 1.5 years
+        return 78;
       case '2 years':
-        return 104; // Approximate number of weeks in 2 years
+        return 104;
       default:
         return 0;
     }
   }
 
-  // Function to handle saving with confirmation dialog
   void _saveWithConfirmation() {
     showDialog(
       context: context,
@@ -93,14 +99,14 @@ class _WeeklyScreenState extends State<WeeklyScreen> {
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog
+                Navigator.of(context).pop();
               },
               child: const Text("No"),
             ),
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog
-                _save(); // Proceed with saving
+                Navigator.of(context).pop();
+                _save();
               },
               child: const Text("Yes"),
             ),
@@ -110,32 +116,49 @@ class _WeeklyScreenState extends State<WeeklyScreen> {
     );
   }
 
-  // Function to handle saving
   void _save() {
-    // Save user's information in Firestore
-    FirebaseFirestore.instance.collection('weekly_plan').add({
+    FirebaseFirestore.instance.collection('weekly_plan').doc('weekly_data').set({
+      'selected_days': _selectedDays,
       'weekly_deposit': _weeklyDeposit,
       'interest_rate': _interestRate,
       'period': _period,
       'amount': _amount,
     }).then((value) {
-      // If saved successfully, fetch updated data and update UI
+      _saveDefaults();
       _fetchDataAndUpdateUI();
       print("Data saved successfully!");
     }).catchError((error) {
-      // Handle errors
-      print("Failed to save data: $error");
+      _showErrorDialog("Failed to save data: $error");
     });
   }
 
-  // Function to launch payment URL
   void _launchPaymentUrl() async {
     const url = 'https://flutterwave.com/pay/g3vpxdi0d3n8';
     if (await canLaunch(url)) {
       await launch(url);
     } else {
-      print('Could not launch $url');
+      _showErrorDialog('Could not launch $url');
     }
+  }
+
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Error"),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text("OK"),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -155,7 +178,6 @@ class _WeeklyScreenState extends State<WeeklyScreen> {
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
-              // Widget to select days of the week
               Wrap(
                 spacing: 8.0,
                 children: [
@@ -171,6 +193,7 @@ class _WeeklyScreenState extends State<WeeklyScreen> {
                             _selectedDays.remove(day);
                           }
                           _calculateTotalSavings();
+                          _saveDefaults(); // Save selected days
                         });
                       },
                     ),
@@ -191,6 +214,7 @@ class _WeeklyScreenState extends State<WeeklyScreen> {
                         setState(() {
                           _period = value!;
                           _calculateTotalSavings();
+                          _saveDefaults(); // Save period
                         });
                       },
                       items: const [
@@ -220,7 +244,7 @@ class _WeeklyScreenState extends State<WeeklyScreen> {
                 'Select Amount:',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
-              const SizedBox(height: 8),
+                            const SizedBox(height: 8),
               Row(
                 children: [
                   Expanded(
@@ -229,7 +253,9 @@ class _WeeklyScreenState extends State<WeeklyScreen> {
                       onChanged: (value) {
                         setState(() {
                           _amount = value!;
+                          _weeklyDeposit = _amount;
                           _calculateTotalSavings();
+                          _saveDefaults(); // Save amount
                         });
                       },
                       items: const [
@@ -256,12 +282,27 @@ class _WeeklyScreenState extends State<WeeklyScreen> {
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
-              const Text(
-                '12%', // Fixed interest rate
-                style: TextStyle(fontSize: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          '12%', // Fixed interest rate
+                          style: TextStyle(fontSize: 16),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Amount with Interest: \$${_totalAmountWithInterest.toStringAsFixed(2)}', // Show calculated amount with interest
+                          style: const TextStyle(fontSize: 16),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 16),
-              // Save button
               Row(
                 children: [
                   Expanded(
@@ -290,7 +331,6 @@ class _WeeklyScreenState extends State<WeeklyScreen> {
                 ],
               ),
               const SizedBox(height: 16),
-              // Payment button
               ElevatedButton(
                 onPressed: _launchPaymentUrl,
                 style: ElevatedButton.styleFrom(
