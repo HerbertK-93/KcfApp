@@ -9,13 +9,15 @@ class WeeklyScreen extends StatefulWidget {
 }
 
 class _WeeklyScreenState extends State<WeeklyScreen> {
-  late List<String> _selectedDays;
+  late List<String> _selectedDays = []; // Initialize _selectedDays
   double _weeklyDeposit = 0.0;
   double _interestRate = 0.12;
   double _totalSavings = 0.0;
   String _period = '';
   double _amount = 0;
   double _totalAmountWithInterest = 0.0;
+  double _conversionRate = 3600; // 1 USD = 3600 UGX (Ugandan Shillings)
+  List<Map<String, dynamic>> _transactionHistory = []; // Transaction history
 
   @override
   void initState() {
@@ -31,14 +33,33 @@ class _WeeklyScreenState extends State<WeeklyScreen> {
       _amount = prefs.getDouble('weekly_amount') ?? 20.0;
       _weeklyDeposit = _amount;
       _calculateTotalSavings();
+      _loadTransactionHistory(); // Load transaction history
     });
   }
 
-  void _saveDefaults() async {
+  void _loadTransactionHistory() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.setStringList('selected_days', _selectedDays);
-    prefs.setString('weekly_period', _period);
-    prefs.setDouble('weekly_amount', _amount);
+    List<String>? history = prefs.getStringList('weekly_transaction_history');
+    if (history != null) {
+      setState(() {
+        _transactionHistory = history.map((item) {
+          Map<String, dynamic> transaction = {};
+          List<String> details = item.split('|');
+          transaction['day'] = details[0];
+          transaction['amount'] = double.parse(details[1]);
+          transaction['amount_with_interest'] = double.parse(details[2]);
+          return transaction;
+        }).toList();
+      });
+    }
+  }
+
+  void _saveTransactionHistory() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String> history = _transactionHistory.map((transaction) {
+      return '${transaction['day']}|${transaction['amount']}|${transaction['amount_with_interest']}';
+    }).toList();
+    await prefs.setStringList('weekly_transaction_history', history);
   }
 
   void _fetchDataAndUpdateUI() async {
@@ -126,6 +147,7 @@ class _WeeklyScreenState extends State<WeeklyScreen> {
     }).then((value) {
       _saveDefaults();
       _fetchDataAndUpdateUI();
+      _saveTransactionHistory(); // Save transaction history
       print("Data saved successfully!");
     }).catchError((error) {
       _showErrorDialog("Failed to save data: $error");
@@ -244,7 +266,7 @@ class _WeeklyScreenState extends State<WeeklyScreen> {
                 'Select Amount:',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
-                            const SizedBox(height: 8),
+              const SizedBox(height: 8),
               Row(
                 children: [
                   Expanded(
@@ -258,18 +280,18 @@ class _WeeklyScreenState extends State<WeeklyScreen> {
                           _saveDefaults(); // Save amount
                         });
                       },
-                      items: const [
+                      items: [
                         DropdownMenuItem(
                           value: 20,
-                          child: Text('\$20 every week'),
+                          child: Text('\$20 every week (${(20 * _conversionRate).toStringAsFixed(2)} UGX)'),
                         ),
                         DropdownMenuItem(
                           value: 50,
-                          child: Text('\$50 every week'),
+                          child: Text('\$50 every week (${(50 * _conversionRate).toStringAsFixed(2)} UGX)'),
                         ),
                         DropdownMenuItem(
                           value: 100,
-                          child: Text('\$100 every week'),
+                          child: Text('\$100 every week (${(100 * _conversionRate).toStringAsFixed(2)} UGX)'),
                         ),
                       ],
                     ),
@@ -294,7 +316,7 @@ class _WeeklyScreenState extends State<WeeklyScreen> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Amount with Interest: \$${_totalAmountWithInterest.toStringAsFixed(2)}', // Show calculated amount with interest
+                          'Weekly returns: \$${_totalAmountWithInterest.toStringAsFixed(2)} (${(_totalAmountWithInterest * _conversionRate).toStringAsFixed(2)} UGX)', // Show calculated amount with interest and its equivalent in Ugandan Shillings
                           style: const TextStyle(fontSize: 16),
                         ),
                       ],
@@ -352,10 +374,45 @@ class _WeeklyScreenState extends State<WeeklyScreen> {
                   ),
                 ),
               ),
+              const SizedBox(height: 16),
+              // Transaction history section
+              const Text(
+                'Transaction History:',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                height: 200, // Fixed height to make it scrollable
+                child: ListView.builder(
+                  itemCount: _transactionHistory.length,
+                  itemBuilder: (context, index) {
+                    final transaction = _transactionHistory[index];
+                    final weeklyReturns = transaction['amount_with_interest'] * _conversionRate;
+                    final weeklyReturnsInUGX = weeklyReturns.toInt(); // Convert to integer
+                    return Card(
+                      margin: const EdgeInsets.symmetric(vertical: 4.0),
+                      child: ListTile(
+                        title: Text('Transaction ${_transactionHistory.length - index}'),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Day: ${_selectedDays[index % _selectedDays.length]}'), // Display selected days of the week
+                            Text('Amount: \$${transaction['amount']} (${(transaction['amount'] * _conversionRate).toStringAsFixed(2)} UGX)'),
+                            Text('Weekly returns: \$${transaction['amount_with_interest'].toInt()} (${weeklyReturnsInUGX.toString()} UGX)'),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
             ],
           ),
         ),
       ),
     );
   }
+}
+
+class _saveDefaults {
 }

@@ -1,9 +1,8 @@
-// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
-
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ContactUsScreen extends StatelessWidget {
-  const ContactUsScreen({super.key});
+  const ContactUsScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +15,7 @@ class ContactUsScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Column(
+            const Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
@@ -27,42 +26,82 @@ class ContactUsScreen extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  'Physical Address\nLuteete  Masooli\nP.O. Box 107722 Kampala',
+                  'Physical Address\nLuteete Masooli\nP.O. Box 107722 Kampala',
                   style: TextStyle(fontSize: 16),
                 ),
               ],
             ),
-            Divider(),
+            const Divider(),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                const Text(
                   'Telephone Contact',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
                   ),
                 ),
-                Text(
-                  '0706 821 115 | 0771 608 016\n0706 821 115 | 0771 608 016',
-                  style: TextStyle(fontSize: 16),
+                InkWell(
+                  onTap: () => launch('tel:+256706821115'),
+                  child: const Text(
+                    '0706 821 115',
+                    style: TextStyle(fontSize: 16, color: Colors.blue),
+                  ),
+                ),
+                InkWell(
+                  onTap: () => launch('tel:+256771608016'),
+                  child: const Text(
+                    '0771 608 016',
+                    style: TextStyle(fontSize: 16, color: Colors.blue),
+                  ),
                 ),
               ],
             ),
-            Divider(),
+            const Divider(),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                const Text(
                   'Email Contact',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
                   ),
                 ),
-                Text(
-                  'kingscogentfinance@gmail.com\ninfo@kingscogentfinance.com',
-                  style: TextStyle(fontSize: 16),
+                InkWell(
+                  onTap: () => launch('mailto:kingscogentfinance@gmail.com'),
+                  child: const Text(
+                    'kingscogentfinance@gmail.com',
+                    style: TextStyle(fontSize: 16, color: Colors.blue),
+                  ),
+                ),
+                InkWell(
+                  onTap: () => launch('mailto:info@kingscogentfinance.com'),
+                  child: const Text(
+                    'info@kingscogentfinance.com',
+                    style: TextStyle(fontSize: 16, color: Colors.blue),
+                  ),
+                ),
+              ],
+            ),
+            const Divider(),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Company Website',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+                InkWell(
+                  onTap: () => launch('https://kingscogentfinance.com'), // Open company website URL
+                  child: const Text(
+                    'https://kingscogentfinance.com',
+                    style: TextStyle(fontSize: 16, color: Colors.blue),
+                  ),
                 ),
               ],
             ),

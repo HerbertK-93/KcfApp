@@ -189,14 +189,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                           color: Colors.white, // Text Color
                                         ),
                                       ),
-                                      const SizedBox(height: 40),
+                                      const SizedBox(height: 20),
                                       Center(
-                                        child: Text(
-                                          _isBalanceVisible ? '\$$_currentBalance' : '*****',
-                                          style: const TextStyle(
-                                            fontSize: 20,
-                                            color: Colors.white, // Text Color
-                                          ),
+                                        child: Column(
+                                          children: [
+                                            _isBalanceVisible
+                                                ? Text(
+                                                    '\$$_currentBalance',
+                                                    style: const TextStyle(
+                                                      fontSize: 17,
+                                                      color: Colors.white, // Text Color
+                                                    ),
+                                                  )
+                                                : const Text(
+                                                    'Coming Soon', // Placeholder text
+                                                    style: TextStyle(
+                                                      fontSize: 17,
+                                                      color: Colors.white, // Text Color
+                                                    ),
+                                                  ),
+                                            const SizedBox(height: 5), // Adjust spacing if needed
+                                          ],
                                         ),
                                       ),
                                     ],
@@ -246,10 +259,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         const SizedBox(height: 10),
         Text(
           value,
-                    style: TextStyle(fontSize: 18, color: textColor),
+          style: TextStyle(fontSize: 18, color: textColor),
         ),
       ],
     );
   }
 }
-

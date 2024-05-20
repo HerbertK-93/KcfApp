@@ -53,14 +53,14 @@ class _SplashScreenState extends State<SplashScreen> {
     Brightness brightness = Theme.of(context).brightness;
 
     return Scaffold(
-      backgroundColor: brightness == Brightness.dark ? const Color.fromARGB(31, 27, 26, 26) : Colors.white, // Adaptive background color
+      backgroundColor: brightness == Brightness.dark ? const Color.fromARGB(255, 36, 35, 35) : Colors.white, // Adaptive background color
       body: Center(
         child: Container(
-          color: brightness == Brightness.dark ? const Color.fromARGB(31, 27, 26, 26) : Colors.white, // Set container color to match background color
+          color: brightness == Brightness.dark ? const Color.fromARGB(255, 36, 35, 35) : Colors.white, // Set container color to match background color
           child: ImageFiltered(
             // Apply color filter to the image based on the system theme
             imageFilter: ColorFilter.mode(
-              brightness == Brightness.dark ? Colors.white :  const Color.fromARGB(31, 27, 26, 26), // Invert the color based on theme
+              brightness == Brightness.dark ? Colors.white :  const Color.fromARGB(255, 36, 35, 35), // Invert the color based on theme
               BlendMode.srcATop,
             ),
             child: Image.asset(

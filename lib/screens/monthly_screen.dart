@@ -9,37 +9,61 @@ class MonthlyScreen extends StatefulWidget {
 }
 
 class _MonthlyScreenState extends State<MonthlyScreen> {
-  late DateTime _selectedDate;
+  late DateTime _selectedDate = DateTime.now();
   double _monthlyDeposit = 0.0;
   double _interestRate = 0.12; // Fixed interest rate (12%)
   double _totalSavings = 0.0; // Total savings accumulated over time
   String _period = '6 months'; // Default period option
   double _amount = 20; // Default amount option
   double _calculatedAmount = 0.0; // Amount after adding interest rate
+  double _conversionRate = 3600; // 1 USD = 3600 UGX (Ugandan Shillings)
+  List<Map<String, dynamic>> _transactionHistory = []; // Transaction history
 
   @override
   void initState() {
     super.initState();
     _loadDefaults(); // Load saved defaults
+    _loadTransactionHistory(); // Load transaction history
   }
 
   // Function to load saved defaults
   void _loadDefaults() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
-      _selectedDate = DateTime.parse(prefs.getString('selected_date') ?? DateTime.now().toString());
-      _period = prefs.getString('period') ?? '6 months';
-      _amount = prefs.getDouble('amount') ?? 20.0;
-      _monthlyDeposit = _amount;
-      _calculateTotalSavings();
+      // Do not set defaults here
     });
+  }
+
+  // Function to load transaction history
+  void _loadTransactionHistory() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String>? history = prefs.getStringList('transaction_history');
+    if (history != null) {
+      setState(() {
+        _transactionHistory = history.map((item) {
+          Map<String, dynamic> transaction = {};
+          List<String> details = item.split('|');
+          transaction['date'] = details[0];
+          transaction['amount'] = double.parse(details[1]);
+          return transaction;
+        }).toList();
+      });
+    }
+  }
+
+  // Function to save transaction history
+  void _saveTransactionHistory() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String> history = _transactionHistory.map((transaction) {
+      return '${transaction['date']}|${transaction['amount']}';
+    }).toList();
+    await prefs.setStringList('transaction_history', history);
   }
 
   // Function to save defaults
   void _saveDefaults() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.setString('selected_date', _selectedDate.toString());
-    prefs.setString('period', _period);
+    prefs.setString('selected_date', _selectedDate.toString()); // Save date as string
     prefs.setDouble('amount', _amount);
   }
 
@@ -55,6 +79,7 @@ class _MonthlyScreenState extends State<MonthlyScreen> {
       setState(() {
         _selectedDate = picked;
         _calculateTotalSavings();
+        _saveDefaults(); // Save selected date
       });
     }
   }
@@ -117,6 +142,16 @@ class _MonthlyScreenState extends State<MonthlyScreen> {
     }).then((value) {
       // If saved successfully, save defaults locally and fetch updated data
       _saveDefaults(); // Save the defaults locally
+
+      // Add transaction to history
+      setState(() {
+        _transactionHistory.insert(0, { // Insert at the beginning of the list
+          'date': _selectedDate.toString().split(' ')[0],
+          'amount': _amount,
+        });
+      });
+
+      _saveTransactionHistory(); // Save transaction history locally
       _fetchDataAndUpdateUI();
       print("Data saved successfully!");
     }).catchError((error) {
@@ -189,7 +224,8 @@ class _MonthlyScreenState extends State<MonthlyScreen> {
                     child: ElevatedButton(
                       onPressed: () => _selectDate(context),
                       child: Text(
-                          'Selected Date: ${_selectedDate.toString().split(' ')[0]}'),
+                        'Selected Date: ${_selectedDate.toString().split(' ')[0]}',
+                      ),
                     ),
                   ),
                 ],
@@ -251,18 +287,18 @@ class _MonthlyScreenState extends State<MonthlyScreen> {
                           _calculateTotalSavings();
                         });
                       },
-                      items: const [
+                      items: [
                         DropdownMenuItem(
                           value: 20,
-                          child: Text('\$20 every month'),
+                          child: Text('\$20 every month (${(20 * _conversionRate).toStringAsFixed(2)} UGX)'),
                         ),
                         DropdownMenuItem(
                           value: 50,
-                          child: Text('\$50 every month'),
+                          child: Text('\$50 every month (${(50 * _conversionRate).toStringAsFixed(2)} UGX)'),
                         ),
                         DropdownMenuItem(
                           value: 100,
-                          child: Text('\$100 every month'),
+                          child: Text('\$100 every month (${(100 * _conversionRate).toStringAsFixed(2)} UGX)'),
                         ),
                       ],
                     ),
@@ -281,7 +317,7 @@ class _MonthlyScreenState extends State<MonthlyScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Amount with Interest: \$$_calculatedAmount', // Display calculated amount
+                'Monthly returns: $_calculatedAmount USD (${(_calculatedAmount * _conversionRate).toStringAsFixed(2)} UGX)', // Display calculated amount in dollars and Ugandan Shillings
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
@@ -334,6 +370,37 @@ class _MonthlyScreenState extends State<MonthlyScreen> {
                       ),
                     ),
                   ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              // Transaction history section
+              const Text(
+                'Transaction History:',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                height: 200, // Fixed height to make it scrollable
+                child: ListView.builder(
+                  itemCount: _transactionHistory.length,
+                  itemBuilder: (context, index) {
+                    final transaction = _transactionHistory[index];
+                    final monthlyReturns = transaction['amount'] + (transaction['amount'] * _interestRate);
+                    return Card(
+                      margin: const EdgeInsets.symmetric(vertical: 4.0),
+                      child: ListTile(
+                        title: Text('Transaction ${_transactionHistory.length - index}'),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Date: ${transaction['date']}'),
+                            Text('Amount: \$${transaction['amount']} (${(transaction['amount'] * _conversionRate).toStringAsFixed(2)} UGX)'),
+                            Text('Monthly Returns: \$${monthlyReturns.toStringAsFixed(2)} (${(monthlyReturns * _conversionRate).toStringAsFixed(2)} UGX)'),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
                 ),
               ),
             ],

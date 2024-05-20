@@ -222,7 +222,6 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> {
   }
 }
 
-
 class ServiceCard extends StatelessWidget {
   final String title;
   final IconData icon;
@@ -325,16 +324,22 @@ class DualProgressBar extends StatelessWidget {
           height: 50,
           child: Stack(
             children: [
-              Container(
-                width: double.infinity,
-                height: 50,
-                color: const Color.fromARGB(255, 174, 173, 173),
-              ),
-              FractionallySizedBox(
-                widthFactor: value / 100,
+              ClipRRect(
+                borderRadius: BorderRadius.circular(25),
                 child: Container(
+                  width: double.infinity,
                   height: 50,
-                  color: color,
+                  color: const Color.fromARGB(255, 174, 173, 173),
+                ),
+              ),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: FractionallySizedBox(
+                  widthFactor: value / 100,
+                  child: Container(
+                    height: 50,
+                    color: color,
+                  ),
                 ),
               ),
             ],
@@ -353,7 +358,6 @@ class DualProgressBar extends StatelessWidget {
     );
   }
 }
-
 
 class FinancialTipsCarousel extends StatelessWidget {
   const FinancialTipsCarousel({Key? key}) : super(key: key);
