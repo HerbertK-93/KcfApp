@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:kings_cogent/other_screens/howto.dart';
 import 'package:kings_cogent/utils/shared_prefs.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -28,6 +29,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
       body: ListView(
         children: [
+          _buildMenuItem(context, 'How To', () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => HowToScreen()),
+            );
+          }, Icons.help), // Icon for "How To"
+          const Divider(), // Divider between menu items
           _buildMenuItem(context, 'Share', () {
             _shareApp();
           }, Icons.share),
