@@ -45,14 +45,14 @@ class ContactUsScreen extends StatelessWidget {
                 InkWell(
                   onTap: () => launch('tel:+256706821115'),
                   child: const Text(
-                    '0706 821 115',
+                    '0757 753 783',
                     style: TextStyle(fontSize: 16, color: Colors.blue),
                   ),
                 ),
                 InkWell(
                   onTap: () => launch('tel:+256771608016'),
                   child: const Text(
-                    '0771 608 016',
+                    '0789 942 612',
                     style: TextStyle(fontSize: 16, color: Colors.blue),
                   ),
                 ),
@@ -90,7 +90,7 @@ class ContactUsScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Company Website',
+                  'Website',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
