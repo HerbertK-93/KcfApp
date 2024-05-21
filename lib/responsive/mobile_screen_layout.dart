@@ -7,7 +7,6 @@ import 'package:kings_cogent/screens/weekly_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:kings_cogent/screens/profile_screen.dart';
 import 'package:kings_cogent/widgets/sidebar.dart';
-import 'package:fl_chart/fl_chart.dart';
 
 class SavingPlan {
   double amount;
@@ -22,7 +21,7 @@ class SavingPlan {
 }
 
 class MobileScreenLayout extends StatefulWidget {
-  const MobileScreenLayout({Key? key}) : super(key: key);
+  const MobileScreenLayout({super.key});
 
   @override
   _MobileScreenLayoutState createState() => _MobileScreenLayoutState();
@@ -83,7 +82,7 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => MonthlyScreen(),
+                    builder: (context) => const MonthlyScreen(),
                   ),
                 );
               },
@@ -96,7 +95,7 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => WeeklyScreen(),
+                    builder: (context) => const WeeklyScreen(),
                   ),
                 );
               },
@@ -108,7 +107,7 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => DailyScreen(),
+                    builder: (context) => const DailyScreen(),
                   ),
                 );
               },
@@ -120,15 +119,15 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => OnceScreen(),
+                    builder: (context) => const OnceScreen(),
                   ),
                 );
               },
             ),
             const SizedBox(height: 8),
             DualProgressBar(
-              savingsProgress: this.savingsProgress ?? 0,
-              expectedReturns: this.expectedReturns ?? 0,
+              savingsProgress: savingsProgress ?? 0,
+              expectedReturns: expectedReturns ?? 0,
             ),
             const SizedBox(height: 8),
             const FinancialTipsCarousel(),
@@ -212,10 +211,10 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> {
         },
         backgroundColor: Colors.purple.shade200,
         elevation: 20,
-        child: const Icon(Icons.chat_bubble),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
         ),
+        child: const Icon(Icons.chat_bubble),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
@@ -228,7 +227,7 @@ class ServiceCard extends StatelessWidget {
   final VoidCallback onTap;
   final bool isRecommended;
 
-  const ServiceCard({
+  const ServiceCard({super.key, 
     required this.title,
     required this.icon,
     required this.onTap,
@@ -252,7 +251,7 @@ class ServiceCard extends StatelessWidget {
               style: TextStyle(
                 fontSize: 18.0,
                 fontWeight: FontWeight.bold,
-                color: Theme.of(context).textTheme.bodyText1!.color,
+                color: Theme.of(context).textTheme.bodyLarge!.color,
               ),
             ),
             if (isRecommended)
@@ -285,7 +284,7 @@ class DualProgressBar extends StatelessWidget {
   final double? savingsProgress;
   final double? expectedReturns;
 
-  const DualProgressBar({
+  const DualProgressBar({super.key, 
     this.savingsProgress,
     this.expectedReturns,
   });
@@ -320,7 +319,7 @@ class DualProgressBar extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 4),
-        Container(
+        SizedBox(
           height: 50,
           child: Stack(
             children: [
@@ -360,7 +359,7 @@ class DualProgressBar extends StatelessWidget {
 }
 
 class FinancialTipsCarousel extends StatelessWidget {
-  const FinancialTipsCarousel({Key? key}) : super(key: key);
+  const FinancialTipsCarousel({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -419,7 +418,7 @@ class TipCard extends StatelessWidget {
   final String title;
   final String description;
 
-  const TipCard({
+  const TipCard({super.key, 
     required this.title,
     required this.description,
   });

@@ -17,7 +17,7 @@ class SavingPlan {
 }
 
 class WebScreenLayout extends StatelessWidget {
-  const WebScreenLayout({Key? key});
+  const WebScreenLayout({super.key,});
 
   @override
   Widget build(BuildContext context) {
@@ -75,7 +75,7 @@ class WebScreenLayout extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => MonthlyScreen(),
+                        builder: (context) => const MonthlyScreen(),
                       ),
                     );
                   },
@@ -87,7 +87,7 @@ class WebScreenLayout extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => WeeklyScreen(),
+                        builder: (context) => const WeeklyScreen(),
                       ),
                     );
                   },
@@ -99,7 +99,7 @@ class WebScreenLayout extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => DailyScreen(),
+                        builder: (context) => const DailyScreen(),
                       ),
                     );
                   },
@@ -111,7 +111,7 @@ class WebScreenLayout extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => OnceScreen(),
+                        builder: (context) => const OnceScreen(),
                       ),
                     );
                   },

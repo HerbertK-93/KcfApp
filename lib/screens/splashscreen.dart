@@ -6,7 +6,7 @@ import 'package:kings_cogent/responsive/responsive_layout_scrteen.dart';
 import 'package:kings_cogent/responsive/web_screen_layout.dart';
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({Key? key}) : super(key: key);
+  const SplashScreen({super.key});
 
   @override
   _SplashScreenState createState() => _SplashScreenState();

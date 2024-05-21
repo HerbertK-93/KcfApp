@@ -5,11 +5,10 @@ import 'package:image_picker/image_picker.dart';
 import 'package:kings_cogent/resources/auth_methods.dart';
 import 'package:kings_cogent/screens/login_screen.dart';
 import 'package:kings_cogent/utils/utils.dart';
-import 'package:kings_cogent/widgets/text_field_layout.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SignupScreen extends StatefulWidget {
-  const SignupScreen({Key? key}) : super(key: key);
+  const SignupScreen({super.key});
 
   @override
   _SignupScreenState createState() => _SignupScreenState();

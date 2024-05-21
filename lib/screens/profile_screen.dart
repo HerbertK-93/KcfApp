@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:ui'; // Import for ImageFilter
+// Import for ImageFilter
 
 import 'package:flutter/material.dart';
 import 'package:kings_cogent/models/user.dart';
@@ -9,7 +9,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String uid;
-  const ProfileScreen({Key? key, required this.uid}) : super(key: key);
+  const ProfileScreen({super.key, required this.uid});
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -244,7 +244,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _buildProfileField(
       String label, String value, BuildContext context) {
-    final textColor = Theme.of(context).textTheme.bodyText1!.color;
+    final textColor = Theme.of(context).textTheme.bodyLarge!.color;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

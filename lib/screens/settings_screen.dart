@@ -14,7 +14,7 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
-    final textColor = Theme.of(context).textTheme.bodyText1!.color;
+    final textColor = Theme.of(context).textTheme.bodyLarge!.color;
 
     return Scaffold(
       appBar: AppBar(
@@ -32,7 +32,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _buildMenuItem(context, 'How To', () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => HowToScreen()),
+              MaterialPageRoute(builder: (context) => const HowToScreen()),
             );
           }, Icons.help), // Icon for "How To"
           const Divider(), // Divider between menu items

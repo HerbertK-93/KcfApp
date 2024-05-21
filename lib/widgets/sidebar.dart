@@ -3,11 +3,11 @@ import 'package:kings_cogent/screens/more.dart';
 import 'package:kings_cogent/screens/settings_screen.dart';
 
 class SideBar extends StatelessWidget {
-  const SideBar({Key? key}) : super(key: key);
+  const SideBar({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final textColor = Theme.of(context).textTheme.bodyText1!.color;
+    final textColor = Theme.of(context).textTheme.bodyLarge!.color;
 
     return Drawer(
       width: MediaQuery.of(context).size.width * 0.8,
@@ -17,7 +17,7 @@ class SideBar extends StatelessWidget {
           Container(
             height: 60,
             decoration: BoxDecoration(
-              color: Theme.of(context).backgroundColor,
+              color: Theme.of(context).colorScheme.background,
             ),
             child: Center(
               child: Text(

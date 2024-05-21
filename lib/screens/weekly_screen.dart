@@ -4,6 +4,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class WeeklyScreen extends StatefulWidget {
+  const WeeklyScreen({super.key});
+
   @override
   _WeeklyScreenState createState() => _WeeklyScreenState();
 }
@@ -16,7 +18,7 @@ class _WeeklyScreenState extends State<WeeklyScreen> {
   String _period = '';
   double _amount = 0;
   double _totalAmountWithInterest = 0.0;
-  double _conversionRate = 3600; // 1 USD = 3600 UGX (Ugandan Shillings)
+  final double _conversionRate = 3600; // 1 USD = 3600 UGX (Ugandan Shillings)
   List<Map<String, dynamic>> _transactionHistory = []; // Transaction history
 
   @override
@@ -381,7 +383,7 @@ class _WeeklyScreenState extends State<WeeklyScreen> {
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
-              Container(
+              SizedBox(
                 height: 200, // Fixed height to make it scrollable
                 child: ListView.builder(
                   itemCount: _transactionHistory.length,

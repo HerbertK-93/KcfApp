@@ -4,6 +4,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class DailyScreen extends StatefulWidget {
+  const DailyScreen({super.key});
+
   @override
   _DailyScreenState createState() => _DailyScreenState();
 }
@@ -125,20 +127,16 @@ class _DailyScreenState extends State<DailyScreen> {
       if (querySnapshot.docs.isNotEmpty) {
         // Retrieve the first document (assuming there's only one document)
         final userData = querySnapshot.docs.first.data();
-        if (userData != null && userData is Map<String, dynamic>) {
-          setState(() {
-            // Update local variables with retrieved data
-            _dailyDeposit = userData['daily_deposit'] ?? 0.0;
-            _interestRate = userData['interest_rate'] ?? 0.12; // Default to 12%
-            _period = userData['period'] ?? '6 months'; // Default period option
-            _amount = userData['amount'] ?? 20; // Default amount option
-            // Calculate total savings based on retrieved data
-            _calculateTotalSavings();
-          });
-        } else {
-          print("Invalid user data format");
-        }
-      } else {
+        setState(() {
+          // Update local variables with retrieved data
+          _dailyDeposit = userData['daily_deposit'] ?? 0.0;
+          _interestRate = userData['interest_rate'] ?? 0.12; // Default to 12%
+          _period = userData['period'] ?? '6 months'; // Default period option
+          _amount = userData['amount'] ?? 20; // Default amount option
+          // Calculate total savings based on retrieved data
+          _calculateTotalSavings();
+        });
+            } else {
         print("No documents found in collection");
       }
     } catch (error) {
@@ -259,7 +257,7 @@ class _DailyScreenState extends State<DailyScreen> {
               const SizedBox(height: 8),
               Text(
                 'Daily returns: \$${_totalAmountWithInterest.toStringAsFixed(0)} (${((5000 * _totalAmountWithInterest)).toStringAsFixed(0)} UGX)',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
               // Save button

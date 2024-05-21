@@ -1,16 +1,11 @@
 // ignore_for_file: prefer_const_constructors, unnecessary_import
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:kings_cogent/screens/splashscreen.dart';
 import 'package:provider/provider.dart';
 
 import 'package:kings_cogent/providers/user_provider.dart';
-import 'package:kings_cogent/responsive/mobile_screen_layout.dart';
-import 'package:kings_cogent/responsive/responsive_layout_scrteen.dart';
-import 'package:kings_cogent/responsive/web_screen_layout.dart';
 import 'package:kings_cogent/screens/login_screen.dart';
 
 void main() async {
@@ -30,7 +25,7 @@ void main() async {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +47,7 @@ class MyApp extends StatelessWidget {
         ),
         builder: (context, child) {
           return MediaQuery(
-            data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
+            data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
             child: child!,
           );
         },

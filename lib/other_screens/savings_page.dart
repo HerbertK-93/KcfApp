@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class MonthlyScreen extends StatefulWidget {
+  const MonthlyScreen({super.key});
+
   @override
   _MonthlyScreenState createState() => _MonthlyScreenState();
 }
@@ -28,7 +30,7 @@ class _MonthlyScreenState extends State<MonthlyScreen> {
       final querySnapshot = await FirebaseFirestore.instance.collection('monthly_plan').get();
       if (querySnapshot.docs.isNotEmpty) {
         // Retrieve the first document (assuming there's only one document)
-        final userData = querySnapshot.docs.first.data() as Map<String, dynamic>;
+        final userData = querySnapshot.docs.first.data();
         setState(() {
           // Update local variables with retrieved data
           _selectedDate = userData['selected_date'].toDate();
@@ -182,7 +184,7 @@ class _MonthlyScreenState extends State<MonthlyScreen> {
                         _save();
                         print("Save button pressed!");
                       },
-                      child: Text('Save'),
+                      child: const Text('Save'),
                     ),
                   ),
                 ],
@@ -193,7 +195,7 @@ class _MonthlyScreenState extends State<MonthlyScreen> {
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
-              Container(
+              SizedBox(
                 height: 100,
                 child: AnimatedProgressIndicator(totalSavings: _totalSavings),
               ),
@@ -208,7 +210,7 @@ class _MonthlyScreenState extends State<MonthlyScreen> {
 class AnimatedProgressIndicator extends StatelessWidget {
   final double totalSavings;
 
-  const AnimatedProgressIndicator({Key? key, required this.totalSavings}) : super(key: key);
+  const AnimatedProgressIndicator({super.key, required this.totalSavings});
 
   @override
   Widget build(BuildContext context) {

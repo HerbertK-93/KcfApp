@@ -4,6 +4,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class MonthlyScreen extends StatefulWidget {
+  const MonthlyScreen({super.key});
+
   @override
   _MonthlyScreenState createState() => _MonthlyScreenState();
 }
@@ -16,7 +18,7 @@ class _MonthlyScreenState extends State<MonthlyScreen> {
   String _period = '6 months'; // Default period option
   double _amount = 20; // Default amount option
   double _calculatedAmount = 0.0; // Amount after adding interest rate
-  double _conversionRate = 3600; // 1 USD = 3600 UGX (Ugandan Shillings)
+  final double _conversionRate = 3600; // 1 USD = 3600 UGX (Ugandan Shillings)
   List<Map<String, dynamic>> _transactionHistory = []; // Transaction history
 
   @override
@@ -168,21 +170,17 @@ class _MonthlyScreenState extends State<MonthlyScreen> {
       if (querySnapshot.docs.isNotEmpty) {
         // Retrieve the first document (assuming there's only one document)
         final userData = querySnapshot.docs.first.data();
-        if (userData != null && userData is Map<String, dynamic>) {
-          setState(() {
-            // Update local variables with retrieved data
-            _selectedDate = (userData['selected_date'] as Timestamp).toDate();
-            _monthlyDeposit = userData['monthly_deposit'] ?? 0.0;
-            _interestRate = userData['interest_rate'] ?? 0.12; // Default to 12%
-            _period = userData['period'] ?? '6 months'; // Default period option
-            _amount = userData['amount'] ?? 20.0; // Default amount option
-            // Calculate total savings based on retrieved data
-            _calculateTotalSavings();
-          });
-        } else {
-          print("Invalid user data format");
-        }
-      } else {
+        setState(() {
+          // Update local variables with retrieved data
+          _selectedDate = (userData['selected_date'] as Timestamp).toDate();
+          _monthlyDeposit = userData['monthly_deposit'] ?? 0.0;
+          _interestRate = userData['interest_rate'] ?? 0.12; // Default to 12%
+          _period = userData['period'] ?? '6 months'; // Default period option
+          _amount = userData['amount'] ?? 20.0; // Default amount option
+          // Calculate total savings based on retrieved data
+          _calculateTotalSavings();
+        });
+            } else {
         print("No documents found in collection");
       }
     } catch (error) {
@@ -318,7 +316,7 @@ class _MonthlyScreenState extends State<MonthlyScreen> {
               const SizedBox(height: 8),
               Text(
                 'Monthly returns: $_calculatedAmount USD (${(_calculatedAmount * _conversionRate).toStringAsFixed(2)} UGX)', // Display calculated amount in dollars and Ugandan Shillings
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
               // Save button
@@ -379,7 +377,7 @@ class _MonthlyScreenState extends State<MonthlyScreen> {
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
-              Container(
+              SizedBox(
                 height: 200, // Fixed height to make it scrollable
                 child: ListView.builder(
                   itemCount: _transactionHistory.length,

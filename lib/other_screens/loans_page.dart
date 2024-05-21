@@ -173,7 +173,7 @@ class _LoansPageState extends State<LoansPage> {
   showModalBottomSheet(
     context: context,
     builder: (BuildContext context) {
-      return Container(
+      return SizedBox(
         height: MediaQuery.of(context).size.height * 0.2, // Adjust the height as per your requirement
         child: Center(
           child: ListTile(

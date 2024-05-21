@@ -7,10 +7,9 @@ import 'package:kings_cogent/responsive/web_screen_layout.dart';
 import 'package:kings_cogent/screens/forgot_password_screen.dart'; // Import the ForgotPasswordScreen
 import 'package:kings_cogent/screens/signup_screen.dart';
 import 'package:kings_cogent/utils/utils.dart';
-import 'package:kings_cogent/widgets/text_field_layout.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({Key? key}) : super(key: key);
+  const LoginScreen({super.key});
 
   @override
   _LoginScreenState createState() => _LoginScreenState();

@@ -4,12 +4,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class OnceScreen extends StatefulWidget {
+  const OnceScreen({super.key});
+
   @override
   _OnceScreenState createState() => _OnceScreenState();
 }
 
 class _OnceScreenState extends State<OnceScreen> {
-  TextEditingController _amountController = TextEditingController();
+  final TextEditingController _amountController = TextEditingController();
   double _oneTimeAmount = 20.0; // Default one-time saving amount
   double _interestRate = 0.12; // Fixed interest rate (12%)
   double _totalSavings = 0.0; // Total savings accumulated over time
@@ -95,16 +97,12 @@ class _OnceScreenState extends State<OnceScreen> {
       if (querySnapshot.docs.isNotEmpty) {
         // Retrieve the first document (assuming there's only one document)
         final userData = querySnapshot.docs.first.data();
-        if (userData != null && userData is Map<String, dynamic>) {
-          setState(() {
-            // Update local variables with retrieved data
-            _oneTimeAmount = userData['one_time_amount'] ?? 20.0; // Default amount option
-            _interestRate = userData['interest_rate'] ?? 0.12; // Default to 12%
-          });
-        } else {
-          print("Invalid user data format");
-        }
-      } else {
+        setState(() {
+          // Update local variables with retrieved data
+          _oneTimeAmount = userData['one_time_amount'] ?? 20.0; // Default amount option
+          _interestRate = userData['interest_rate'] ?? 0.12; // Default to 12%
+        });
+            } else {
         print("No documents found in collection");
       }
     } catch (error) {
