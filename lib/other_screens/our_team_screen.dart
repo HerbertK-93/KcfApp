@@ -24,7 +24,7 @@ class OurTeamScreen extends StatelessWidget {
             const Divider(),
             _buildTeamMember(
               name: 'THOMAS LORATO',
-              position: 'Assistant Director',
+              position: 'Director',
               categories: 'Management',
               description:
                   'Thomas supports the Director in implementing strategic plans and managing day-to-day operations. With a keen eye for detail and strong leadership skills, Thomas plays a crucial role in driving the organization forward.',

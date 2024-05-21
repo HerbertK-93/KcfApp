@@ -242,7 +242,7 @@ class ServiceCard extends StatelessWidget {
         leading: Icon(
           icon,
           size: 30,
-          color: Colors.blue,
+          color: Colors.purple.shade200,
         ),
         title: Row(
           children: [
@@ -256,18 +256,18 @@ class ServiceCard extends StatelessWidget {
             ),
             if (isRecommended)
               Container(
-                margin: const EdgeInsets.only(left: 90),
+                margin: const EdgeInsets.only(left: 80),
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
-                  color: Colors.green,
+                  color: Colors.white,
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: const Text(
                   'Recommended',
                   style: TextStyle(
-                    fontSize: 8,
+                    fontSize: 10,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: Color.fromARGB(255, 203, 117, 218),
                   ),
                 ),
               ),
@@ -297,7 +297,7 @@ class DualProgressBar extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           if (savingsProgress != null)
-            _buildBarChart('Savings Progress', savingsProgress!, Colors.green),
+            _buildBarChart('Saving Progress', savingsProgress!, Colors.green),
           const SizedBox(height: 15),
           if (expectedReturns != null)
             _buildBarChart('Expected Returns', expectedReturns!, Colors.orange),
