@@ -23,7 +23,7 @@ class OurTeamScreen extends StatelessWidget {
             ),
             const Divider(),
             _buildTeamMember(
-              name: 'THOMAS LARETO',
+              name: 'THOMAS LORATO',
               position: 'Assistant Director',
               categories: 'Management',
               description:

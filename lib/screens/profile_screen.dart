@@ -189,7 +189,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                           color: Colors.white, // Text Color
                                         ),
                                       ),
-                                      const SizedBox(height: 20),
+                                      const SizedBox(height: 90),
                                       Center(
                                         child: Column(
                                           children: [
@@ -197,14 +197,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                                 ? Text(
                                                     '\$$_currentBalance',
                                                     style: const TextStyle(
-                                                      fontSize: 17,
+                                                      fontSize: 15,
                                                       color: Colors.white, // Text Color
                                                     ),
                                                   )
                                                 : const Text(
-                                                    'Coming Soon', // Placeholder text
+                                                    'Kings Cogent Card Coming Soon', // Placeholder text
                                                     style: TextStyle(
-                                                      fontSize: 17,
+                                                      fontSize: 15,
                                                       color: Colors.white, // Text Color
                                                     ),
                                                   ),

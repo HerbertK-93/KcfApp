@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:kings_cogent/resources/auth_methods.dart';
 import 'package:kings_cogent/responsive/mobile_screen_layout.dart';
 import 'package:kings_cogent/responsive/responsive_layout_scrteen.dart';
@@ -70,133 +71,191 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   @override
-Widget build(BuildContext context) {
-  Color logoColor = Theme.of(context).brightness == Brightness.dark
-      ? Colors.white
-      : Colors.black;
+  Widget build(BuildContext context) {
+    Color logoColor = Theme.of(context).brightness == Brightness.dark
+        ? Colors.white
+        : Colors.black;
 
-  return Scaffold(
-    body: SafeArea(
-      child: SingleChildScrollView( // Wrap with SingleChildScrollView
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 32),
-          width: double.infinity,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const SizedBox(height: 50),
-              // Image
-              Image.asset(
-                'assets/images/L.png',
-                height: 120,
-                color: logoColor,
-              ),
-              const SizedBox(height: 24),
-              // Email TextField
-              TextField(
-                controller: _emailController,
-                decoration: const InputDecoration(
-                  hintText: 'Enter your email',
-                  border: OutlineInputBorder(),
-                  suffixIcon: Icon(
-                    Icons.email,
-                  ),
+    Color carouselTextColor = Theme.of(context).brightness == Brightness.dark
+        ? Colors.white
+        : Colors.black;
+
+    Color carouselBackgroundColor = Theme.of(context).brightness == Brightness.dark
+        ? Colors.black54
+        : Colors.yellow[100]!;
+
+    final List<Widget> cautionMessages = [
+      Text(
+        'Ensure you have an internet connection.',
+        style: TextStyle(fontSize: 14, color: carouselTextColor),
+        textAlign: TextAlign.center,
+      ),
+      Text(
+        'Make sure you have access to your email.',
+        style: TextStyle(fontSize: 14, color: carouselTextColor),
+        textAlign: TextAlign.center,
+      ),
+      
+      Text(
+        'You can only choose one saving plan.',
+        style: TextStyle(fontSize: 14, color: carouselTextColor),
+        textAlign: TextAlign.center,
+      ),
+      Text(
+        'The monthly saving plan is the most recommended.',
+        style: TextStyle(fontSize: 14, color: carouselTextColor),
+        textAlign: TextAlign.center,
+      ),
+      Text(
+        'For any questions please find our contacts on the more page.',
+        style: TextStyle(fontSize: 14, color: carouselTextColor),
+        textAlign: TextAlign.center,
+      ),
+    ];
+
+    return Scaffold(
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            width: double.infinity,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const SizedBox(height: 50),
+                // Image
+                Image.asset(
+                  'assets/images/L.png',
+                  height: 120,
+                  color: logoColor,
                 ),
-                keyboardType: TextInputType.emailAddress,
-              ),
-              const SizedBox(height: 24),
-              // Password TextField
-              TextField(
-                controller: _passwordController,
-                decoration: InputDecoration(
-                  hintText: 'Enter your password',
-                  border: const OutlineInputBorder(),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _obscurePassword
-                          ? Icons.visibility
-                          : Icons.visibility_off,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        _obscurePassword = !_obscurePassword;
-                      });
-                    },
+                const SizedBox(height: 24),
+                // Carousel for caution messages
+                CarouselSlider(
+                  options: CarouselOptions(
+                    height: 60.0,
+                    autoPlay: true,
+                    enlargeCenterPage: true,
+                    aspectRatio: 2.0,
+                    autoPlayInterval: const Duration(seconds: 3),
                   ),
-                ),
-                keyboardType: TextInputType.text,
-                obscureText: _obscurePassword,
-              ),
-              const SizedBox(height: 8), // Adjusted spacing here
-              // Forgot Password
-              Align(
-                alignment: Alignment.centerRight,
-                child: GestureDetector(
-                  onTap: navigateToForgotPassword,
-                  child: const Text(
-                    'Forgot password?',
-                    style: TextStyle(
-                      color: Colors.red,
-                      fontSize: 12,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-              // Login Button
-              SizedBox(
-                width: double.infinity,
-                height: 48, // Set fixed height for the button
-                child: InkWell(
-                  onTap: loginUser,
-                  child: Container(
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(4),
-                      color: Colors.amberAccent,
-                    ),
-                    child: _isLoading
-                        ? const Center(
-                      child: CircularProgressIndicator(
-                        color: Colors.black,
+                  items: cautionMessages.map((widget) {
+                    return Container(
+                      padding: const EdgeInsets.all(8.0),
+                      decoration: BoxDecoration(
+                        color: carouselBackgroundColor,
+                        borderRadius: BorderRadius.circular(8.0),
                       ),
-                    )
-                        : const Text('Log in'),
-                  ),
+                      child: widget,
+                    );
+                  }).toList(),
                 ),
-              ),
-              const SizedBox(height: 12),
-              // Transition to signup
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  GestureDetector(
-                    onTap: () {
-                      // Handle sign up text tap
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      child: const Text("Don't have an account?"),
+                const SizedBox(height: 24),
+                // Email TextField
+                TextField(
+                  controller: _emailController,
+                  decoration: const InputDecoration(
+                    hintText: 'Enter your email',
+                    border: OutlineInputBorder(),
+                    suffixIcon: Icon(
+                      Icons.email,
                     ),
                   ),
-                  const SizedBox(width: 6), // Add spacing here
-                  GestureDetector(
-                    onTap: navigateToSignup,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      child: const Text(
-                        "Sign Up",
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                  keyboardType: TextInputType.emailAddress,
+                ),
+                const SizedBox(height: 24),
+                // Password TextField
+                TextField(
+                  controller: _passwordController,
+                  decoration: InputDecoration(
+                    hintText: 'Enter your password',
+                    border: const OutlineInputBorder(),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscurePassword
+                            ? Icons.visibility
+                            : Icons.visibility_off,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _obscurePassword = !_obscurePassword;
+                        });
+                      },
+                    ),
+                  ),
+                  keyboardType: TextInputType.text,
+                  obscureText: _obscurePassword,
+                ),
+                const SizedBox(height: 8), // Adjusted spacing here
+                // Forgot Password
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: GestureDetector(
+                    onTap: navigateToForgotPassword,
+                    child: const Text(
+                      'Forgot password?',
+                      style: TextStyle(
+                        color: Colors.red,
+                        fontSize: 12,
                       ),
                     ),
                   ),
-                ],
-              ),
-            ],
+                ),
+                const SizedBox(height: 24),
+                // Login Button
+                SizedBox(
+                  width: double.infinity,
+                  height: 48, // Set fixed height for the button
+                  child: InkWell(
+                    onTap: loginUser,
+                    child: Container(
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(4),
+                        color: Colors.amberAccent,
+                      ),
+                      child: _isLoading
+                          ? const Center(
+                              child: CircularProgressIndicator(
+                                color: Colors.black,
+                              ),
+                            )
+                          : const Text('Log in'),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                // Transition to signup
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    GestureDetector(
+                      onTap: () {
+                        // Handle sign up text tap
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: const Text("Don't have an account?"),
+                      ),
+                    ),
+                    const SizedBox(width: 6), // Add spacing here
+                    GestureDetector(
+                      onTap: navigateToSignup,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: const Text(
+                          "Sign Up",
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 }

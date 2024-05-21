@@ -222,7 +222,7 @@ class _WeeklyScreenState extends State<WeeklyScreen> {
                 ],
               ),
               const SizedBox(height: 16),
-              const Text(
+                            const Text(
                 'Select Period:',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
