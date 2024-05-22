@@ -11,62 +11,92 @@ class DailyScreen extends StatefulWidget {
 }
 
 class _DailyScreenState extends State<DailyScreen> {
-  double _dailyDeposit = 0.0;
+  late DateTime _selectedDate = DateTime.now();
+  double _weeklyDeposit = 0.0;
   double _interestRate = 0.12; // Fixed interest rate (12%)
   double _totalSavings = 0.0; // Total savings accumulated over time
   String _period = '6 months'; // Default period option
   double _amount = 20; // Default amount option
-  double _totalAmountWithInterest = 0.0; // Amount after adding interest rate
+  double _calculatedAmount = 0.0; // Amount after adding interest rate
+  final double _conversionRate = 3600; // 1 USD = 3600 UGX (Ugandan Shillings)
+  List<Map<String, dynamic>> _transactionHistory = []; // Transaction history
 
   @override
   void initState() {
     super.initState();
-    // Load saved defaults
-    _loadDefaults();
-    // Calculate total savings
-    _calculateTotalSavings();
+    _loadDefaults(); // Load saved defaults
+    _loadTransactionHistory(); // Load transaction history
   }
 
   // Function to load saved defaults
   void _loadDefaults() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
-      _period = prefs.getString('period') ?? '6 months';
-      _amount = prefs.getDouble('amount') ?? 20.0;
-      _dailyDeposit = _amount;
+      // Load saved defaults if any
     });
+  }
+
+  // Function to load transaction history
+  void _loadTransactionHistory() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String>? history = prefs.getStringList('daily_transaction_history');
+    if (history != null) {
+      setState(() {
+        _transactionHistory = history.map((item) {
+          Map<String, dynamic> transaction = {};
+          List<String> details = item.split('|');
+          transaction['day'] = details[0];
+          transaction['amount'] = double.parse(details[1]);
+          return transaction;
+        }).toList();
+      });
+    }
+  }
+
+  // Function to save transaction history
+  void _saveTransactionHistory() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String> history = _transactionHistory.map((transaction) {
+      return '${transaction['day']}|${transaction['amount']}';
+    }).toList();
+    await prefs.setStringList('daily_transaction_history', history);
   }
 
   // Function to save defaults
   void _saveDefaults() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.setString('period', _period);
+    prefs.setString('selected_day', _selectedDate.toString()); // Save date as string
     prefs.setDouble('amount', _amount);
+  }
+
+  // Function to update the selected date
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2101),
+    );
+    if (picked != null && picked != _selectedDate) {
+      setState(() {
+        _selectedDate = picked;
+        _calculateTotalSavings();
+        _saveDefaults(); // Save selected date
+      });
+    }
   }
 
   // Function to calculate the total savings over time
   void _calculateTotalSavings() {
     _totalSavings = 0.0; // Reset total savings
-    _totalAmountWithInterest = _amount * (1 + _interestRate); // Calculate amount with interest
+    _calculatedAmount = _amount + (_amount * _interestRate); // Calculate amount with interest
 
-    int numberOfDays;
-    if (_period == '6 months') {
-      numberOfDays = 6 * 30;
-    } else if (_period == '1 year') {
-      numberOfDays = 12 * 30;
-    } else if (_period == '1.5 years') {
-      numberOfDays = (18 * 30).toInt();
-    } else if (_period == '2 years') {
-      numberOfDays = 24 * 30;
-    } else {
-      // Handle unexpected period
-      return;
-    }
+    int numberOfWeeks = _selectedDate.difference(DateTime.now()).inDays ~/ 7;
 
     double principal = 0.0; // Initial investment
-    for (int i = 0; i < numberOfDays; i++) {
-      double interest = principal * _interestRate / 360;
-      principal += _dailyDeposit + interest;
+    for (int i = 0; i < numberOfWeeks; i++) {
+      double interest = principal * _interestRate / 52; // Weekly interest
+      principal += _weeklyDeposit + interest;
       _totalSavings += principal;
     }
     setState(() {}); // Update UI after calculating total savings
@@ -104,13 +134,25 @@ class _DailyScreenState extends State<DailyScreen> {
   void _save() {
     // Save user's information in Firestore
     FirebaseFirestore.instance.collection('daily_plan').add({
-      'daily_deposit': _dailyDeposit,
+      'selected_day': _selectedDate,
+      'weekly_deposit': _weeklyDeposit,
       'interest_rate': _interestRate,
       'period': _period,
       'amount': _amount,
     }).then((value) {
-      // If saved successfully, fetch updated data and update UI
-      _saveDefaults(); // Save defaults locally
+      // If saved successfully, save defaults locally and fetch updated data
+      _saveDefaults(); // Save the defaults locally
+
+      // Add transaction to history
+      setState(() {
+        _transactionHistory.insert(0, { // Insert at the beginning of the list
+          'day': _selectedDate.toString().split(' ')[0],
+          'amount': _amount,
+        });
+      });
+
+      _saveTransactionHistory(); // Save transaction history locally
+      _fetchDataAndUpdateUI();
       print("Data saved successfully!");
     }).catchError((error) {
       // Handle errors
@@ -122,21 +164,21 @@ class _DailyScreenState extends State<DailyScreen> {
   void _fetchDataAndUpdateUI() async {
     try {
       // Fetch user's information from Firestore
-      final querySnapshot =
-          await FirebaseFirestore.instance.collection('daily_plan').get();
+      final querySnapshot = await FirebaseFirestore.instance.collection('daily_plan').get();
       if (querySnapshot.docs.isNotEmpty) {
         // Retrieve the first document (assuming there's only one document)
         final userData = querySnapshot.docs.first.data();
         setState(() {
           // Update local variables with retrieved data
-          _dailyDeposit = userData['daily_deposit'] ?? 0.0;
+          _selectedDate = (userData['selected_day'] as Timestamp).toDate();
+          _weeklyDeposit = userData['weekly_deposit'] ?? 0.0;
           _interestRate = userData['interest_rate'] ?? 0.12; // Default to 12%
           _period = userData['period'] ?? '6 months'; // Default period option
-          _amount = userData['amount'] ?? 20; // Default amount option
+          _amount = userData['amount'] ?? 20.0; // Default amount option
           // Calculate total savings based on retrieved data
           _calculateTotalSavings();
         });
-            } else {
+      } else {
         print("No documents found in collection");
       }
     } catch (error) {
@@ -168,6 +210,24 @@ class _DailyScreenState extends State<DailyScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
+                'Select Day:',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () => _selectDate(context),
+                      child: Text(
+                        'Selected Day: ${_selectedDate.toString().split(' ')[0]}',
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              const Text(
                 'Select Period:',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
@@ -181,7 +241,6 @@ class _DailyScreenState extends State<DailyScreen> {
                         setState(() {
                           _period = value!;
                           _calculateTotalSavings();
-                          _saveDefaults(); // Save selected period
                         });
                       },
                       items: const [
@@ -220,24 +279,22 @@ class _DailyScreenState extends State<DailyScreen> {
                       onChanged: (value) {
                         setState(() {
                           _amount = value!;
-                          _dailyDeposit
-= _amount; // Update daily deposit
+                          _weeklyDeposit = _amount;
                           _calculateTotalSavings();
-                          _saveDefaults(); // Save selected amount
                         });
                       },
                       items: [
                         DropdownMenuItem(
                           value: 20,
-                          child: Text('\$20 every day (${((5000 * 20)).toStringAsFixed(0)} UGX)'),
+                          child: Text('\$20 every day (${(20 * _conversionRate).toStringAsFixed(2)} UGX)'),
                         ),
                         DropdownMenuItem(
                           value: 50,
-                          child: Text('\$50 every day (${((5000 * 50)).toStringAsFixed(0)} UGX)'),
+                          child: Text('\$50 every day (${(50 * _conversionRate).toStringAsFixed(2)} UGX)'),
                         ),
                         DropdownMenuItem(
                           value: 100,
-                          child: Text('\$100 every day (${((5000 * 100)).toStringAsFixed(0)} UGX)'),
+                          child: Text('\$100 every day (${(100 * _conversionRate).toStringAsFixed(2)} UGX)'),
                         ),
                       ],
                     ),
@@ -256,7 +313,7 @@ class _DailyScreenState extends State<DailyScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Daily returns: \$${_totalAmountWithInterest.toStringAsFixed(0)} (${((5000 * _totalAmountWithInterest)).toStringAsFixed(0)} UGX)',
+                'Daily returns: $_calculatedAmount USD (${(_calculatedAmount * _conversionRate).toStringAsFixed(2)} UGX)', // Display calculated amount in dollars and Ugandan Shillings
                 style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
@@ -312,6 +369,36 @@ class _DailyScreenState extends State<DailyScreen> {
                 ),
               ),
               const SizedBox(height: 16),
+              // Transaction history section
+              const Text(
+                'Transaction History:',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              SizedBox(
+                height: 200, // Fixed height to make it scrollable
+                child: ListView.builder(
+                  itemCount: _transactionHistory.length,
+                  itemBuilder: (context, index) {
+                    final transaction = _transactionHistory[index];
+                    final weeklyReturns = transaction['amount'] + (transaction['amount'] * _interestRate);
+                    return Card(
+                      margin: const EdgeInsets.symmetric(vertical: 4.0),
+                      child: ListTile(
+                        title: Text('Transaction ${_transactionHistory.length - index}'),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Day: ${transaction['day']}'),
+                            Text('Amount: \$${transaction['amount']} (${(transaction['amount'] * _conversionRate).toStringAsFixed(2)} UGX)'),
+                            Text('Daily Returns: \$${weeklyReturns.toStringAsFixed(2)} (${(weeklyReturns * _conversionRate).toStringAsFixed(2)} UGX)'),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
             ],
           ),
         ),

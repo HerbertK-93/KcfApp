@@ -32,6 +32,10 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> {
   double? savingsProgress;
   double? expectedReturns;
 
+  Future<void> _deleteTransaction(String id) async {
+    await FirebaseFirestore.instance.collection('monthly_plan').doc(id).delete();
+  }
+
   @override
   Widget build(BuildContext context) {
     Brightness currentBrightness = Theme.of(context).brightness;
@@ -63,78 +67,78 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> {
       drawer: const SideBar(),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Padding(
-              padding: EdgeInsets.fromLTRB(0, 8, 0, 4),
-              child: Text(
-                'Saving Plan',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Padding(
+                padding: EdgeInsets.fromLTRB(0, 8, 0, 4),
+                child: Text(
+                  'Saving Plan',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
-            ),
-            ServiceCard(
-              title: 'Monthly',
-              icon: Icons.calendar_today_outlined,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const MonthlyScreen(),
-                  ),
-                );
-              },
-              isRecommended: true,
-            ),
-            ServiceCard(
-              title: 'Weekly',
-              icon: Icons.calendar_view_week_outlined,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const WeeklyScreen(),
-                  ),
-                );
-              },
-            ),
-            ServiceCard(
-              title: 'Daily',
-              icon: Icons.today_outlined,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const DailyScreen(),
-                  ),
-                );
-              },
-            ),
-            ServiceCard(
-              title: 'Once',
-              icon: Icons.calendar_view_day_outlined,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const OnceScreen(),
-                  ),
-                );
-              },
-            ),
-            const SizedBox(height: 8),
-            const FinancialTipsCarousel(),
-            const SizedBox(height: 16),
-            const Text(
-              'Transaction History:',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            Expanded(
-              child: StreamBuilder<QuerySnapshot>(
+              ServiceCard(
+                title: 'Monthly',
+                icon: Icons.calendar_today_outlined,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const MonthlyScreen(),
+                    ),
+                  );
+                },
+                isRecommended: true,
+              ),
+              ServiceCard(
+                title: 'Weekly',
+                icon: Icons.calendar_view_week_outlined,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const WeeklyScreen(),
+                    ),
+                  );
+                },
+              ),
+              ServiceCard(
+                title: 'Daily',
+                icon: Icons.today_outlined,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const DailyScreen(),
+                    ),
+                  );
+                },
+              ),
+              ServiceCard(
+                title: 'Once',
+                icon: Icons.calendar_view_day_outlined,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const OnceScreen(),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 8),
+              const FinancialTipsCarousel(),
+              const SizedBox(height: 16),
+              const Text(
+                'Transactions:',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              StreamBuilder<QuerySnapshot>(
                 stream: FirebaseFirestore.instance
                     .collection('monthly_plan')
                     .snapshots(),
@@ -154,9 +158,12 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> {
                   final transactions = snapshot.data!.docs;
 
                   return ListView.builder(
+                    physics: const NeverScrollableScrollPhysics(),
+                    shrinkWrap: true,
                     itemCount: transactions.length,
                     itemBuilder: (context, index) {
                       final transaction = transactions[index].data() as Map<String, dynamic>;
+                      final id = transactions[index].id;
                       final date = (transaction['selected_date'] as Timestamp).toDate();
                       final amount = transaction['amount'] ?? 0.0;
                       final interestRate = transaction['interest_rate'] ?? 0.12;
@@ -175,14 +182,31 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> {
                               Text('Monthly Returns: \$${monthlyReturns.toStringAsFixed(2)} (${(monthlyReturns * conversionRate).toStringAsFixed(2)} UGX)'),
                             ],
                           ),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.delete, color: Colors.red),
+                                onPressed: () async {
+                                  await _deleteTransaction(id);
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Transaction deleted'),
+                                      duration: Duration(seconds: 2),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
                         ),
                       );
                     },
                   );
                 },
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
       floatingActionButton: FloatingActionButton(
@@ -343,14 +367,15 @@ class FinancialTipsCarousel extends StatelessWidget {
         enlargeCenterPage: true,
       ),
       items: [
-        'Comin soon -> ',
+        'Coming soon -> ',
+        'Web version',
         'Loans with good interest rates',
         'Kings Cogent visa Card',
         'Kings Cogent mobile wallet',
-        'Financial Benefits and Incetives',
+        'Financial Benefits and Incentives',
         'Awards to our best customers',
         'Emergency fund',
-        'And much more',
+        'And much more!',
       ].map((tip) {
         return Container(
           margin: const EdgeInsets.all(5.0),
