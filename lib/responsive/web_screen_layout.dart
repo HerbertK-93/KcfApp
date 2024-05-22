@@ -205,4 +205,6 @@ class WebScreenLayout extends StatelessWidget {
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
+  
+  ServiceCard({required String title, required IconData icon, required Null Function() onTap}) {}
 }

@@ -7,6 +7,7 @@ import 'package:kings_cogent/screens/weekly_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:kings_cogent/screens/profile_screen.dart';
 import 'package:kings_cogent/widgets/sidebar.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class SavingPlan {
   double amount;
@@ -125,12 +126,62 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> {
               },
             ),
             const SizedBox(height: 8),
-            DualProgressBar(
-              savingsProgress: savingsProgress ?? 0,
-              expectedReturns: expectedReturns ?? 0,
+            const FinancialTipsCarousel(),
+            const SizedBox(height: 16),
+            const Text(
+              'Transaction History:',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
-            const FinancialTipsCarousel(),
+            Expanded(
+              child: StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance
+                    .collection('monthly_plan')
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  if (snapshot.hasError) {
+                    return const Center(child: Text('Something went wrong'));
+                  }
+
+                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                    return const Center(child: Text('No transactions found'));
+                  }
+
+                  final transactions = snapshot.data!.docs;
+
+                  return ListView.builder(
+                    itemCount: transactions.length,
+                    itemBuilder: (context, index) {
+                      final transaction = transactions[index].data() as Map<String, dynamic>;
+                      final date = (transaction['selected_date'] as Timestamp).toDate();
+                      final amount = transaction['amount'] ?? 0.0;
+                      final interestRate = transaction['interest_rate'] ?? 0.12;
+                      final conversionRate = 3600;
+                      final monthlyReturns = amount + (amount * interestRate);
+
+                      return Card(
+                        margin: const EdgeInsets.symmetric(vertical: 4.0),
+                        child: ListTile(
+                          title: Text('Transaction ${transactions.length - index}'),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Date: ${date.toString().split(' ')[0]}'),
+                              Text('Amount: \$${amount} (${(amount * conversionRate).toStringAsFixed(2)} UGX)'),
+                              Text('Monthly Returns: \$${monthlyReturns.toStringAsFixed(2)} (${(monthlyReturns * conversionRate).toStringAsFixed(2)} UGX)'),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
           ],
         ),
       ),
@@ -280,171 +331,46 @@ class ServiceCard extends StatelessWidget {
   }
 }
 
-class DualProgressBar extends StatelessWidget {
-  final double? savingsProgress;
-  final double? expectedReturns;
-
-  const DualProgressBar({super.key, 
-    this.savingsProgress,
-    this.expectedReturns,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          if (savingsProgress != null)
-            _buildBarChart('Saving Progress', savingsProgress!, Colors.green),
-          const SizedBox(height: 15),
-          if (expectedReturns != null)
-            _buildBarChart('Expected Returns', expectedReturns!, Colors.orange),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBarChart(String label, double value, Color color) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 24,
-            color: Color.fromARGB(255, 91, 90, 90),
-          ),
-        ),
-        const SizedBox(height: 4),
-        SizedBox(
-          height: 50,
-          child: Stack(
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(25),
-                child: Container(
-                  width: double.infinity,
-                  height: 50,
-                  color: const Color.fromARGB(255, 174, 173, 173),
-                ),
-              ),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: FractionallySizedBox(
-                  widthFactor: value / 100,
-                  child: Container(
-                    height: 50,
-                    color: color,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          '${value.toInt()}%',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: color,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
 class FinancialTipsCarousel extends StatelessWidget {
   const FinancialTipsCarousel({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final List<Map<String, String>> financialTips = [
-      {
-        'title': 'Start Saving Early',
-        'description': 'The earlier you start saving, the more you benefit from compound interest.',
-      },
-      {
-        'title': 'Diversify Investments',
-        'description': 'Spread your investments to manage risk effectively.',
-      },
-      {
-        'title': 'Set Financial Goals',
-        'description': 'Having clear goals helps you stay focused and motivated.',
-      },
-    ];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Financial Tips',
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
+    return CarouselSlider(
+      options: CarouselOptions(
+        height: 100,
+        autoPlay: true,
+        enlargeCenterPage: true,
+      ),
+      items: [
+        'Comin soon -> ',
+        'Loans with good interest rates',
+        'Kings Cogent visa Card',
+        'Kings Cogent mobile wallet',
+        'Financial Benefits and Incetives',
+        'Awards to our best customers',
+        'Emergency fund',
+        'And much more',
+      ].map((tip) {
+        return Container(
+          margin: const EdgeInsets.all(5.0),
+          decoration: BoxDecoration(
+            color: const Color.fromARGB(255, 63, 62, 63),
+            borderRadius: BorderRadius.circular(10.0),
           ),
-        ),
-        const SizedBox(height: 10),
-        AspectRatio(
-          aspectRatio: 16 / 4,
-          child: CarouselSlider(
-            options: CarouselOptions(
-              autoPlay: true,
-              enlargeCenterPage: true,
-              enableInfiniteScroll: true,
-            ),
-            items: financialTips.map((tip) {
-              return Builder(
-                builder: (BuildContext context) {
-                  return TipCard(
-                    title: tip['title']!,
-                    description: tip['description']!,
-                  );
-                },
-              );
-            }).toList(),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class TipCard extends StatelessWidget {
-  final String title;
-  final String description;
-
-  const TipCard({super.key, 
-    required this.title,
-    required this.description,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      elevation: 4,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
+          child: Center(
+            child: Text(
+              tip,
               style: const TextStyle(
-                fontSize: 16,
+                fontSize: 18.0,
+                color: Colors.white,
                 fontWeight: FontWeight.bold,
               ),
+              textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 4),
-            Text(description),
-          ],
-        ),
-      ),
+          ),
+        );
+      }).toList(),
     );
   }
 }
