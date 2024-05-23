@@ -44,7 +44,6 @@ dependencies:
   permission_handler: ^11.3.1
   provider: ^6.1.2
   shared_preferences: ^2.2.2
-  shimmer: ^3.0.0
   url_launcher: ^6.2.5
 
 dev_dependencies:
@@ -69,22 +68,6 @@ flutter:
   assets:
     - assets/images/logo.png
     - assets/images/New Logo.jpeg
-    - assets/images/blue school.png
-    - assets/images/card background.jpg
-    - assets/images/business.png
-    - assets/images/emergency.png
-    - assets/images/money.png
-    - assets/images/personal loan.png
-    - assets/images/school.png
-    - assets/images/school 2.png
-    - assets/images/tractor.png
-    - assets/images/blue emergency.png
-    - assets/images/blue market place.png
-    - assets/images/blue personal.png
-    - assets/images/blue school.png
-    - assets/images/blue salary.png
-    - assets/images/blue tractor.png
-    - assets/images/salary.png
     - assets/images/L.png
     - assets/images/splashscreen1.png
     - assets/images/S-S.png

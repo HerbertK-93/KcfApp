@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:kings_cogent/screens/alltransactions_screen.dart';
 import 'package:kings_cogent/screens/daily_screen.dart';
 import 'package:kings_cogent/screens/monthly_screen.dart';
 import 'package:kings_cogent/screens/once_screen.dart';
@@ -33,39 +34,44 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> {
   double? expectedReturns;
   List<Map<String, dynamic>> _transactionHistory = [];
   double _totalMonthlyReturns = 0.0;
+  ValueNotifier<bool> _notifier = ValueNotifier(false);
 
   @override
   void initState() {
     super.initState();
-    _loadTransactionHistory(); 
+    _initSharedPreferences();
+  }
+
+  Future<void> _initSharedPreferences() async {
+    await SharedPreferences.getInstance();
+    _loadTransactionHistory();
   }
 
   Future<void> _loadTransactionHistory() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     List<String>? history = prefs.getStringList('transaction_history');
     if (history != null) {
-      setState(() {
-        _transactionHistory = history.map((item) {
-          Map<String, dynamic> transaction = {};
-          List<String> details = item.split('|');
-          transaction['date'] = details[0];
-          transaction['amount'] = double.parse(details[1]);
-          return transaction;
-        }).toList();
-        _calculateTotalMonthlyReturns();
-      });
-    }
-  }
+      List<Map<String, dynamic>> updatedHistory = history.map((item) {
+        Map<String, dynamic> transaction = {};
+        List<String> details = item.split('|');
+        transaction['date'] = details[0];
+        transaction['amount'] = double.parse(details[1]);
+        return transaction;
+      }).toList();
 
-  void _calculateTotalMonthlyReturns() {
-    double total = 0.0;
-    const interestRate = 0.12;
-    for (var transaction in _transactionHistory) {
-      total += transaction['amount'] + (transaction['amount'] * interestRate);
+      double total = 0.0;
+      const interestRate = 0.12;
+      for (var transaction in updatedHistory) {
+        total += transaction['amount'] + (transaction['amount'] * interestRate);
+      }
+
+      setState(() {
+        _transactionHistory = updatedHistory;
+        _totalMonthlyReturns = total;
+      });
+
+      _notifier.value = !_notifier.value; // Trigger UI update
     }
-    setState(() {
-      _totalMonthlyReturns = total;
-    });
   }
 
   @override
@@ -74,243 +80,272 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> {
     const conversionRate = 3600;
     final totalReturnsUGX = (_totalMonthlyReturns * conversionRate).toStringAsFixed(2);
 
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: currentBrightness == Brightness.dark
-            ? Colors.grey[900]
-            : Colors.white,
-        title: const Text(''),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.person),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const ProfileScreen(
-                    uid: '',
-                  ),
-                ),
-              );
-            },
-            iconSize: 30,
+    return ValueListenableBuilder(
+      valueListenable: _notifier,
+      builder: (context, value, child) {
+        return Scaffold(
+          appBar: AppBar(
+            backgroundColor: currentBrightness == Brightness.dark
+                ? Colors.grey[900]
+                : Colors.white,
+            title: const Text(''),
+            centerTitle: true,
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.person),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ProfileScreen(
+                        uid: '',
+                      ),
+                    ),
+                  );
+                },
+                iconSize: 30,
+              ),
+            ],
           ),
-        ],
-      ),
-      drawer: const SideBar(),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8.0),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const Padding(
-                padding: EdgeInsets.fromLTRB(0, 8, 0, 4),
-                child: Text(
-                  'Total Returns',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
-                child: Center( // Center the text
+          drawer: const SideBar(),
+          body: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.fromLTRB(0, 8, 0, 4),
                   child: Text(
-                    '\$${_totalMonthlyReturns.toStringAsFixed(2)} USD ($totalReturnsUGX UGX)',
-                    style: const TextStyle(
-                      fontSize: 23,  // Increased font size
+                    'Total Returns',
+                    style: TextStyle(
+                      fontSize: 22,
                       fontWeight: FontWeight.bold,
-                      color: Color.fromARGB(255, 175, 107, 76),
                     ),
                   ),
                 ),
-              ),
-              const Padding(
-                padding: EdgeInsets.fromLTRB(0, 8, 0, 4),
-                child: Text(
-                  'Saving Plan',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
+                Container(
+                  padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
+                  child: Center( // Center the text
+                    child: Text(
+                      '\$${_totalMonthlyReturns.toStringAsFixed(2)} USD ($totalReturnsUGX UGX)',
+                      style: const TextStyle(
+                        fontSize: 23,  // Increased font size
+                        fontWeight: FontWeight.bold,
+                        color: Color.fromARGB(255, 175, 107, 76),
+                      ),
+                    ),
                   ),
                 ),
-              ),
-              ServiceCard(
-                title: 'Monthly',
-                icon: Icons.calendar_today_outlined,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const MonthlyScreen(),
+                const Padding(
+                  padding: EdgeInsets.fromLTRB(0, 8, 0, 4),
+                  child: Text(
+                    'Saving Plan',
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
                     ),
-                  );
-                },
-                isRecommended: true,
-              ),
-              ServiceCard(
-                title: 'Weekly',
-                icon: Icons.calendar_view_week_outlined,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const WeeklyScreen(),
+                  ),
+                ),
+                ServiceCard(
+                  title: 'Monthly',
+                  icon: Icons.calendar_today_outlined,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const MonthlyScreen(),
+                      ),
+                    );
+                  },
+                  isRecommended: true,
+                ),
+                ServiceCard(
+                  title: 'Weekly',
+                  icon: Icons.calendar_view_week_outlined,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const WeeklyScreen(),
+                      ),
+                    );
+                  },
+                ),
+                ServiceCard(
+                  title: 'Daily',
+                  icon: Icons.today_outlined,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const DailyScreen(),
+                      ),
+                    );
+                  },
+                ),
+                ServiceCard(
+                  title: 'Once',
+                  icon: Icons.calendar_view_day_outlined,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const OnceScreen(),
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 8),
+                const FinancialTipsCarousel(),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Transactions:',
+                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                     ),
-                  );
-                },
-              ),
-              ServiceCard(
-                title: 'Daily',
-                icon: Icons.today_outlined,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const DailyScreen(),
-                    ),
-                  );
-                },
-              ),
-              ServiceCard(
-                title: 'Once',
-                icon: Icons.calendar_view_day_outlined,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const OnceScreen(),
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(height: 8),
-              const FinancialTipsCarousel(),
-              const SizedBox(height: 16),
-              const Text(
-                'Transactions:',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              _transactionHistory.isEmpty
-                  ? const Center(child: Text('No transactions found'))
-                  : ListView.builder(
-                      physics: const NeverScrollableScrollPhysics(),
-                      shrinkWrap: true,
-                      itemCount: _transactionHistory.length,
-                      itemBuilder: (context, index) {
-                        final transaction = _transactionHistory[index];
-                        final date = transaction['date'];
-                        final amount = transaction['amount'];
-                        const interestRate = 0.12;
-                        final monthlyReturns = amount + (amount * interestRate);
-
-                        return Card(
-                          margin: const EdgeInsets.symmetric(vertical: 4.0),
-                          child: ListTile(
-                            title: Text('Transaction ${_transactionHistory.length - index}'),
-                            subtitle: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('Date: $date'),
-                                Text('Amount: \$$amount (${(amount * conversionRate).toStringAsFixed(2)} UGX)'),
-                                Text('Monthly Returns: \$${monthlyReturns.toStringAsFixed(2)} (${(monthlyReturns * conversionRate).toStringAsFixed(2)} UGX)'),
-                              ],
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => AllTransactionsScreen(
+                              transactionHistory: _transactionHistory,
                             ),
                           ),
                         );
                       },
+                      child: const Text(
+                        'View All',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Color.fromARGB(255, 182, 109, 195),
+                        ),
+                      ),
                     ),
-            ],
+                  ],
+                ),
+                const SizedBox(height: 8),
+                _transactionHistory.isEmpty
+                    ? const Center(child: Text('No transactions found'))
+                    : Expanded(
+                        child: ListView.builder(
+                          physics: const NeverScrollableScrollPhysics(),
+                          shrinkWrap: true,
+                          itemCount: _transactionHistory.length,
+                          itemBuilder: (context, index) {
+                            final transaction = _transactionHistory[index];
+                            final date = transaction['date'];
+                            final amount = transaction['amount'];
+                            const interestRate = 0.12;
+                            final monthlyReturns = amount + (amount * interestRate);
+
+                            return Card(
+                              margin: const EdgeInsets.symmetric(vertical: 4.0),
+                              child: ListTile(
+                                title: Text('Transaction ${_transactionHistory.length - index}'),
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text('Date: $date'),
+                                    Text('Amount: \$$amount (${(amount * conversionRate).toStringAsFixed(2)} UGX)'),
+                                    Text('Monthly Returns: \$${monthlyReturns.toStringAsFixed(2)} (${(monthlyReturns * conversionRate).toStringAsFixed(2)} UGX)'),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+              ],
+            ),
           ),
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          showDialog(
-            context: context,
-            builder: (context) {
-              return AlertDialog(
-                title: const Text('Talk to us'),
-                content: const SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      TextField(
-                        decoration: InputDecoration(
-                          labelText: 'Your Name',
-                        ),
+          floatingActionButton: FloatingActionButton(
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (context) {
+                  return AlertDialog(
+                    title: const Text('Talk to us'),
+                    content: const SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          TextField(
+                            decoration: InputDecoration(
+                              labelText: 'Your Name',
+                            ),
+                          ),
+                          TextField(
+                            decoration: InputDecoration(
+                              labelText: 'Subject',
+                            ),
+                          ),
+                          TextField(
+                            keyboardType: TextInputType.emailAddress,
+                            decoration: InputDecoration(
+                              labelText: 'Your Email',
+                            ),
+                          ),
+                          TextField(
+                            maxLines: 3,
+                            decoration: InputDecoration(
+                              labelText: 'Your Message',
+                            ),
+                          ),
+                        ],
                       ),
-                      TextField(
-                        decoration: InputDecoration(
-                          labelText: 'Subject',
-                        ),
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        child: const Text('Cancel'),
                       ),
-                      TextField(
-                        keyboardType: TextInputType.emailAddress,
-                        decoration: InputDecoration(
-                          labelText: 'Your Email',
-                        ),
-                      ),
-                      TextField(
-                        maxLines: 3,
-                        decoration: InputDecoration(
-                          labelText: 'Your Message',
-                        ),
+                      ElevatedButton(
+                        onPressed: () async {
+                          final Uri emailLaunchUri = Uri(
+                            scheme: 'mailto',
+                            path: 'kingscogentfinance@gmail.com',
+                            queryParameters: {
+                              'subject': 'Subject',
+                              'body': 'Your message here.'
+                            },
+                          );
+                          final String urlString = emailLaunchUri.toString();
+                          if (await canLaunch(urlString)) {
+                            await launch(urlString);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Your message has been sent!'),
+                                duration: Duration(seconds: 2),
+                              ),
+                            );
+                            Navigator.of(context).pop();
+                          } else {
+                            throw 'Could not launch $urlString';
+                          }
+                        },
+                        child: const Text('Send'),
                       ),
                     ],
-                  ),
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                    child: const Text('Cancel'),
-                  ),
-                  ElevatedButton(
-                    onPressed: () async {
-                      final Uri emailLaunchUri = Uri(
-                        scheme: 'mailto',
-                        path: 'kingscogentfinance@gmail.com',
-                        queryParameters: {
-                          'subject': 'Subject',
-                          'body': 'Your message here.'
-                        },
-                      );
-                      final String urlString = emailLaunchUri.toString();
-                      if (await canLaunch(urlString)) {
-                        await launch(urlString);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Your message has been sent!'),
-                            duration: Duration(seconds: 2),
-                          ),
-                        );
-                        Navigator.of(context).pop();
-                      } else {
-                        throw 'Could not launch $urlString';
-                      }
-                    },
-                    child: const Text('Send'),
-                  ),
-                ],
+                  );
+                },
               );
             },
-          );
-        },
-        backgroundColor: Colors.purple.shade200,
-        elevation: 20,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: const Icon(Icons.chat_bubble),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+            backgroundColor: Colors.purple.shade200,
+            elevation: 20,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: const Icon(Icons.chat_bubble),
+          ),
+          floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+        );
+      },
     );
   }
 }

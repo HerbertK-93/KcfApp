@@ -20,6 +20,7 @@ class _MonthlyScreenState extends State<MonthlyScreen> {
   double _calculatedAmount = 0.0; // Amount after adding interest rate
   final double _conversionRate = 3600; // 1 USD = 3600 UGX (Ugandan Shillings)
   List<Map<String, dynamic>> _transactionHistory = []; // Transaction history
+  ValueNotifier<bool> _notifier = ValueNotifier(false);
 
   @override
   void initState() {
@@ -60,6 +61,7 @@ class _MonthlyScreenState extends State<MonthlyScreen> {
       return '${transaction['date']}|${transaction['amount']}';
     }).toList();
     await prefs.setStringList('transaction_history', history);
+    _notifier.value = !_notifier.value; // Trigger UI update
   }
 
   // Function to save defaults

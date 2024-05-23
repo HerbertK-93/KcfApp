@@ -38,12 +38,11 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'Kings Cogent',
-        themeMode: ThemeMode.system, // Enable system theme mode
+        themeMode: ThemeMode.system, 
         theme: ThemeData.light().copyWith(
           scaffoldBackgroundColor: Colors.white,
         ),
         darkTheme: ThemeData.dark().copyWith(
-            // Customize dark theme if needed
         ),
         builder: (context, child) {
           return MediaQuery(
@@ -54,7 +53,7 @@ class MyApp extends StatelessWidget {
         routes: {
           '/login': (context) => const LoginScreen(),
         },
-        home: const SplashScreen(), // Set SplashScreen as the home screen
+        home: const SplashScreen(), 
       ),
     );
   }
