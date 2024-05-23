@@ -180,7 +180,7 @@ class _MonthlyScreenState extends State<MonthlyScreen> {
           // Calculate total savings based on retrieved data
           _calculateTotalSavings();
         });
-            } else {
+      } else {
         print("No documents found in collection");
       }
     } catch (error) {

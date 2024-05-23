@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:kings_cogent/responsive/mobile_screen_layout.dart';
 import 'package:kings_cogent/screens/daily_screen.dart';
 import 'package:kings_cogent/screens/monthly_screen.dart';
 import 'package:kings_cogent/screens/once_screen.dart';

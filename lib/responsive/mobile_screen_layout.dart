@@ -7,7 +7,7 @@ import 'package:kings_cogent/screens/weekly_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:kings_cogent/screens/profile_screen.dart';
 import 'package:kings_cogent/widgets/sidebar.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SavingPlan {
   double amount;
@@ -31,14 +31,48 @@ class MobileScreenLayout extends StatefulWidget {
 class _MobileScreenLayoutState extends State<MobileScreenLayout> {
   double? savingsProgress;
   double? expectedReturns;
+  List<Map<String, dynamic>> _transactionHistory = [];
+  double _totalMonthlyReturns = 0.0;
 
-  Future<void> _deleteTransaction(String id) async {
-    await FirebaseFirestore.instance.collection('monthly_plan').doc(id).delete();
+  @override
+  void initState() {
+    super.initState();
+    _loadTransactionHistory(); // Load transaction history from shared preferences
+  }
+
+  Future<void> _loadTransactionHistory() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String>? history = prefs.getStringList('transaction_history');
+    if (history != null) {
+      setState(() {
+        _transactionHistory = history.map((item) {
+          Map<String, dynamic> transaction = {};
+          List<String> details = item.split('|');
+          transaction['date'] = details[0];
+          transaction['amount'] = double.parse(details[1]);
+          return transaction;
+        }).toList();
+        _calculateTotalMonthlyReturns();
+      });
+    }
+  }
+
+  void _calculateTotalMonthlyReturns() {
+    double total = 0.0;
+    const interestRate = 0.12;
+    for (var transaction in _transactionHistory) {
+      total += transaction['amount'] + (transaction['amount'] * interestRate);
+    }
+    setState(() {
+      _totalMonthlyReturns = total;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     Brightness currentBrightness = Theme.of(context).brightness;
+    const conversionRate = 3600;
+    final totalReturnsUGX = (_totalMonthlyReturns * conversionRate).toStringAsFixed(2);
 
     return Scaffold(
       appBar: AppBar(
@@ -71,6 +105,29 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              const Padding(
+                padding: EdgeInsets.fromLTRB(0, 8, 0, 4),
+                child: Text(
+                  'Total Returns',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
+                child: Center( // Center the text
+                  child: Text(
+                    '\$${_totalMonthlyReturns.toStringAsFixed(2)} USD ($totalReturnsUGX UGX)',
+                    style: const TextStyle(
+                      fontSize: 23,  // Increased font size
+                      fontWeight: FontWeight.bold,
+                      color: Color.fromARGB(255, 175, 107, 76),
+                    ),
+                  ),
+                ),
+              ),
               const Padding(
                 padding: EdgeInsets.fromLTRB(0, 8, 0, 4),
                 child: Text(
@@ -138,73 +195,35 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> {
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
-              StreamBuilder<QuerySnapshot>(
-                stream: FirebaseFirestore.instance
-                    .collection('monthly_plan')
-                    .snapshots(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
+              _transactionHistory.isEmpty
+                  ? const Center(child: Text('No transactions found'))
+                  : ListView.builder(
+                      physics: const NeverScrollableScrollPhysics(),
+                      shrinkWrap: true,
+                      itemCount: _transactionHistory.length,
+                      itemBuilder: (context, index) {
+                        final transaction = _transactionHistory[index];
+                        final date = transaction['date'];
+                        final amount = transaction['amount'];
+                        const interestRate = 0.12;
+                        final monthlyReturns = amount + (amount * interestRate);
 
-                  if (snapshot.hasError) {
-                    return const Center(child: Text('Something went wrong'));
-                  }
-
-                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                    return const Center(child: Text('No transactions found'));
-                  }
-
-                  final transactions = snapshot.data!.docs;
-
-                  return ListView.builder(
-                    physics: const NeverScrollableScrollPhysics(),
-                    shrinkWrap: true,
-                    itemCount: transactions.length,
-                    itemBuilder: (context, index) {
-                      final transaction = transactions[index].data() as Map<String, dynamic>;
-                      final id = transactions[index].id;
-                      final date = (transaction['selected_date'] as Timestamp).toDate();
-                      final amount = transaction['amount'] ?? 0.0;
-                      final interestRate = transaction['interest_rate'] ?? 0.12;
-                      final conversionRate = 3600;
-                      final monthlyReturns = amount + (amount * interestRate);
-
-                      return Card(
-                        margin: const EdgeInsets.symmetric(vertical: 4.0),
-                        child: ListTile(
-                          title: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text('Transaction ${transactions.length - index}'),
-                              IconButton(
-                                icon: const Icon(Icons.delete, color: Colors.red),
-                                onPressed: () async {
-                                  await _deleteTransaction(id);
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('Transaction deleted'),
-                                      duration: Duration(seconds: 2),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ],
+                        return Card(
+                          margin: const EdgeInsets.symmetric(vertical: 4.0),
+                          child: ListTile(
+                            title: Text('Transaction ${_transactionHistory.length - index}'),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Date: $date'),
+                                Text('Amount: \$$amount (${(amount * conversionRate).toStringAsFixed(2)} UGX)'),
+                                Text('Monthly Returns: \$${monthlyReturns.toStringAsFixed(2)} (${(monthlyReturns * conversionRate).toStringAsFixed(2)} UGX)'),
+                              ],
+                            ),
                           ),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Date: ${date.toString().split(' ')[0]}'),
-                              Text('Amount: \$${amount} (${(amount * conversionRate).toStringAsFixed(2)} UGX)'),
-                              Text('Monthly Returns: \$${monthlyReturns.toStringAsFixed(2)} (${(monthlyReturns * conversionRate).toStringAsFixed(2)} UGX)'),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                  );
-                },
-              ),
+                        );
+                      },
+                    ),
             ],
           ),
         ),
@@ -302,7 +321,8 @@ class ServiceCard extends StatelessWidget {
   final VoidCallback onTap;
   final bool isRecommended;
 
-  const ServiceCard({super.key, 
+  const ServiceCard({
+    super.key, 
     required this.title,
     required this.icon,
     required this.onTap,
@@ -370,17 +390,19 @@ class FinancialTipsCarousel extends StatelessWidget {
         'Coming soon -> ',
         'Web version',
         'Loans with good interest rates',
+        'Emergency fund',
         'Kings Cogent visa Card',
         'Kings Cogent mobile wallet',
         'Financial Benefits and Incentives',
         'Awards to our best customers',
-        'Emergency fund',
         'And much more!',
       ].map((tip) {
         return Container(
           margin: const EdgeInsets.all(5.0),
           decoration: BoxDecoration(
-            color: Color.fromARGB(255, 111, 96, 111),
+            color: Theme.of(context).brightness == Brightness.dark
+                ? const Color.fromARGB(255, 74, 69, 74)
+                : const Color.fromARGB(255, 73, 63, 73),
             borderRadius: BorderRadius.circular(10.0),
           ),
           child: Center(
