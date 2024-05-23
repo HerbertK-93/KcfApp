@@ -173,18 +173,10 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> {
                       return Card(
                         margin: const EdgeInsets.symmetric(vertical: 4.0),
                         child: ListTile(
-                          title: Text('Transaction ${transactions.length - index}'),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                          title: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text('Date: ${date.toString().split(' ')[0]}'),
-                              Text('Amount: \$${amount} (${(amount * conversionRate).toStringAsFixed(2)} UGX)'),
-                              Text('Monthly Returns: \$${monthlyReturns.toStringAsFixed(2)} (${(monthlyReturns * conversionRate).toStringAsFixed(2)} UGX)'),
-                            ],
-                          ),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
+                              Text('Transaction ${transactions.length - index}'),
                               IconButton(
                                 icon: const Icon(Icons.delete, color: Colors.red),
                                 onPressed: () async {
@@ -197,6 +189,14 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> {
                                   );
                                 },
                               ),
+                            ],
+                          ),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Date: ${date.toString().split(' ')[0]}'),
+                              Text('Amount: \$${amount} (${(amount * conversionRate).toStringAsFixed(2)} UGX)'),
+                              Text('Monthly Returns: \$${monthlyReturns.toStringAsFixed(2)} (${(monthlyReturns * conversionRate).toStringAsFixed(2)} UGX)'),
                             ],
                           ),
                         ),
@@ -380,7 +380,7 @@ class FinancialTipsCarousel extends StatelessWidget {
         return Container(
           margin: const EdgeInsets.all(5.0),
           decoration: BoxDecoration(
-            color: const Color.fromARGB(255, 63, 62, 63),
+            color: Color.fromARGB(255, 111, 96, 111),
             borderRadius: BorderRadius.circular(10.0),
           ),
           child: Center(
