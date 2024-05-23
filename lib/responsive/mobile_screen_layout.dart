@@ -37,7 +37,7 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> {
   @override
   void initState() {
     super.initState();
-    _loadTransactionHistory(); // Load transaction history from shared preferences
+    _loadTransactionHistory(); 
   }
 
   Future<void> _loadTransactionHistory() async {

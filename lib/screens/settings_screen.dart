@@ -34,12 +34,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
               context,
               MaterialPageRoute(builder: (context) => const HowToScreen()),
             );
-          }, Icons.help), // Icon for "How To"
-          const Divider(), // Divider between menu items
+          }, Icons.help), 
+          const Divider(), 
           _buildMenuItem(context, 'Share', () {
             _shareApp();
           }, Icons.share),
-          const Divider(), // Divider between menu items
+          const Divider(), 
           _buildMenuItem(context, 'Logout', () {
             _confirmLogout(context);
           }, Icons.exit_to_app),
@@ -54,10 +54,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
       title: Row(
         children: [
           Text(title),
-          const Spacer(), // Add spacer to push the icon to the right
+          const Spacer(), 
           GestureDetector(
             onTap: onTap,
-            child: Icon(icon), // Add the icon wrapped in GestureDetector
+            child: Icon(icon), 
           ),
         ],
       ),
@@ -66,7 +66,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   void _shareApp() async {
     const String message = 'Check out this awesome app!';
-    const String url = 'https://example.com'; // Replace with your app link
+    const String url = 'https://example.com'; 
     const String formattedMessage = '$message $url';
 
     if (await canLaunch('sms:?body=$formattedMessage')) {

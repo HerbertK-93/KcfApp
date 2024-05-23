@@ -4,7 +4,7 @@ import 'package:kings_cogent/resources/auth_methods.dart';
 import 'package:kings_cogent/responsive/mobile_screen_layout.dart';
 import 'package:kings_cogent/responsive/responsive_layout_scrteen.dart';
 import 'package:kings_cogent/responsive/web_screen_layout.dart';
-import 'package:kings_cogent/screens/forgot_password_screen.dart'; // Import the ForgotPasswordScreen
+import 'package:kings_cogent/screens/forgot_password_screen.dart'; 
 import 'package:kings_cogent/screens/signup_screen.dart';
 import 'package:kings_cogent/utils/utils.dart';
 
@@ -19,7 +19,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
-  bool _obscurePassword = true; // To toggle password visibility
+  bool _obscurePassword = true; 
 
   @override
   void dispose() {
@@ -122,14 +122,12 @@ class _LoginScreenState extends State<LoginScreen> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 const SizedBox(height: 50),
-                // Image
                 Image.asset(
                   'assets/images/L.png',
                   height: 120,
                   color: logoColor,
                 ),
                 const SizedBox(height: 24),
-                // Carousel for caution messages
                 CarouselSlider(
                   options: CarouselOptions(
                     height: 60.0,
@@ -150,7 +148,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   }).toList(),
                 ),
                 const SizedBox(height: 24),
-                // Email TextField
                 TextField(
                   controller: _emailController,
                   decoration: const InputDecoration(
@@ -163,7 +160,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   keyboardType: TextInputType.emailAddress,
                 ),
                 const SizedBox(height: 24),
-                // Password TextField
                 TextField(
                   controller: _passwordController,
                   decoration: InputDecoration(
@@ -185,8 +181,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   keyboardType: TextInputType.text,
                   obscureText: _obscurePassword,
                 ),
-                const SizedBox(height: 8), // Adjusted spacing here
-                // Forgot Password
+                const SizedBox(height: 8), 
                 Align(
                   alignment: Alignment.centerRight,
                   child: GestureDetector(
@@ -201,10 +196,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                // Login Button
                 SizedBox(
                   width: double.infinity,
-                  height: 48, // Set fixed height for the button
+                  height: 48, 
                   child: InkWell(
                     onTap: loginUser,
                     child: Container(
@@ -224,20 +218,18 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                // Transition to signup
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     GestureDetector(
                       onTap: () {
-                        // Handle sign up text tap
                       },
                       child: Container(
                         padding: const EdgeInsets.symmetric(vertical: 8),
                         child: const Text("Don't have an account?"),
                       ),
                     ),
-                    const SizedBox(width: 6), // Add spacing here
+                    const SizedBox(width: 6), 
                     GestureDetector(
                       onTap: navigateToSignup,
                       child: Container(

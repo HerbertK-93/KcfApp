@@ -49,22 +49,20 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Get the brightness of the current theme
     Brightness brightness = Theme.of(context).brightness;
 
     return Scaffold(
-      backgroundColor: brightness == Brightness.dark ? const Color.fromARGB(255, 36, 35, 35) : Colors.white, // Adaptive background color
+      backgroundColor: brightness == Brightness.dark ? const Color.fromARGB(255, 36, 35, 35) : Colors.white,
       body: Center(
         child: Container(
-          color: brightness == Brightness.dark ? const Color.fromARGB(255, 36, 35, 35) : Colors.white, // Set container color to match background color
+          color: brightness == Brightness.dark ? const Color.fromARGB(255, 36, 35, 35) : Colors.white, 
           child: ImageFiltered(
-            // Apply color filter to the image based on the system theme
             imageFilter: ColorFilter.mode(
-              brightness == Brightness.dark ? Colors.white :  const Color.fromARGB(255, 36, 35, 35), // Invert the color based on theme
+              brightness == Brightness.dark ? Colors.white :  const Color.fromARGB(255, 36, 35, 35), 
               BlendMode.srcATop,
             ),
             child: Image.asset(
-              'assets/images/S-S.png', // Your single splash screen image
+              'assets/images/S-S.png', 
               height: 90,
             ),
           ),

@@ -97,7 +97,7 @@ class ContactUsScreen extends StatelessWidget {
                   ),
                 ),
                 InkWell(
-                  onTap: () => launch('https://kingscogentfinance.com'), // Open company website URL
+                  onTap: () => launch('https://kingscogentfinance.com'), 
                   child: const Text(
                     'https://kingscogentfinance.com',
                     style: TextStyle(fontSize: 16, color: Colors.blue),

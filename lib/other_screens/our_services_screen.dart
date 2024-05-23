@@ -27,8 +27,8 @@ class OurServicesScreen extends StatelessWidget {
                 _buildServiceItem('Emergency Loans'),
               ],
             ),
-            const Divider(), // Divider
-            const SizedBox(height: 8), // Add some space
+            const Divider(), 
+            const SizedBox(height: 8), 
             const Text(
               'Saving Plans',
               style: TextStyle(
@@ -80,7 +80,7 @@ class OurServicesScreen extends StatelessWidget {
 
   Widget _buildSavingPlanItem({required String name, required IconData icon}) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0, left: 5), // Adjust left padding here
+      padding: const EdgeInsets.only(bottom: 8.0, left: 5), 
       child: Row(
         children: [
           Icon(
