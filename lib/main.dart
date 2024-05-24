@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:kings_cogent/screens/splashscreen.dart';
 import 'package:provider/provider.dart';
-
 import 'package:kings_cogent/providers/user_provider.dart';
+import 'package:kings_cogent/providers/transaction_provider.dart'; // Import TransactionProvider
 import 'package:kings_cogent/screens/login_screen.dart';
 
 void main() async {
@@ -33,6 +33,9 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(
           create: (_) => UserProvider(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => TransactionProvider(), // Add TransactionProvider
         ),
       ],
       child: MaterialApp(

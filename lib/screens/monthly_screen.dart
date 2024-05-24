@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:kings_cogent/providers/transaction_provider.dart';
 
 class MonthlyScreen extends StatefulWidget {
   const MonthlyScreen({super.key});
@@ -19,56 +20,11 @@ class _MonthlyScreenState extends State<MonthlyScreen> {
   double _amount = 20; // Default amount option
   double _calculatedAmount = 0.0; // Amount after adding interest rate
   final double _conversionRate = 3600; // 1 USD = 3600 UGX (Ugandan Shillings)
-  List<Map<String, dynamic>> _transactionHistory = []; // Transaction history
-  ValueNotifier<bool> _notifier = ValueNotifier(false);
 
   @override
   void initState() {
     super.initState();
-    _loadDefaults(); // Load saved defaults
-    _loadTransactionHistory(); // Load transaction history
-  }
-
-  // Function to load saved defaults
-  void _loadDefaults() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    setState(() {
-      // Do not set defaults here
-    });
-  }
-
-  // Function to load transaction history
-  void _loadTransactionHistory() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    List<String>? history = prefs.getStringList('transaction_history');
-    if (history != null) {
-      setState(() {
-        _transactionHistory = history.map((item) {
-          Map<String, dynamic> transaction = {};
-          List<String> details = item.split('|');
-          transaction['date'] = details[0];
-          transaction['amount'] = double.parse(details[1]);
-          return transaction;
-        }).toList();
-      });
-    }
-  }
-
-  // Function to save transaction history
-  void _saveTransactionHistory() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    List<String> history = _transactionHistory.map((transaction) {
-      return '${transaction['date']}|${transaction['amount']}';
-    }).toList();
-    await prefs.setStringList('transaction_history', history);
-    _notifier.value = !_notifier.value; // Trigger UI update
-  }
-
-  // Function to save defaults
-  void _saveDefaults() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.setString('selected_date', _selectedDate.toString()); // Save date as string
-    prefs.setDouble('amount', _amount);
+    _calculateTotalSavings();
   }
 
   // Function to update the selected date
@@ -83,7 +39,6 @@ class _MonthlyScreenState extends State<MonthlyScreen> {
       setState(() {
         _selectedDate = picked;
         _calculateTotalSavings();
-        _saveDefaults(); // Save selected date
       });
     }
   }
@@ -106,89 +61,20 @@ class _MonthlyScreenState extends State<MonthlyScreen> {
     setState(() {}); // Update UI after calculating total savings
   }
 
-  // Function to handle saving with confirmation dialog
-  void _saveWithConfirmation() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text("Confirm"),
-          content: const Text("Are you sure you want to save?"),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog
-              },
-              child: const Text("No"),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog
-                _save(); // Proceed with saving
-              },
-              child: const Text("Yes"),
-            ),
-          ],
-        );
-      },
-    );
+  // Function to save transaction history
+  void _saveTransactionHistory(Map<String, dynamic> transaction) {
+    Provider.of<TransactionProvider>(context, listen: false).addTransaction(transaction);
   }
 
   // Function to handle saving
   void _save() {
-    // Save user's information in Firestore
-    FirebaseFirestore.instance.collection('monthly_plan').add({
-      'selected_date': _selectedDate,
-      'monthly_deposit': _monthlyDeposit,
-      'interest_rate': _interestRate,
-      'period': _period,
+    // Add transaction to history
+    final transaction = {
+      'date': _selectedDate.toString().split(' ')[0],
       'amount': _amount,
-    }).then((value) {
-      // If saved successfully, save defaults locally and fetch updated data
-      _saveDefaults(); // Save the defaults locally
+    };
 
-      // Add transaction to history
-      setState(() {
-        _transactionHistory.insert(0, { // Insert at the beginning of the list
-          'date': _selectedDate.toString().split(' ')[0],
-          'amount': _amount,
-        });
-      });
-
-      _saveTransactionHistory(); // Save transaction history locally
-      _fetchDataAndUpdateUI();
-      print("Data saved successfully!");
-    }).catchError((error) {
-      // Handle errors
-      print("Failed to save data: $error");
-    });
-  }
-
-  // Function to fetch data from Firestore and update UI
-  void _fetchDataAndUpdateUI() async {
-    try {
-      // Fetch user's information from Firestore
-      final querySnapshot = await FirebaseFirestore.instance.collection('monthly_plan').get();
-      if (querySnapshot.docs.isNotEmpty) {
-        // Retrieve the first document (assuming there's only one document)
-        final userData = querySnapshot.docs.first.data();
-        setState(() {
-          // Update local variables with retrieved data
-          _selectedDate = (userData['selected_date'] as Timestamp).toDate();
-          _monthlyDeposit = userData['monthly_deposit'] ?? 0.0;
-          _interestRate = userData['interest_rate'] ?? 0.12; // Default to 12%
-          _period = userData['period'] ?? '6 months'; // Default period option
-          _amount = userData['amount'] ?? 20.0; // Default amount option
-          // Calculate total savings based on retrieved data
-          _calculateTotalSavings();
-        });
-      } else {
-        print("No documents found in collection");
-      }
-    } catch (error) {
-      // Handle errors
-      print("Failed to fetch data: $error");
-    }
+    _saveTransactionHistory(transaction);
   }
 
   // Function to launch payment URL
@@ -326,10 +212,7 @@ class _MonthlyScreenState extends State<MonthlyScreen> {
                 children: [
                   Expanded(
                     child: ElevatedButton(
-                      onPressed: () {
-                        _saveWithConfirmation();
-                        print("Save button pressed!");
-                      },
+                      onPressed: _save,
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 12.0),
                         shape: RoundedRectangleBorder(
@@ -381,24 +264,28 @@ class _MonthlyScreenState extends State<MonthlyScreen> {
               const SizedBox(height: 8),
               SizedBox(
                 height: 200, // Fixed height to make it scrollable
-                child: ListView.builder(
-                  itemCount: _transactionHistory.length,
-                  itemBuilder: (context, index) {
-                    final transaction = _transactionHistory[index];
-                    final monthlyReturns = transaction['amount'] + (transaction['amount'] * _interestRate);
-                    return Card(
-                      margin: const EdgeInsets.symmetric(vertical: 4.0),
-                      child: ListTile(
-                        title: Text('Transaction ${_transactionHistory.length - index}'),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Date: ${transaction['date']}'),
-                            Text('Amount: \$${transaction['amount']} (${(transaction['amount'] * _conversionRate).toStringAsFixed(2)} UGX)'),
-                            Text('Monthly Returns: \$${monthlyReturns.toStringAsFixed(2)} (${(monthlyReturns * _conversionRate).toStringAsFixed(2)} UGX)'),
-                          ],
-                        ),
-                      ),
+                child: Consumer<TransactionProvider>(
+                  builder: (context, transactionProvider, child) {
+                    return ListView.builder(
+                      itemCount: transactionProvider.transactionHistory.length,
+                      itemBuilder: (context, index) {
+                        final transaction = transactionProvider.transactionHistory[index];
+                        final monthlyReturns = transaction['amount'] + (transaction['amount'] * _interestRate);
+                        return Card(
+                          margin: const EdgeInsets.symmetric(vertical: 4.0),
+                          child: ListTile(
+                            title: Text('Transaction ${transactionProvider.transactionHistory.length - index}'),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Date: ${transaction['date']}'),
+                                Text('Amount: \$${transaction['amount']}'),
+                                Text('Monthly Returns: ${monthlyReturns.toStringAsFixed(2)} USD (${(monthlyReturns * _conversionRate).toStringAsFixed(2)} UGX)'),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
                     );
                   },
                 ),
