@@ -34,8 +34,10 @@ class AppUser {
   }
 
   static AppUser fromSnap(DocumentSnapshot snap) {
-    var snapshot = snap.data() as Map<String, dynamic>;
-
+    var snapshot = snap.data() as Map<String, dynamic>?;
+    if (snapshot == null) {
+      throw Exception("User data is null");
+    }
     return AppUser(
       username: snapshot["username"],
       uid: snapshot["uid"],

@@ -1,6 +1,4 @@
 import 'dart:async';
-// Import for ImageFilter
-
 import 'package:flutter/material.dart';
 import 'package:kings_cogent/models/user.dart';
 import 'package:kings_cogent/resources/user_methods.dart';
@@ -20,7 +18,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   late SharedPrefs _sharedPrefs;
   late StreamController<AppUser?> _userStreamController;
   double _currentBalance = 0.0;
-  bool _isBalanceVisible = true; // Flag to track the visibility of the balance
+  bool _isBalanceVisible = true;
 
   @override
   void initState() {
@@ -51,8 +49,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     double oneTimeSavings = await _sharedPrefs.getOneTimeSavings() ?? 0.0;
 
     setState(() {
-      _currentBalance =
-          monthlySavings + weeklySavings + dailySavings + oneTimeSavings;
+      _currentBalance = monthlySavings + weeklySavings + dailySavings + oneTimeSavings;
     });
   }
 
@@ -101,6 +98,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
           final userData = snapshot.data;
           print('User Data Available: ${userData != null}');
+          if (userData == null) {
+            return Center(child: Text('No user data available.'));
+          }
           return SingleChildScrollView(
             padding: const EdgeInsets.all(20.0),
             child: Column(
@@ -109,12 +109,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Center(
                   child: ClipOval(
                     child: CachedNetworkImage(
-                      imageUrl: userData?.photoUrl ?? '',
+                      imageUrl: userData.photoUrl,
                       width: 100,
                       height: 100,
                       fit: BoxFit.cover,
                       placeholder: (context, url) =>
-                          const Icon(Icons.person, size: 100), // Placeholder Icon
+                          const Icon(Icons.person, size: 100),
                       errorWidget: (context, url, error) =>
                           const Icon(Icons.error),
                     ),
@@ -134,7 +134,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                       ),
                       Text(
-                        userData?.username ?? '',
+                        userData.username,
                         style: const TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
@@ -145,10 +145,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
                 const SizedBox(height: 5),
                 const Divider(),
-                _buildProfileField(
-                    'Email', userData?.email ?? '', context),
+                _buildProfileField('Email', userData.email, context),
                 const Divider(),
-                _buildProfileField('Bio', userData?.bio ?? '', context),
+                _buildProfileField('Bio', userData.bio, context),
                 const SizedBox(height: 20),
                 Container(
                   margin: const EdgeInsets.symmetric(horizontal: 20),
@@ -164,11 +163,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(15),
                             image: DecorationImage(
-                              image: const AssetImage('assets/images/wave-bw.png'), // Path to your image asset
+                              image: const AssetImage('assets/images/wave-bw.png'),
                               fit: BoxFit.cover,
                               colorFilter: ColorFilter.mode(
-                                const Color.fromARGB(255, 35, 49, 35).withOpacity(0.7), // Fading effect
-                                BlendMode.darken, // Adjust the blend mode as needed
+                                const Color.fromARGB(255, 35, 49, 35).withOpacity(0.7),
+                                BlendMode.darken,
                               ),
                             ),
                           ),
@@ -182,14 +181,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       const Text(
-                                        'Current Saving Balance',
+                                        'Kings Cogent Card',
                                         style: TextStyle(
-                                          fontSize: 21,
+                                          fontSize: 24,
                                           fontWeight: FontWeight.bold,
-                                          color: Colors.white, // Text Color
+                                          color: Colors.white,
                                         ),
                                       ),
-                                      const SizedBox(height: 90),
+                                      const SizedBox(height: 100),
                                       Center(
                                         child: Column(
                                           children: [
@@ -198,17 +197,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                                     '\$$_currentBalance',
                                                     style: const TextStyle(
                                                       fontSize: 15,
-                                                      color: Colors.white, // Text Color
+                                                      color: Colors.white,
                                                     ),
                                                   )
                                                 : const Text(
-                                                    'Kings Cogent Card Coming Soon', // Placeholder text
+                                                    'Coming Soon',
                                                     style: TextStyle(
                                                       fontSize: 15,
-                                                      color: Colors.white, // Text Color
+                                                      color: Colors.white,
                                                     ),
                                                   ),
-                                            const SizedBox(height: 5), // Adjust spacing if needed
+                                            const SizedBox(height: 5),
                                           ],
                                         ),
                                       ),
@@ -222,7 +221,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     },
                                     child: Icon(
                                       _isBalanceVisible ? Icons.visibility : Icons.visibility_off,
-                                      color: Colors.white, // Icon Color
+                                      color: Colors.white,
                                     ),
                                   ),
                                 ],
@@ -242,8 +241,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildProfileField(
-      String label, String value, BuildContext context) {
+  Widget _buildProfileField(String label, String value, BuildContext context) {
     final textColor = Theme.of(context).textTheme.bodyLarge!.color;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

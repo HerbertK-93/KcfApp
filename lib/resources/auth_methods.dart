@@ -1,21 +1,26 @@
-import "dart:typed_data";
-import "package:cloud_firestore/cloud_firestore.dart";
-import "package:firebase_auth/firebase_auth.dart";
-import "package:kings_cogent/models/user.dart" as model;
-import "package:kings_cogent/resources/storage_methods.dart";
-import "package:kings_cogent/utils/shared_prefs.dart";
+import 'dart:typed_data';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:kings_cogent/models/user.dart' as model;
+import 'package:kings_cogent/resources/storage_methods.dart';
+import 'package:kings_cogent/utils/shared_prefs.dart';
 
 class AuthMethods {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  Future<model.AppUser> getUserDetails() async {
-    User currentUser = _auth.currentUser!;
-
-    DocumentSnapshot snap =
-        await _firestore.collection('users').doc(currentUser.uid).get();
-
-    return model.AppUser.fromSnap(snap);
+  Future<model.AppUser?> getUserDetails(String uid) async {
+    try {
+      DocumentSnapshot snap = await _firestore.collection('users').doc(uid).get();
+      if (!snap.exists || snap.data() == null) {
+        print("No user data found in Firestore for UID: $uid");
+        return null;
+      }
+      return model.AppUser.fromSnap(snap);
+    } catch (e) {
+      print(e.toString());
+      return null;
+    }
   }
 
   // Sign up user
@@ -28,18 +33,13 @@ class AuthMethods {
   }) async {
     String res = "Some error occurred";
     try {
-      if (email.isNotEmpty ||
-          password.isNotEmpty ||
-          username.isNotEmpty ||
-          bio.isNotEmpty) {
+      if (email.isNotEmpty || password.isNotEmpty || username.isNotEmpty || bio.isNotEmpty) {
         // Register user
-        UserCredential cred = await _auth.createUserWithEmailAndPassword(
-            email: email, password: password);
+        UserCredential cred = await _auth.createUserWithEmailAndPassword(email: email, password: password);
 
         print(cred.user!.uid);
 
-        String photoUrl =
-            await StorageMethods().uploadImageToStorage('profilePics', file);
+        String photoUrl = await StorageMethods().uploadImageToStorage('profilePics', file);
         // Add user to database
 
         model.AppUser user = model.AppUser(
@@ -50,9 +50,7 @@ class AuthMethods {
           photoUrl: photoUrl,
         );
 
-        await _firestore.collection('users').doc(cred.user!.uid).set(
-              user.toJson(),
-            );
+        await _firestore.collection('users').doc(cred.user!.uid).set(user.toJson());
 
         res = "Success";
       }
@@ -71,10 +69,7 @@ class AuthMethods {
 
     try {
       if (email.isNotEmpty && password.isNotEmpty) {
-        final data = await _auth.signInWithEmailAndPassword(
-          email: email,
-          password: password,
-        );
+        final data = await _auth.signInWithEmailAndPassword(email: email, password: password);
 
         // Save uid
         final uid = data.user?.uid;

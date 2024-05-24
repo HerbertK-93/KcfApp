@@ -134,7 +134,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     autoPlay: true,
                     enlargeCenterPage: true,
                     aspectRatio: 2.0,
-                    autoPlayInterval: const Duration(seconds: 3),
+                    autoPlayInterval: const Duration(seconds: 4),
                   ),
                   items: cautionMessages.map((widget) {
                     return Container(

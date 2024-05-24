@@ -6,10 +6,11 @@ import "package:provider/provider.dart";
 class ResponsiveLayout extends StatefulWidget {
   final Widget webScreenLayout;
   final Widget mobileScreenLayout;
-  const ResponsiveLayout(
-      {super.key,
-      required this.webScreenLayout,
-      required this.mobileScreenLayout});
+  const ResponsiveLayout({
+    super.key,
+    required this.webScreenLayout,
+    required this.mobileScreenLayout,
+  });
 
   @override
   State<ResponsiveLayout> createState() => _ResponsiveLayoutState();

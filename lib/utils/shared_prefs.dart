@@ -45,11 +45,19 @@ class SharedPrefs {
     await sharedPreferences?.remove(tagUserData);
   }
 
-  getMonthlySavings() {}
+  Future<double?> getMonthlySavings() async {
+    // Implement method to retrieve monthly savings from SharedPrefs
+  }
 
-  getWeeklySavings() {}
+  Future<double?> getWeeklySavings() async {
+    // Implement method to retrieve weekly savings from SharedPrefs
+  }
 
-  getDailySavings() {}
+  Future<double?> getDailySavings() async {
+    // Implement method to retrieve daily savings from SharedPrefs
+  }
 
-  getOneTimeSavings() {}
+  Future<double?> getOneTimeSavings() async {
+    // Implement method to retrieve one-time savings from SharedPrefs
+  }
 }
