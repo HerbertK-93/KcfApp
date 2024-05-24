@@ -212,7 +212,7 @@ class _SignupScreenState extends State<SignupScreen> {
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(4),
-                          color: Colors.amberAccent,
+                          color: const Color.fromARGB(255, 99, 174, 236),
                         ),
                         child: _isLoading
                             ? const Center(
