@@ -76,7 +76,7 @@ class MobileScreenLayout extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      '$totalReturnsUGX UGX',
+                      '($totalReturnsUGX UGX)',
                       style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.grey),
                       textAlign: TextAlign.center,
                     ),
