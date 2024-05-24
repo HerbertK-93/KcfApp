@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:kings_cogent/providers/transaction_provider.dart';
 
@@ -67,14 +66,40 @@ class _MonthlyScreenState extends State<MonthlyScreen> {
   }
 
   // Function to handle saving
-  void _save() {
-    // Add transaction to history
-    final transaction = {
-      'date': _selectedDate.toString().split(' ')[0],
-      'amount': _amount,
-    };
+  void _save() async {
+    bool? confirm = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirm Save'),
+          content: const Text('Do you want to save this transaction?'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('No'),
+              onPressed: () {
+                Navigator.of(context).pop(false);
+              },
+            ),
+            TextButton(
+              child: const Text('Yes'),
+              onPressed: () {
+                Navigator.of(context).pop(true);
+              },
+            ),
+          ],
+        );
+      },
+    );
 
-    _saveTransactionHistory(transaction);
+    if (confirm == true) {
+      // Add transaction to history
+      final transaction = {
+        'date': _selectedDate.toString().split(' ')[0],
+        'amount': _amount,
+      };
+
+      _saveTransactionHistory(transaction);
+    }
   }
 
   // Function to launch payment URL

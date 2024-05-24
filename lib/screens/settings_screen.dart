@@ -34,12 +34,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
               context,
               MaterialPageRoute(builder: (context) => const HowToScreen()),
             );
-          }, Icons.help), 
-          const Divider(), 
+          }, Icons.help),
+          const Divider(),
           _buildMenuItem(context, 'Share', () {
             _shareApp();
           }, Icons.share),
-          const Divider(), 
+          const Divider(),
           _buildMenuItem(context, 'Logout', () {
             _confirmLogout(context);
           }, Icons.exit_to_app),
@@ -54,10 +54,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
       title: Row(
         children: [
           Text(title),
-          const Spacer(), 
+          const Spacer(),
           GestureDetector(
             onTap: onTap,
-            child: Icon(icon), 
+            child: Icon(icon),
           ),
         ],
       ),
@@ -66,7 +66,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   void _shareApp() async {
     const String message = 'Check out this awesome app!';
-    const String url = 'https://example.com'; 
+    const String url = 'https://example.com';
     const String formattedMessage = '$message $url';
 
     if (await canLaunch('sms:?body=$formattedMessage')) {
@@ -102,7 +102,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               onPressed: () async {
                 await FirebaseAuth.instance.signOut();
                 await SharedPrefs().logoutApp();
-                Navigator.pushReplacementNamed(context, '/login');
+                Navigator.of(context).pushNamedAndRemoveUntil('/login', (Route<dynamic> route) => false);
               },
             ),
           ],

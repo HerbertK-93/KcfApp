@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:convert';
 
 class TransactionProvider extends ChangeNotifier {
@@ -7,6 +8,7 @@ class TransactionProvider extends ChangeNotifier {
   double _totalMonthlyReturns = 0.0;
   final double _interestRate = 0.12;
   SharedPreferences? _prefs;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   TransactionProvider() {
     _loadFromPrefs();
@@ -15,11 +17,18 @@ class TransactionProvider extends ChangeNotifier {
   List<Map<String, dynamic>> get transactionHistory => _transactionHistory;
   double get totalMonthlyReturns => _totalMonthlyReturns;
 
-  void addTransaction(Map<String, dynamic> transaction) {
-    _transactionHistory.insert(0, transaction); // Insert new transaction at the beginning
+  void addTransaction(Map<String, dynamic> transaction) async {
+    _transactionHistory.insert(0, transaction);
     _totalMonthlyReturns += transaction['amount'] + (transaction['amount'] * _interestRate);
     _saveToPrefs();
     notifyListeners();
+
+    // Save to Firestore
+    try {
+      await _firestore.collection('transactions').add(transaction);
+    } catch (e) {
+      print('Failed to save transaction to Firestore: $e');
+    }
   }
 
   void _loadFromPrefs() async {
