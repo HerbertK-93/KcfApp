@@ -47,23 +47,44 @@ class MobileScreenLayout extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const Padding(
-                padding: EdgeInsets.fromLTRB(0, 8, 0, 4),
+                padding: EdgeInsets.fromLTRB(0, 8, 0, 15),
                 child: Text(
-                  'Total Returns',
+                  'Your Returns',
                   style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                 ),
               ),
               Container(
-                padding: const EdgeInsets.all(0),
-                child: Center(
-                  child: Text(
-                    '\$${transactionProvider.totalMonthlyReturns.toStringAsFixed(2)} USD ($totalReturnsUGX UGX)',
-                    style: const TextStyle(fontSize: 23, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 175, 107, 76)),
-                  ),
+                padding: const EdgeInsets.all(8.0),
+                decoration: BoxDecoration(
+                  color: Color.fromARGB(220, 67, 114, 97),
+                  borderRadius: BorderRadius.circular(40),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.3),
+                      spreadRadius: 7,
+                      blurRadius: 4,
+                      offset: Offset(0, 1), // changes position of shadow
+                    ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    Text(
+                      '\$${transactionProvider.totalMonthlyReturns.toStringAsFixed(2)} USD',
+                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 183, 154, 141)),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '$totalReturnsUGX UGX',
+                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.grey),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
                 ),
               ),
               const Padding(
-                padding: EdgeInsets.fromLTRB(0, 8, 0, 4),
+                padding: EdgeInsets.fromLTRB(0, 15, 0, 4),
                 child: Text(
                   'Saving Plan',
                   style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
