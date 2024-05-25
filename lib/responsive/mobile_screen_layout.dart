@@ -12,12 +12,21 @@ import 'package:kings_cogent/widgets/sidebar.dart';
 import 'package:kings_cogent/providers/transaction_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class MobileScreenLayout extends StatelessWidget {
+class MobileScreenLayout extends StatefulWidget {
+  @override
+  _MobileScreenLayoutState createState() => _MobileScreenLayoutState();
+}
+
+class _MobileScreenLayoutState extends State<MobileScreenLayout> {
+  bool _isFiguresVisible = true;
+
   @override
   Widget build(BuildContext context) {
     final transactionProvider = Provider.of<TransactionProvider>(context);
     final conversionRate = 3600;
     final totalReturnsUGX = (transactionProvider.totalMonthlyReturns * conversionRate).toStringAsFixed(2);
+    final textColor = Theme.of(context).textTheme.bodyLarge!.color;
+    final iconColor = Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black;
 
     return Scaffold(
       appBar: AppBar(
@@ -56,29 +65,51 @@ class MobileScreenLayout extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(8.0),
                 decoration: BoxDecoration(
-                  color: Color.fromARGB(220, 67, 114, 97),
-                  borderRadius: BorderRadius.circular(40),
+                  color: const Color.fromARGB(247, 255, 85, 0),
+                  borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.grey.withOpacity(0.3),
-                      spreadRadius: 7,
-                      blurRadius: 4,
-                      offset: Offset(0, 1), // changes position of shadow
+                      spreadRadius: 4,
+                      blurRadius: 3,
+                      offset: const Offset(0, 1), // changes position of shadow
                     ),
                   ],
                 ),
                 child: Column(
                   children: [
-                    Text(
-                      '\$${transactionProvider.totalMonthlyReturns.toStringAsFixed(2)} USD',
-                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 183, 154, 141)),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      '($totalReturnsUGX UGX)',
-                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.grey),
-                      textAlign: TextAlign.center,
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                _isFiguresVisible ? '\$${transactionProvider.totalMonthlyReturns.toStringAsFixed(2)} USD' : '*********',
+                                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: textColor),
+                                textAlign: TextAlign.left,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                _isFiguresVisible ? '($totalReturnsUGX UGX)' : '*********',
+                                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: textColor),
+                                textAlign: TextAlign.left,
+                              ),
+                            ],
+                          ),
+                        ),
+                        IconButton(
+                          icon: Icon(
+                            _isFiguresVisible ? Icons.visibility : Icons.visibility_off,
+                            color: iconColor,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _isFiguresVisible = !_isFiguresVisible;
+                            });
+                          },
+                        ),
+                      ],
                     ),
                   ],
                 ),
