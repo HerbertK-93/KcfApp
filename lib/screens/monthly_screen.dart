@@ -65,14 +65,14 @@ class _MonthlyScreenState extends State<MonthlyScreen> {
     Provider.of<TransactionProvider>(context, listen: false).addTransaction(transaction);
   }
 
-  // Function to handle saving
-  void _save() async {
+  // Function to handle saving and launching payment
+  void _saveAndPay() async {
     bool? confirm = await showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Confirm Save'),
-          content: const Text('Do you want to save this transaction?'),
+          title: const Text('Confirm and Pay'),
+          content: const Text('Do you want to save and pay?'),
           actions: <Widget>[
             TextButton(
               child: const Text('No'),
@@ -99,16 +99,14 @@ class _MonthlyScreenState extends State<MonthlyScreen> {
       };
 
       _saveTransactionHistory(transaction);
-    }
-  }
 
-  // Function to launch payment URL
-  void _launchPaymentUrl() async {
-    const url = 'https://flutterwave.com/pay/g3vpxdi0d3n8';
-    if (await canLaunch(url)) {
-      await launch(url);
-    } else {
-      print('Could not launch $url');
+      // Launch payment URL
+      const url = 'https://flutterwave.com/pay/g3vpxdi0d3n8';
+      if (await canLaunch(url)) {
+        await launch(url);
+      } else {
+        print('Could not launch $url');
+      }
     }
   }
 
@@ -232,13 +230,14 @@ class _MonthlyScreenState extends State<MonthlyScreen> {
                 style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
-              // Save button
+              // Save and pay button
               Row(
                 children: [
                   Expanded(
                     child: ElevatedButton(
-                      onPressed: _save,
+                      onPressed: _saveAndPay,
                       style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue, // Set the button color to blue
                         padding: const EdgeInsets.symmetric(vertical: 12.0),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
@@ -248,7 +247,7 @@ class _MonthlyScreenState extends State<MonthlyScreen> {
                         width: double.infinity,
                         child: Center(
                           child: Text(
-                            'Review & Save',
+                            'Save & Pay',
                             style: TextStyle(fontSize: 16),
                           ),
                         ),
@@ -256,29 +255,6 @@ class _MonthlyScreenState extends State<MonthlyScreen> {
                     ),
                   ),
                 ],
-              ),
-              const SizedBox(height: 16),
-              // Payment button
-              ElevatedButton(
-                onPressed: _launchPaymentUrl,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-                child: const SizedBox(
-                  width: double.infinity,
-                  child: Padding(
-                    padding: EdgeInsets.all(16.0),
-                    child: Center(
-                      child: Text(
-                        'Tap here to initiate saving payment',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  ),
-                ),
               ),
               const SizedBox(height: 16),
               // Transaction history section

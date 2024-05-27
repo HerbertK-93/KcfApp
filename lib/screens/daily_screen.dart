@@ -13,25 +13,24 @@ class DailyScreen extends StatefulWidget {
 class _DailyScreenState extends State<DailyScreen> {
   late DateTime _selectedDate = DateTime.now();
   double _weeklyDeposit = 0.0;
-  double _interestRate = 0.12; 
-  double _totalSavings = 0.0; 
-  String _period = '6 months'; 
-  double _amount = 20; 
-  double _calculatedAmount = 0.0; 
-  final double _conversionRate = 3600; 
+  double _interestRate = 0.12;
+  double _totalSavings = 0.0;
+  String _period = '6 months';
+  double _amount = 20;
+  double _calculatedAmount = 0.0;
+  final double _conversionRate = 3600;
   List<Map<String, dynamic>> _transactionHistory = [];
 
   @override
   void initState() {
     super.initState();
-    _loadDefaults(); 
-    _loadTransactionHistory(); 
+    _loadDefaults();
+    _loadTransactionHistory();
   }
 
   void _loadDefaults() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    setState(() {
-    });
+    setState(() {});
   }
 
   void _loadTransactionHistory() async {
@@ -60,7 +59,7 @@ class _DailyScreenState extends State<DailyScreen> {
 
   void _saveDefaults() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.setString('selected_day', _selectedDate.toString()); 
+    prefs.setString('selected_day', _selectedDate.toString());
     prefs.setDouble('amount', _amount);
   }
 
@@ -75,44 +74,43 @@ class _DailyScreenState extends State<DailyScreen> {
       setState(() {
         _selectedDate = picked;
         _calculateTotalSavings();
-        _saveDefaults(); 
+        _saveDefaults();
       });
     }
   }
 
   void _calculateTotalSavings() {
-    _totalSavings = 0.0; 
-    _calculatedAmount = _amount + (_amount * _interestRate); 
+    _totalSavings = 0.0;
+    _calculatedAmount = _amount + (_amount * _interestRate);
 
-    int numberOfWeeks = _selectedDate.difference(DateTime.now()).inDays ~/ 7;
+    int numberOfDays = _selectedDate.difference(DateTime.now()).inDays;
 
-    double principal = 0.0; 
-    for (int i = 0; i < numberOfWeeks; i++) {
-      double interest = principal * _interestRate / 52;
+    double principal = 0.0;
+    for (int i = 0; i < numberOfDays; i++) {
+      double interest = principal * _interestRate / 365;
       principal += _weeklyDeposit + interest;
       _totalSavings += principal;
     }
-    setState(() {}); 
+    setState(() {});
   }
 
-  void _saveWithConfirmation() {
-    showDialog(
+  void _saveAndPay() async {
+    bool? confirm = await showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text("Confirm"),
-          content: const Text("Are you sure you want to save?"),
+          title: const Text("Confirm and pay"),
+          content: const Text("Do you want to save and pay?"),
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(); 
+                Navigator.of(context).pop(false);
               },
               child: const Text("No"),
             ),
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(); 
-                _save(); 
+                Navigator.of(context).pop(true);
               },
               child: const Text("Yes"),
             ),
@@ -120,31 +118,39 @@ class _DailyScreenState extends State<DailyScreen> {
         );
       },
     );
-  }
 
-  void _save() {
-    FirebaseFirestore.instance.collection('daily_plan').add({
-      'selected_day': _selectedDate,
-      'weekly_deposit': _weeklyDeposit,
-      'interest_rate': _interestRate,
-      'period': _period,
-      'amount': _amount,
-    }).then((value) {
-      _saveDefaults(); 
+    if (confirm == true) {
+      FirebaseFirestore.instance.collection('daily_plan').add({
+        'selected_day': _selectedDate,
+        'weekly_deposit': _weeklyDeposit,
+        'interest_rate': _interestRate,
+        'period': _period,
+        'amount': _amount,
+      }).then((value) async {
+        _saveDefaults();
 
-      setState(() {
-        _transactionHistory.insert(0, { 
-          'day': _selectedDate.toString().split(' ')[0],
-          'amount': _amount,
+        setState(() {
+          _transactionHistory.insert(0, {
+            'day': _selectedDate.toString().split(' ')[0],
+            'amount': _amount,
+          });
         });
-      });
 
-      _saveTransactionHistory();
-      _fetchDataAndUpdateUI();
-      print("Data saved successfully!");
-    }).catchError((error) {
-      print("Failed to save data: $error");
-    });
+        _saveTransactionHistory();
+        _fetchDataAndUpdateUI();
+
+        // Launch payment URL
+        const url = 'https://flutterwave.com/pay/g3vpxdi0d3n8';
+        if (await canLaunch(url)) {
+          await launch(url);
+        } else {
+          print('Could not launch $url');
+        }
+      }).catchError((error) {
+        // Handle error
+        print("Failed to save data: $error");
+      });
+    }
   }
 
   void _fetchDataAndUpdateUI() async {
@@ -156,21 +162,14 @@ class _DailyScreenState extends State<DailyScreen> {
           _selectedDate = (userData['selected_day'] as Timestamp).toDate();
           _weeklyDeposit = userData['weekly_deposit'] ?? 0.0;
           _interestRate = userData['interest_rate'] ?? 0.12;
-          _period = userData['period'] ?? '6 months'; 
-          _amount = userData['amount'] ?? 20.0; 
+          _period = userData['period'] ?? '6 months';
+          _amount = userData['amount'] ?? 20.0;
           _calculateTotalSavings();
         });
-      } else {
       }
     } catch (error) {
-    }
-  }
-
-  void _launchPaymentUrl() async {
-    const url = 'https://flutterwave.com/pay/g3vpxdi0d3n8';
-    if (await canLaunch(url)) {
-      await launch(url);
-    } else {
+      // Handle error
+      print('Error fetching data: $error');
     }
   }
 
@@ -290,18 +289,18 @@ class _DailyScreenState extends State<DailyScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Daily returns: $_calculatedAmount USD (${(_calculatedAmount * _conversionRate).toStringAsFixed(2)} UGX)', 
+                'Daily returns: $_calculatedAmount USD (${(_calculatedAmount * _conversionRate).toStringAsFixed(2)} UGX)',
                 style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
+              // Save and pay button
               Row(
                 children: [
                   Expanded(
                     child: ElevatedButton(
-                      onPressed: () {
-                        _saveWithConfirmation();
-                      },
+                      onPressed: _saveAndPay,
                       style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
                         padding: const EdgeInsets.symmetric(vertical: 12.0),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
@@ -311,7 +310,7 @@ class _DailyScreenState extends State<DailyScreen> {
                         width: double.infinity,
                         child: Center(
                           child: Text(
-                            'Review & Save',
+                            'Save & Pay',
                             style: TextStyle(fontSize: 16),
                           ),
                         ),
@@ -321,40 +320,18 @@ class _DailyScreenState extends State<DailyScreen> {
                 ],
               ),
               const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: _launchPaymentUrl,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-                child: const SizedBox(
-                  width: double.infinity,
-                  child: Padding(
-                    padding: EdgeInsets.all(16.0),
-                    child: Center(
-                      child: Text(
-                        'Tap here to initiate saving payment',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
               const Text(
                 'Transaction History:',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
               SizedBox(
-                height: 200, 
+                height: 200,
                 child: ListView.builder(
                   itemCount: _transactionHistory.length,
                   itemBuilder: (context, index) {
                     final transaction = _transactionHistory[index];
-                    final weeklyReturns = transaction['amount'] + (transaction['amount'] * _interestRate);
+                    final dailyReturns = transaction['amount'] + (transaction['amount'] * _interestRate);
                     return Card(
                       margin: const EdgeInsets.symmetric(vertical: 4.0),
                       child: ListTile(
@@ -364,7 +341,7 @@ class _DailyScreenState extends State<DailyScreen> {
                           children: [
                             Text('Day: ${transaction['day']}'),
                             Text('Amount: \$${transaction['amount']} (${(transaction['amount'] * _conversionRate).toStringAsFixed(2)} UGX)'),
-                            Text('Daily Returns: \$${weeklyReturns.toStringAsFixed(2)} (${(weeklyReturns * _conversionRate).toStringAsFixed(2)} UGX)'),
+                            Text('Daily Returns: \$${dailyReturns.toStringAsFixed(2)} (${(dailyReturns * _conversionRate).toStringAsFixed(2)} UGX)'),
                           ],
                         ),
                       ),

@@ -25,6 +25,11 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> {
   final TextEditingController _messageController = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final transactionProvider = Provider.of<TransactionProvider>(context);
     final conversionRate = 3600;
@@ -53,200 +58,182 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> {
         ],
       ),
       drawer: const SideBar(),
-      body: Stack(
-        children: [
-          Container(
-            decoration: BoxDecoration(
-              image: DecorationImage(
-                image: const AssetImage('assets/images/BG.png'),
-                fit: BoxFit.cover,
-                colorFilter: ColorFilter.mode(
-                  Theme.of(context).brightness == Brightness.dark
-                      ? Colors.black.withOpacity(0.2)
-                      : Colors.white.withOpacity(0.3),
-                  BlendMode.dstATop,
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Padding(
+                padding: EdgeInsets.fromLTRB(0, 8, 0, 15),
+                child: Text(
+                  'Your Returns',
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                 ),
               ),
-            ),
-          ),
-          SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Padding(
-                    padding: EdgeInsets.fromLTRB(0, 8, 0, 15),
-                    child: Text(
-                      'Your Returns',
-                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+              Container(
+                padding: const EdgeInsets.all(8.0),
+                decoration: BoxDecoration(
+                  color: const Color.fromARGB(247, 255, 85, 0),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.3),
+                      spreadRadius: 4,
+                      blurRadius: 3,
+                      offset: const Offset(0, 1),
                     ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.all(8.0),
-                    decoration: BoxDecoration(
-                      color: const Color.fromARGB(247, 255, 85, 0),
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.3),
-                          spreadRadius: 4,
-                          blurRadius: 3,
-                          offset: const Offset(0, 1),
-                        ),
-                      ],
-                    ),
-                    child: Column(
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    Row(
                       children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    _isFiguresVisible ? '\$${transactionProvider.totalMonthlyReturns.toStringAsFixed(2)} USD' : '*********',
-                                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: textColor),
-                                    textAlign: TextAlign.left,
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    _isFiguresVisible ? '($totalReturnsUGX UGX)' : '*********',
-                                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: textColor),
-                                    textAlign: TextAlign.left,
-                                  ),
-                                ],
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                _isFiguresVisible ? '\$${transactionProvider.totalMonthlyReturns.toStringAsFixed(2)} USD' : '*********',
+                                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: textColor),
+                                textAlign: TextAlign.left,
                               ),
-                            ),
-                            IconButton(
-                              icon: Icon(
-                                _isFiguresVisible ? Icons.visibility : Icons.visibility_off,
-                                color: iconColor,
+                              const SizedBox(height: 8),
+                              Text(
+                                _isFiguresVisible ? '($totalReturnsUGX UGX)' : '*********',
+                                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: textColor),
+                                textAlign: TextAlign.left,
                               ),
-                              onPressed: () {
-                                setState(() {
-                                  _isFiguresVisible = !_isFiguresVisible;
-                                });
-                              },
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ],
-                    ),
-                  ),
-                  const Padding(
-                    padding: EdgeInsets.fromLTRB(0, 15, 0, 4),
-                    child: Text(
-                      'Saving Plan',
-                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  ServiceCard(
-                    title: 'Monthly',
-                    icon: Icons.calendar_today_outlined,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const MonthlyScreen(),
-                        ),
-                      );
-                    },
-                    isRecommended: true,
-                  ),
-                  ServiceCard(
-                    title: 'Weekly',
-                    icon: Icons.calendar_view_week_outlined,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const WeeklyScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                  ServiceCard(
-                    title: 'Daily',
-                    icon: Icons.today_outlined,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const DailyScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                  ServiceCard(
-                    title: 'Once',
-                    icon: Icons.calendar_view_day_outlined,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const OnceScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 8),
-                  const FinancialTipsCarousel(),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text('Transactions:', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => AllTransactionsScreen(transactionHistory: transactionProvider.transactionHistory),
-                            ),
-                          );
-                        },
-                        child: const Text(
-                          'View All',
-                          style: TextStyle(fontSize: 16, color: Color.fromARGB(255, 182, 109, 195)),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  transactionProvider.transactionHistory.isEmpty
-                      ? const Center(child: Text('No transactions yet'))
-                      : ListView.builder(
-                          physics: const NeverScrollableScrollPhysics(),
-                          shrinkWrap: true,
-                          itemCount: transactionProvider.transactionHistory.length,
-                          itemBuilder: (context, index) {
-                            final transaction = transactionProvider.transactionHistory[index];
-                            final date = transaction['date'];
-                            final amount = transaction['amount'];
-                            final monthlyReturns = amount + (amount * 0.12);
-
-                            return Card(
-                              margin: const EdgeInsets.symmetric(vertical: 4.0),
-                              child: ListTile(
-                                title: Text('Transaction ${transactionProvider.transactionHistory.length - index}'),
-                                subtitle: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text('Date: $date'),
-                                    Text('Amount: \$$amount (${(amount * conversionRate).toStringAsFixed(2)} UGX)'),
-                                    Text('Monthly Returns: \$${monthlyReturns.toStringAsFixed(2)} (${(monthlyReturns * conversionRate).toStringAsFixed(2)} UGX)'),
-                                  ],
-                                ),
-                              ),
-                            );
+                        IconButton(
+                          icon: Icon(
+                            _isFiguresVisible ? Icons.visibility : Icons.visibility_off,
+                            color: iconColor,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _isFiguresVisible = !_isFiguresVisible;
+                            });
                           },
                         ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const Padding(
+                padding: EdgeInsets.fromLTRB(0, 15, 0, 4),
+                child: Text(
+                  'Saving Plan',
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                ),
+              ),
+              ServiceCard(
+                title: 'Monthly',
+                icon: Icons.calendar_today_outlined,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const MonthlyScreen(),
+                    ),
+                  );
+                },
+                isRecommended: true,
+              ),
+              ServiceCard(
+                title: 'Weekly',
+                icon: Icons.calendar_view_week_outlined,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const WeeklyScreen(),
+                    ),
+                  );
+                },
+              ),
+              ServiceCard(
+                title: 'Daily',
+                icon: Icons.today_outlined,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const DailyScreen(),
+                    ),
+                  );
+                },
+              ),
+              ServiceCard(
+                title: 'Once',
+                icon: Icons.calendar_view_day_outlined,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const OnceScreen(),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 8),
+              const FinancialTipsCarousel(),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Transactions:', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => AllTransactionsScreen(transactionHistory: transactionProvider.transactionHistory),
+                        ),
+                      );
+                    },
+                    child: const Text(
+                      'View All',
+                      style: TextStyle(fontSize: 16, color: Color.fromARGB(255, 182, 109, 195)),
+                    ),
+                  ),
                 ],
               ),
-            ),
+              const SizedBox(height: 8),
+              transactionProvider.transactionHistory.isEmpty
+                  ? const Center(child: Text('No transactions yet'))
+                  : ListView.builder(
+                      physics: const NeverScrollableScrollPhysics(),
+                      shrinkWrap: true,
+                      itemCount: transactionProvider.transactionHistory.length,
+                      itemBuilder: (context, index) {
+                        final transaction = transactionProvider.transactionHistory[index];
+                        final date = transaction['date'];
+                        final amount = transaction['amount'];
+                        final monthlyReturns = amount + (amount * 0.12);
+
+                        return Card(
+                          margin: const EdgeInsets.symmetric(vertical: 4.0),
+                          child: ListTile(
+                            title: Text('Transaction ${transactionProvider.transactionHistory.length - index}'),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Date: $date'),
+                                Text('Amount: \$$amount (${(amount * conversionRate).toStringAsFixed(2)} UGX)'),
+                                Text('Monthly Returns: \$${monthlyReturns.toStringAsFixed(2)} (${(monthlyReturns * conversionRate).toStringAsFixed(2)} UGX)'),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+            ],
           ),
-        ],
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
