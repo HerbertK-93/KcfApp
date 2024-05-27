@@ -99,7 +99,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           final userData = snapshot.data;
           print('User Data Available: ${userData != null}');
           if (userData == null) {
-            return Center(child: Text('No user data available.'));
+            return const Center(child: Text('No user data available.'));
           }
           return SingleChildScrollView(
             padding: const EdgeInsets.all(20.0),
@@ -156,80 +156,89 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(15),
                     ),
-                    child: Stack(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(20),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(15),
-                            image: DecorationImage(
-                              image: const AssetImage('assets/images/wave-bw.png'),
-                              fit: BoxFit.cover,
-                              colorFilter: ColorFilter.mode(
-                                const Color.fromARGB(255, 35, 49, 35).withOpacity(0.7),
-                                BlendMode.darken,
-                              ),
-                            ),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 15),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(15),
+                        gradient: LinearGradient(
+                          colors: [const Color.fromARGB(255, 149, 170, 192), Colors.blue.shade900],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                  Row(
                                     children: [
                                       const Text(
                                         'Kings Cogent Card',
                                         style: TextStyle(
-                                          fontSize: 24,
+                                          fontSize: 20,
                                           fontWeight: FontWeight.bold,
                                           color: Colors.white,
                                         ),
                                       ),
-                                      const SizedBox(height: 100),
-                                      Center(
-                                        child: Column(
-                                          children: [
-                                            _isBalanceVisible
-                                                ? Text(
-                                                    '\$$_currentBalance',
-                                                    style: const TextStyle(
-                                                      fontSize: 15,
-                                                      color: Colors.white,
-                                                    ),
-                                                  )
-                                                : const Text(
-                                                    'Coming Soon',
-                                                    style: TextStyle(
-                                                      fontSize: 15,
-                                                      color: Colors.white,
-                                                    ),
-                                                  ),
-                                            const SizedBox(height: 5),
-                                          ],
+                                      const SizedBox(width: 60),  // Adjust spacing if needed
+                                      GestureDetector(
+                                        onTap: () {
+                                          setState(() {
+                                            _isBalanceVisible = !_isBalanceVisible;
+                                          });
+                                        },
+                                        child: Icon(
+                                          _isBalanceVisible ? Icons.visibility : Icons.visibility_off,
+                                          color: Colors.white,
                                         ),
                                       ),
                                     ],
                                   ),
-                                  GestureDetector(
-                                    onTap: () {
-                                      setState(() {
-                                        _isBalanceVisible = !_isBalanceVisible;
-                                      });
-                                    },
-                                    child: Icon(
-                                      _isBalanceVisible ? Icons.visibility : Icons.visibility_off,
-                                      color: Colors.white,
+                                  const SizedBox(height: 15),  // Adjust spacing if needed
+                                  Text(
+                                    '**** **** **** 1234',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      color: Colors.white.withOpacity(0.8),
                                     ),
                                   ),
+                                  const SizedBox(height: 10),  // Adjust spacing if needed
+                                  Text(
+                                    'EXP: 12/24',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.white.withOpacity(0.8),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 15),  // Adjust spacing if needed
+                                  _isBalanceVisible
+                                      ? Text(
+                                          '\$$_currentBalance',
+                                          style: const TextStyle(
+                                            fontSize: 22,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                          ),
+                                        )
+                                      : const Text(
+                                          'Coming soon',
+                                          style: TextStyle(
+                                            fontSize: 22,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                          ),
+                                        ),
                                 ],
                               ),
                             ],
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
