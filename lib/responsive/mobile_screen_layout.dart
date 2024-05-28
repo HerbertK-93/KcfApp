@@ -1,5 +1,6 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:kings_cogent/screens/alltransactions_screen.dart';
 import 'package:kings_cogent/screens/daily_screen.dart';
@@ -9,8 +10,7 @@ import 'package:kings_cogent/screens/monthly_screen.dart';
 import 'package:kings_cogent/screens/profile_screen.dart';
 import 'package:kings_cogent/widgets/sidebar.dart';
 import 'package:kings_cogent/providers/transaction_provider.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
+import 'package:url_launcher/url_launcher.dart';
 
 class MobileScreenLayout extends StatefulWidget {
   @override
@@ -19,10 +19,6 @@ class MobileScreenLayout extends StatefulWidget {
 
 class _MobileScreenLayoutState extends State<MobileScreenLayout> {
   bool _isFiguresVisible = true;
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _subjectController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _messageController = TextEditingController();
 
   @override
   void initState() {
@@ -126,7 +122,7 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> {
               const Padding(
                 padding: EdgeInsets.fromLTRB(0, 15, 0, 4),
                 child: Text(
-                  'Saving Plan',
+                  'Saving Plans',
                   style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                 ),
               ),
@@ -236,83 +232,20 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          showDialog(
-            context: context,
-            builder: (context) {
-              return AlertDialog(
-                title: const Text('Talk to us'),
-                content: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      TextField(controller: _nameController, decoration: const InputDecoration(labelText: 'Your Name')),
-                      TextField(controller: _subjectController, decoration: const InputDecoration(labelText: 'Subject')),
-                      TextField(controller: _emailController, keyboardType: TextInputType.emailAddress, decoration: const InputDecoration(labelText: 'Your Email')),
-                      TextField(controller: _messageController, maxLines: 3, decoration: const InputDecoration(labelText: 'Your Message')),
-                    ],
-                  ),
-                ),
-                actions: [
-                  TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel')),
-                  ElevatedButton(
-                    onPressed: () async {
-                      final String name = _nameController.text;
-                      final String subject = _subjectController.text;
-                      final String email = _emailController.text;
-                      final String message = _messageController.text;
-
-                      const String apiUrl = 'https://api.sendgrid.com/v3/mail/send';
-                      const String apiKey = 'YOUR_SENDGRID_API_KEY';
-
-                      final response = await http.post(
-                        Uri.parse(apiUrl),
-                        headers: {
-                          'Authorization': 'Bearer $apiKey',
-                          'Content-Type': 'application/json',
-                        },
-                        body: jsonEncode({
-                          'personalizations': [
-                            {
-                              'to': [
-                                {'email': 'kingscogentfinance@gmail.com'}
-                              ],
-                              'subject': subject,
-                            }
-                          ],
-                          'from': {'email': email},
-                          'content': [
-                            {
-                              'type': 'text/plain',
-                              'value': 'Name: $name\n\nMessage: $message',
-                            }
-                          ],
-                        }),
-                      );
-
-                      if (response.statusCode == 202) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Your message has been sent!'), duration: Duration(seconds: 2)),
-                        );
-                        Navigator.of(context).pop();
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Failed to send message. Please try again later.'), duration: Duration(seconds: 2)),
-                        );
-                      }
-                    },
-                    child: const Text('Send'),
-                  ),
-                ],
-              );
-            },
-          );
+        onPressed: () async {
+          const whatsappUrl = "https://wa.me/+256751846100"; // Replace with your WhatsApp number
+          if (await canLaunch(whatsappUrl)) {
+            await launch(whatsappUrl);
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Could not launch WhatsApp')),
+            );
+          }
         },
-        backgroundColor: Colors.purple.shade200,
+        backgroundColor: Colors.green,
         elevation: 20,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        child: const Icon(Icons.chat_bubble),
+        child: const Icon(FontAwesomeIcons.whatsapp),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
