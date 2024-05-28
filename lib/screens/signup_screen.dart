@@ -19,6 +19,7 @@ class _SignupScreenState extends State<SignupScreen> {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _bioController = TextEditingController();
   final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _whatsappController = TextEditingController(); // New controller
   Uint8List? _image;
   bool _isLoading = false;
   bool _obscurePassword = true; // To toggle password visibility
@@ -29,6 +30,7 @@ class _SignupScreenState extends State<SignupScreen> {
     _passwordController.dispose();
     _bioController.dispose();
     _usernameController.dispose();
+    _whatsappController.dispose(); // Dispose the new controller
     super.dispose();
   }
 
@@ -53,6 +55,7 @@ class _SignupScreenState extends State<SignupScreen> {
       password: _passwordController.text,
       username: _usernameController.text,
       bio: _bioController.text,
+      whatsapp: _whatsappController.text, // Pass the WhatsApp number
       file: _image!,
     );
 
@@ -66,17 +69,18 @@ class _SignupScreenState extends State<SignupScreen> {
       showSnackBar(res, context); // Handle error here
     } else {
       await saveUserData(
-          _emailController.text, _usernameController.text, _bioController.text);
+          _emailController.text, _usernameController.text, _bioController.text, _whatsappController.text); // Save WhatsApp number
       navigateToLogin();
       // Handle success
     }
   }
 
-  Future<void> saveUserData(String email, String username, String bio) async {
+  Future<void> saveUserData(String email, String username, String bio, String whatsapp) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('email', email);
     await prefs.setString('username', username);
     await prefs.setString('bio', bio);
+    await prefs.setString('whatsapp', whatsapp); // Save WhatsApp number
   }
 
   void navigateToLogin() {
@@ -110,6 +114,16 @@ class _SignupScreenState extends State<SignupScreen> {
                   color: logoColor,
                 ),
                 const SizedBox(height: 24),
+                const Text(
+                  'Please enter all fields to be able to Sign Up',
+                  style: TextStyle(color: Colors.red),
+                ),
+                const SizedBox(height: 4), // Adjusted spacing
+                const Text(
+                  'Profile photo is MANDATORY',
+                  style: TextStyle(color: Colors.red),
+                ),
+                const SizedBox(height: 12),
                 // circular avatar with add photo icon
                 Stack(
                   children: [
@@ -185,7 +199,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   children: [
                     Text(
                       'Password must have more than six characters',
-                      style: TextStyle(color: Colors.red, fontSize: 10), // Adjusted font size to 12
+                      style: TextStyle(color: Colors.red, fontSize: 10), // Adjusted font size to 10
                     ),
                     SizedBox(width: 3), // Spacer
                   ],
@@ -201,35 +215,37 @@ class _SignupScreenState extends State<SignupScreen> {
                   keyboardType: TextInputType.text,
                 ),
                 const SizedBox(height: 24),
-                // Sign Up Button
-                Column(
-                  children: [
-                    InkWell(
-                      onTap: signUpUser,
-                      child: Container(
-                        width: double.infinity,
-                        alignment: Alignment.center,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(4),
-                          color: const Color.fromARGB(255, 99, 174, 236),
-                        ),
-                        child: _isLoading
-                            ? const Center(
-                                child: CircularProgressIndicator(
-                                  color: Colors.black, // Set color to black
-                                ),
-                              )
-                            : const Text('Sign Up'),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    const Text(
-                      'Please enter all fields to be able to Sign Up',
-                      style: TextStyle(color: Colors.red),
-                    ),
-                  ],
+                // WhatsApp number
+                TextField(
+                  controller: _whatsappController,
+                  decoration: const InputDecoration(
+                    hintText: 'Enter your WhatsApp number',
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.phone,
                 ),
+                const SizedBox(height: 24),
+                // Sign Up Button
+                InkWell(
+                  onTap: signUpUser,
+                  child: Container(
+                    width: double.infinity,
+                    alignment: Alignment.center,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(4),
+                      color: const Color.fromARGB(255, 99, 174, 236),
+                    ),
+                    child: _isLoading
+                        ? const Center(
+                            child: CircularProgressIndicator(
+                              color: Colors.black, // Set color to black
+                            ),
+                          )
+                        : const Text('Sign Up'),
+                  ),
+                ),
+                const SizedBox(height: 12),
               ],
             ),
           ),

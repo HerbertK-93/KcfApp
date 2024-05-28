@@ -13,6 +13,8 @@ import 'package:kings_cogent/providers/transaction_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class MobileScreenLayout extends StatefulWidget {
+  const MobileScreenLayout({super.key});
+
   @override
   _MobileScreenLayoutState createState() => _MobileScreenLayoutState();
 }
@@ -28,7 +30,7 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> {
   @override
   Widget build(BuildContext context) {
     final transactionProvider = Provider.of<TransactionProvider>(context);
-    final conversionRate = 3600;
+    const conversionRate = 3600;
     final totalReturnsUGX = (transactionProvider.totalMonthlyReturns * conversionRate).toStringAsFixed(2);
     final textColor = Theme.of(context).textTheme.bodyLarge!.color;
     final iconColor = Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black;
@@ -233,7 +235,7 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          const whatsappUrl = "https://wa.me/+256751846100"; // Replace with your WhatsApp number
+          const whatsappUrl = "https://wa.me/+256784480128"; // Replace with your WhatsApp number
           if (await canLaunch(whatsappUrl)) {
             await launch(whatsappUrl);
           } else {

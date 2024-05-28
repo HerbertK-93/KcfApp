@@ -13,7 +13,7 @@ class MonthlyScreen extends StatefulWidget {
 class _MonthlyScreenState extends State<MonthlyScreen> {
   late DateTime _selectedDate = DateTime.now();
   double _monthlyDeposit = 0.0;
-  double _interestRate = 0.12; // Fixed interest rate (12%)
+  final double _interestRate = 0.12; // Fixed interest rate (12%)
   double _totalSavings = 0.0; // Total savings accumulated over time
   String _period = '6 months'; // Default period option
   double _amount = 20; // Default amount option

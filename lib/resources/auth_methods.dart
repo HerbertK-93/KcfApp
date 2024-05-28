@@ -29,11 +29,12 @@ class AuthMethods {
     required String password,
     required String username,
     required String bio,
+    required String whatsapp, // Add WhatsApp number parameter
     required Uint8List file,
   }) async {
     String res = "Some error occurred";
     try {
-      if (email.isNotEmpty || password.isNotEmpty || username.isNotEmpty || bio.isNotEmpty) {
+      if (email.isNotEmpty || password.isNotEmpty || username.isNotEmpty || bio.isNotEmpty || whatsapp.isNotEmpty) {
         // Register user
         UserCredential cred = await _auth.createUserWithEmailAndPassword(email: email, password: password);
 
@@ -47,6 +48,7 @@ class AuthMethods {
           uid: cred.user!.uid,
           email: email,
           bio: bio,
+          whatsapp: whatsapp, // Save WhatsApp number
           photoUrl: photoUrl,
         );
 

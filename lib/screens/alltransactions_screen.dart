@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class AllTransactionsScreen extends StatelessWidget {
   final List<Map<String, dynamic>> transactionHistory;
 
-  const AllTransactionsScreen({Key? key, required this.transactionHistory}) : super(key: key);
+  const AllTransactionsScreen({super.key, required this.transactionHistory});
 
   @override
   Widget build(BuildContext context) {

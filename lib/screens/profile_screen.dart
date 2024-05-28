@@ -148,6 +148,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 _buildProfileField('Email', userData.email, context),
                 const Divider(),
                 _buildProfileField('Bio', userData.bio, context),
+                const Divider(),
+                _buildProfileField('WhatsApp Number', userData.whatsapp ?? 'N/A', context), // Handle nullable WhatsApp number
                 const SizedBox(height: 20),
                 Container(
                   margin: const EdgeInsets.symmetric(horizontal: 20),

@@ -46,18 +46,26 @@ class SharedPrefs {
   }
 
   Future<double?> getMonthlySavings() async {
+    return null;
+  
     // Implement method to retrieve monthly savings from SharedPrefs
   }
 
   Future<double?> getWeeklySavings() async {
+    return null;
+  
     // Implement method to retrieve weekly savings from SharedPrefs
   }
 
   Future<double?> getDailySavings() async {
+    return null;
+  
     // Implement method to retrieve daily savings from SharedPrefs
   }
 
   Future<double?> getOneTimeSavings() async {
+    return null;
+  
     // Implement method to retrieve one-time savings from SharedPrefs
   }
 }
