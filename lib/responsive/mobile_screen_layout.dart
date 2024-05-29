@@ -72,7 +72,7 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> {
               Container(
                 padding: const EdgeInsets.all(8.0),
                 decoration: BoxDecoration(
-                  color: const Color.fromARGB(247, 255, 85, 0),
+                  color: const Color.fromARGB(247, 230, 142, 99),
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(

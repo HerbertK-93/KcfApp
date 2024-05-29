@@ -6,7 +6,8 @@ class AppUser {
   final String email;
   final String photoUrl;
   final String bio;
-  final String? whatsapp; // Make WhatsApp number nullable
+  final String? whatsapp;
+  final String? ninPassport;
 
   const AppUser({
     required this.username,
@@ -14,7 +15,8 @@ class AppUser {
     required this.email,
     required this.photoUrl,
     required this.bio,
-    this.whatsapp, // Make WhatsApp number nullable
+    this.whatsapp,
+    this.ninPassport,
   });
 
   Map<String, dynamic> toJson() => {
@@ -23,7 +25,8 @@ class AppUser {
         "email": email,
         "photoUrl": photoUrl,
         "bio": bio,
-        "whatsapp": whatsapp, // Add WhatsApp number
+        "whatsapp": whatsapp,
+        "ninPassport": ninPassport,
       };
 
   static AppUser fromJson(Map<String, dynamic> json) {
@@ -33,7 +36,8 @@ class AppUser {
       email: json['email'],
       photoUrl: json['photoUrl'],
       bio: json['bio'],
-      whatsapp: json['whatsapp'], // Add WhatsApp number
+      whatsapp: json['whatsapp'],
+      ninPassport: json['ninPassport'],
     );
   }
 
@@ -48,7 +52,8 @@ class AppUser {
       email: snapshot["email"],
       photoUrl: snapshot["photoUrl"],
       bio: snapshot["bio"],
-      whatsapp: snapshot["whatsapp"], // Handle nullability
+      whatsapp: snapshot["whatsapp"],
+      ninPassport: snapshot["ninPassport"],
     );
   }
 }

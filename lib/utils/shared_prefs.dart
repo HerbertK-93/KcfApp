@@ -1,11 +1,9 @@
 import 'dart:convert';
-
 import 'package:kings_cogent/models/user.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SharedPrefs {
   SharedPrefs() {
-    // ignore: discarded_futures
     () async {
       sharedPreferences = await SharedPreferences.getInstance();
     }();
@@ -14,6 +12,7 @@ class SharedPrefs {
   SharedPreferences? sharedPreferences;
   static const String tagUid = 'uid';
   static const String tagUserData = 'user-data';
+  static const String tagNinPassport = 'ninPassport';
 
   Future storeUid(final String uid) async {
     sharedPreferences = await SharedPreferences.getInstance();
@@ -45,27 +44,29 @@ class SharedPrefs {
     await sharedPreferences?.remove(tagUserData);
   }
 
+  Future storeNinPassport(final String ninPassport) async {
+    sharedPreferences = await SharedPreferences.getInstance();
+    await sharedPreferences?.setString(tagNinPassport, ninPassport);
+  }
+
+  Future<String?> getNinPassport() async {
+    sharedPreferences = await SharedPreferences.getInstance();
+    return sharedPreferences?.getString(tagNinPassport);
+  }
+
   Future<double?> getMonthlySavings() async {
     return null;
-  
-    // Implement method to retrieve monthly savings from SharedPrefs
   }
 
   Future<double?> getWeeklySavings() async {
     return null;
-  
-    // Implement method to retrieve weekly savings from SharedPrefs
   }
 
   Future<double?> getDailySavings() async {
     return null;
-  
-    // Implement method to retrieve daily savings from SharedPrefs
   }
 
   Future<double?> getOneTimeSavings() async {
     return null;
-  
-    // Implement method to retrieve one-time savings from SharedPrefs
   }
 }

@@ -19,6 +19,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   late StreamController<AppUser?> _userStreamController;
   double _currentBalance = 0.0;
   bool _isBalanceVisible = true;
+  String? _ninPassport;
 
   @override
   void initState() {
@@ -28,6 +29,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _userStreamController = StreamController<AppUser?>();
     _updateUserProfile();
     _calculateCurrentBalance();
+    _loadNinPassport();
   }
 
   @override
@@ -53,6 +55,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
     });
   }
 
+  Future<void> _loadNinPassport() async {
+    String? ninPassport = await _sharedPrefs.getNinPassport();
+    setState(() {
+      _ninPassport = ninPassport;
+    });
+  }
+
   void showSnackBar(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -65,9 +74,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     print('Building ProfileScreen...');
-    final appBarTextColor = Theme.of(context).brightness == Brightness.dark
-        ? Colors.white
-        : Colors.black;
+    final appBarTextColor = Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black;
 
     return Scaffold(
       appBar: AppBar(
@@ -97,7 +104,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           }
 
           final userData = snapshot.data;
-          print('User Data Available: ${userData != null}');
           if (userData == null) {
             return const Center(child: Text('No user data available.'));
           }
@@ -113,10 +119,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       width: 100,
                       height: 100,
                       fit: BoxFit.cover,
-                      placeholder: (context, url) =>
-                          const Icon(Icons.person, size: 100),
-                      errorWidget: (context, url, error) =>
-                          const Icon(Icons.error),
+                      placeholder: (context, url) => const Icon(Icons.person, size: 100),
+                      errorWidget: (context, url, error) => const Icon(Icons.error),
                     ),
                   ),
                 ),
@@ -149,7 +153,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 const Divider(),
                 _buildProfileField('Bio', userData.bio, context),
                 const Divider(),
-                _buildProfileField('WhatsApp Number', userData.whatsapp ?? 'N/A', context), // Handle nullable WhatsApp number
+                _buildProfileField('WhatsApp Number', userData.whatsapp ?? 'N/A', context),
+                const Divider(),
+                _buildProfileField('NIN or Passport Number', _ninPassport ?? 'N/A', context),
                 const SizedBox(height: 20),
                 Container(
                   margin: const EdgeInsets.symmetric(horizontal: 20),
@@ -187,7 +193,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                           color: Colors.white,
                                         ),
                                       ),
-                                      const SizedBox(width: 60),  // Adjust spacing if needed
+                                      const SizedBox(width: 60),
                                       GestureDetector(
                                         onTap: () {
                                           setState(() {
@@ -201,7 +207,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       ),
                                     ],
                                   ),
-                                  const SizedBox(height: 15),  // Adjust spacing if needed
+                                  const SizedBox(height: 15),
                                   Text(
                                     '**** **** **** 1234',
                                     style: TextStyle(
@@ -209,7 +215,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       color: Colors.white.withOpacity(0.8),
                                     ),
                                   ),
-                                  const SizedBox(height: 10),  // Adjust spacing if needed
+                                  const SizedBox(height: 10),
                                   Text(
                                     'EXP: 12/24',
                                     style: TextStyle(
@@ -217,7 +223,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       color: Colors.white.withOpacity(0.8),
                                     ),
                                   ),
-                                  const SizedBox(height: 15),  // Adjust spacing if needed
+                                  const SizedBox(height: 15),
                                   _isBalanceVisible
                                       ? Text(
                                           '\$$_currentBalance',

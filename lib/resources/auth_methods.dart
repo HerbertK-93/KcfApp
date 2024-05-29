@@ -13,7 +13,6 @@ class AuthMethods {
     try {
       DocumentSnapshot snap = await _firestore.collection('users').doc(uid).get();
       if (!snap.exists || snap.data() == null) {
-        print("No user data found in Firestore for UID: $uid");
         return null;
       }
       return model.AppUser.fromSnap(snap);
@@ -23,37 +22,33 @@ class AuthMethods {
     }
   }
 
-  // Sign up user
   Future<String> signUpUser({
     required String email,
     required String password,
     required String username,
     required String bio,
-    required String whatsapp, // Add WhatsApp number parameter
+    required String whatsapp,
+    required String ninPassport,
     required Uint8List file,
   }) async {
     String res = "Some error occurred";
     try {
-      if (email.isNotEmpty || password.isNotEmpty || username.isNotEmpty || bio.isNotEmpty || whatsapp.isNotEmpty) {
-        // Register user
+      if (email.isNotEmpty || password.isNotEmpty || username.isNotEmpty || bio.isNotEmpty || whatsapp.isNotEmpty || ninPassport.isNotEmpty) {
         UserCredential cred = await _auth.createUserWithEmailAndPassword(email: email, password: password);
 
-        print(cred.user!.uid);
-
         String photoUrl = await StorageMethods().uploadImageToStorage('profilePics', file);
-        // Add user to database
 
         model.AppUser user = model.AppUser(
           username: username,
           uid: cred.user!.uid,
           email: email,
           bio: bio,
-          whatsapp: whatsapp, // Save WhatsApp number
+          whatsapp: whatsapp,
+          ninPassport: ninPassport,
           photoUrl: photoUrl,
         );
 
         await _firestore.collection('users').doc(cred.user!.uid).set(user.toJson());
-
         res = "Success";
       }
     } catch (err) {
@@ -62,7 +57,6 @@ class AuthMethods {
     return res;
   }
 
-  // Log in user
   Future<String> loginUser({
     required String email,
     required String password,
@@ -73,13 +67,11 @@ class AuthMethods {
       if (email.isNotEmpty && password.isNotEmpty) {
         final data = await _auth.signInWithEmailAndPassword(email: email, password: password);
 
-        // Save uid
         final uid = data.user?.uid;
         if (uid != null) {
           await SharedPrefs().storeUid(uid);
         }
 
-        print('App log ::: ${data.user?.uid}');
         res = "success";
       } else {
         res = "Please enter both email and password";
@@ -90,7 +82,6 @@ class AuthMethods {
     return res;
   }
 
-  // Forgot Password
   Future<String> resetPassword({required String email}) async {
     String res = "Some error occurred";
     try {
