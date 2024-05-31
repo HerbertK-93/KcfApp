@@ -20,7 +20,7 @@ class MobileScreenLayout extends StatefulWidget {
 }
 
 class _MobileScreenLayoutState extends State<MobileScreenLayout> {
-  bool _isFiguresVisible = true;
+  bool _isFiguresVisible = false;
 
   @override
   void initState() {
@@ -72,7 +72,7 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> {
               Container(
                 padding: const EdgeInsets.all(8.0),
                 decoration: BoxDecoration(
-                  color: const Color.fromARGB(247, 230, 142, 99),
+                  color: const Color.fromARGB(247, 155, 119, 101),
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
@@ -92,13 +92,17 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                _isFiguresVisible ? '\$${transactionProvider.totalMonthlyReturns.toStringAsFixed(2)} USD' : '*********',
+                                _isFiguresVisible
+                                    ? '\$${transactionProvider.totalMonthlyReturns.toStringAsFixed(2)} USD'
+                                    : '******',
                                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: textColor),
                                 textAlign: TextAlign.left,
                               ),
                               const SizedBox(height: 8),
                               Text(
-                                _isFiguresVisible ? '($totalReturnsUGX UGX)' : '*********',
+                                _isFiguresVisible
+                                    ? '($totalReturnsUGX UGX)'
+                                    : '******',
                                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: textColor),
                                 textAlign: TextAlign.left,
                               ),

@@ -25,25 +25,25 @@ class UserMethods {
       print('Retrieved UID from SharedPrefs: $uid');
     }
 
-    QuerySnapshot querySnapshot =
-        await _firestore.collection('users').where('uid', isEqualTo: uid).get();
+    DocumentSnapshot userDoc =
+        await _firestore.collection('users').doc(uid).get();
 
-    if (querySnapshot.docs.isEmpty) {
+    if (!userDoc.exists) {
       print('No user data found in Firestore for UID: $uid');
       return null; // Handle the case where no user data is found for the given UID
     } else {
       print('Found user data in Firestore for UID: $uid');
     }
 
-    final data = querySnapshot.docs.first;
-    if (data.data() == null) {
+    final data = userDoc.data();
+    if (data == null) {
       print('Data retrieved from Firestore is null for UID: $uid');
       return null;
     } else {
       print('Data retrieved from Firestore for UID: $uid (not null)');
     }
 
-    final user = model.AppUser.fromSnap(data);
+    final user = model.AppUser.fromSnap(userDoc);
     await sharedPrefs.storeUserData(user);
     return user;
   }

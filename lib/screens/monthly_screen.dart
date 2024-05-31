@@ -26,7 +26,6 @@ class _MonthlyScreenState extends State<MonthlyScreen> {
     _calculateTotalSavings();
   }
 
-  // Function to update the selected date
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -42,30 +41,27 @@ class _MonthlyScreenState extends State<MonthlyScreen> {
     }
   }
 
-  // Function to calculate the total savings over time
   void _calculateTotalSavings() {
-    _totalSavings = 0.0; // Reset total savings
-    _calculatedAmount = _amount + (_amount * _interestRate); // Calculate amount with interest
+    _totalSavings = 0.0;
+    _calculatedAmount = _amount + (_amount * _interestRate);
 
     int numberOfMonths = _selectedDate.year * 12 +
         _selectedDate.month -
         (DateTime.now().year * 12 + DateTime.now().month);
 
-    double principal = 0.0; // Initial investment
+    double principal = 0.0;
     for (int i = 0; i < numberOfMonths; i++) {
       double interest = principal * _interestRate / 12;
       principal += _monthlyDeposit + interest;
       _totalSavings += principal;
     }
-    setState(() {}); // Update UI after calculating total savings
+    setState(() {});
   }
 
-  // Function to save transaction history
   void _saveTransactionHistory(Map<String, dynamic> transaction) {
     Provider.of<TransactionProvider>(context, listen: false).addTransaction(transaction);
   }
 
-  // Function to handle saving and launching payment
   void _saveAndPay() async {
     bool? confirm = await showDialog<bool>(
       context: context,
@@ -92,7 +88,6 @@ class _MonthlyScreenState extends State<MonthlyScreen> {
     );
 
     if (confirm == true) {
-      // Add transaction to history
       final transaction = {
         'date': _selectedDate.toString().split(' ')[0],
         'amount': _amount,
@@ -100,7 +95,6 @@ class _MonthlyScreenState extends State<MonthlyScreen> {
 
       _saveTransactionHistory(transaction);
 
-      // Launch payment URL
       const url = 'https://flutterwave.com/pay/g3vpxdi0d3n8';
       if (await canLaunch(url)) {
         await launch(url);
@@ -230,7 +224,6 @@ class _MonthlyScreenState extends State<MonthlyScreen> {
                 style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
-              // Save and pay button
               Row(
                 children: [
                   Expanded(
@@ -257,14 +250,13 @@ class _MonthlyScreenState extends State<MonthlyScreen> {
                 ],
               ),
               const SizedBox(height: 16),
-              // Transaction history section
               const Text(
                 'Transaction History:',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
               SizedBox(
-                height: 200, // Fixed height to make it scrollable
+                height: 200,
                 child: Consumer<TransactionProvider>(
                   builder: (context, transactionProvider, child) {
                     return ListView.builder(

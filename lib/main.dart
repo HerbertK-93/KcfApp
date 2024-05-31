@@ -47,21 +47,21 @@ class MyApp extends StatelessWidget {
           return MaterialApp(
             debugShowCheckedModeBanner: false,
             title: 'Kings Cogent',
-            themeMode: ThemeMode.system, 
+            themeMode: ThemeMode.system,
             theme: ThemeData.light().copyWith(
               scaffoldBackgroundColor: Colors.white,
             ),
             darkTheme: ThemeData.dark().copyWith(),
             builder: (context, child) {
               return MediaQuery(
-                data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
+                data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
                 child: child!,
               );
             },
             routes: {
               '/login': (context) => const LoginScreen(),
             },
-            home: const SplashScreen(), 
+            home: const SplashScreen(),
           );
         },
       ),

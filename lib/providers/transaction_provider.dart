@@ -36,8 +36,7 @@ class TransactionProvider extends ChangeNotifier {
     List<String>? history = _prefs?.getStringList('transaction_history');
     if (history != null) {
       _transactionHistory = history.map((item) {
-        Map<String, dynamic> transaction = json.decode(item);
-        return transaction;
+        return Map<String, dynamic>.from(json.decode(item));
       }).toList();
 
       _totalMonthlyReturns = _transactionHistory.fold(0, (total, transaction) {
