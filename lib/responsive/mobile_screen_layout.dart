@@ -8,9 +8,11 @@ import 'package:kings_cogent/screens/once_screen.dart';
 import 'package:kings_cogent/screens/weekly_screen.dart';
 import 'package:kings_cogent/screens/monthly_screen.dart';
 import 'package:kings_cogent/screens/profile_screen.dart';
+import 'package:kings_cogent/screens/navigation_instructions_screen.dart';
 import 'package:kings_cogent/widgets/sidebar.dart';
 import 'package:kings_cogent/providers/transaction_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MobileScreenLayout extends StatefulWidget {
   const MobileScreenLayout({super.key});
@@ -19,12 +21,65 @@ class MobileScreenLayout extends StatefulWidget {
   _MobileScreenLayoutState createState() => _MobileScreenLayoutState();
 }
 
-class _MobileScreenLayoutState extends State<MobileScreenLayout> {
+class _MobileScreenLayoutState extends State<MobileScreenLayout> with SingleTickerProviderStateMixin {
   bool _isFiguresVisible = false;
+  bool _isNavigationTagVisible = true;
+  late AnimationController _controller;
+  late Animation<Offset> _slideAnimation;
+  late Animation<double> _opacityAnimation;
 
   @override
   void initState() {
     super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+
+    _slideAnimation = Tween<Offset>(
+      begin: Offset(0, 0),
+      end: Offset(0, -1),
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeInOut,
+    ));
+
+    _opacityAnimation = Tween<double>(
+      begin: 1.0,
+      end: 0.0,
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeInOut,
+    ));
+
+    _loadNavigationTagVisibility();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadNavigationTagVisibility() async {
+    final prefs = await SharedPreferences.getInstance();
+    final isVisible = prefs.getBool('isNavigationTagVisible') ?? true;
+    setState(() {
+      _isNavigationTagVisible = isVisible;
+    });
+    if (!isVisible) {
+      _controller.value = 1.0; // Set the animation to the end state
+    }
+  }
+
+  Future<void> _hideNavigationTag() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isNavigationTagVisible', false);
+    _controller.forward().then((_) {
+      setState(() {
+        _isNavigationTagVisible = false;
+      });
+    });
   }
 
   @override
@@ -62,6 +117,49 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              AnimatedBuilder(
+                animation: _controller,
+                builder: (context, child) {
+                  return SlideTransition(
+                    position: _slideAnimation,
+                    child: FadeTransition(
+                      opacity: _opacityAnimation,
+                      child: child,
+                    ),
+                  );
+                },
+                child: _isNavigationTagVisible
+                    ? Container(
+                        padding: const EdgeInsets.all(8.0),
+                        color: Colors.blue,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const NavigationInstructionsScreen(),
+                                  ),
+                                );
+                              },
+                              child: const Text(
+                                'How to navigate the App',
+                                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.close, color: Colors.white),
+                              onPressed: () async {
+                                await _hideNavigationTag();
+                              },
+                            ),
+                          ],
+                        ),
+                      )
+                    : const SizedBox.shrink(),
+              ),
               const Padding(
                 padding: EdgeInsets.fromLTRB(0, 8, 0, 15),
                 child: Text(

@@ -90,6 +90,21 @@ class _LoginScreenState extends State<LoginScreen> {
         textAlign: TextAlign.center,
       ),
       Text(
+        'Navigate to the Sign Up screen if you are a new user.',
+        style: TextStyle(fontSize: 14, color: carouselTextColor),
+        textAlign: TextAlign.center,
+      ),
+      Text(
+        'Sign Up as a new user.',
+        style: TextStyle(fontSize: 14, color: carouselTextColor),
+        textAlign: TextAlign.center,
+      ),
+      Text(
+        'After Sign Up Login using your Email and Password.',
+        style: TextStyle(fontSize: 14, color: carouselTextColor),
+        textAlign: TextAlign.center,
+      ),
+      Text(
         'Make sure you have access to your email.',
         style: TextStyle(fontSize: 14, color: carouselTextColor),
         textAlign: TextAlign.center,
@@ -134,7 +149,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     autoPlay: true,
                     enlargeCenterPage: true,
                     aspectRatio: 2.0,
-                    autoPlayInterval: const Duration(seconds: 4),
+                    autoPlayInterval: const Duration(seconds: 5),
                   ),
                   items: cautionMessages.map((widget) {
                     return Container(

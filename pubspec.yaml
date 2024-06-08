@@ -79,6 +79,17 @@ flutter:
     - assets/images/S-S.png
     - assets/images/wave-bw.png
     - assets/images/BG.png
+    - assets/images/2.jpg
+    - assets/images/1.jpg
+    - assets/images/5.jpg
+    - assets/images/12.jpg
+    - assets/images/13.jpg
+    - assets/images/14.jpg
+    - assets/images/15.jpg
+    - assets/images/16.jpg
+    - assets/images/24.jpg
+    - assets/images/10.jpg
+    - assets/images/11.jpg
   #   - images/a_dot_ham.jpeg
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
