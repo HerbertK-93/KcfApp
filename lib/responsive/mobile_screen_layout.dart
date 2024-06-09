@@ -1,16 +1,13 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:provider/provider.dart';
 import 'package:kings_cogent/screens/alltransactions_screen.dart';
-import 'package:kings_cogent/screens/daily_screen.dart';
-import 'package:kings_cogent/screens/once_screen.dart';
-import 'package:kings_cogent/screens/weekly_screen.dart';
-import 'package:kings_cogent/screens/monthly_screen.dart';
 import 'package:kings_cogent/screens/profile_screen.dart';
 import 'package:kings_cogent/screens/navigation_instructions_screen.dart';
+import 'package:kings_cogent/screens/save_screen.dart';
 import 'package:kings_cogent/widgets/sidebar.dart';
 import 'package:kings_cogent/providers/transaction_provider.dart';
+import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -27,6 +24,8 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> with SingleTick
   late AnimationController _controller;
   late Animation<Offset> _slideAnimation;
   late Animation<double> _opacityAnimation;
+  int _selectedIndex = 0;
+  final PageController _pageController = PageController();
 
   @override
   void initState() {
@@ -37,8 +36,8 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> with SingleTick
     );
 
     _slideAnimation = Tween<Offset>(
-      begin: Offset(0, 0),
-      end: Offset(0, -1),
+      begin: const Offset(0, 0),
+      end: const Offset(0, -1),
     ).animate(CurvedAnimation(
       parent: _controller,
       curve: Curves.easeInOut,
@@ -58,6 +57,7 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> with SingleTick
   @override
   void dispose() {
     _controller.dispose();
+    _pageController.dispose();
     super.dispose();
   }
 
@@ -82,6 +82,13 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> with SingleTick
     });
   }
 
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+    _pageController.jumpToPage(index);
+  }
+
   @override
   Widget build(BuildContext context) {
     final transactionProvider = Provider.of<TransactionProvider>(context);
@@ -97,306 +104,308 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> with SingleTick
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.person),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const ProfileScreen(uid: ''),
-                ),
-              );
+            icon: const Icon(FontAwesomeIcons.whatsapp, color: Colors.green),
+            onPressed: () async {
+              const whatsappUrl = "https://wa.me/+256784480128"; // Replace with your WhatsApp number
+              if (await canLaunch(whatsappUrl)) {
+                await launch(whatsappUrl);
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Could not launch WhatsApp')),
+                );
+              }
             },
             iconSize: 30,
           ),
         ],
       ),
       drawer: const SideBar(),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              AnimatedBuilder(
-                animation: _controller,
-                builder: (context, child) {
-                  return SlideTransition(
-                    position: _slideAnimation,
-                    child: FadeTransition(
-                      opacity: _opacityAnimation,
-                      child: child,
-                    ),
-                  );
-                },
-                child: _isNavigationTagVisible
-                    ? Container(
-                        padding: const EdgeInsets.all(8.0),
-                        color: Colors.blue,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            GestureDetector(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => const NavigationInstructionsScreen(),
+      body: PageView(
+        controller: _pageController,
+        onPageChanged: (index) {
+          setState(() {
+            _selectedIndex = index;
+          });
+        },
+        children: <Widget>[
+          // Home Screen
+          SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  AnimatedBuilder(
+                    animation: _controller,
+                    builder: (context, child) {
+                      return SlideTransition(
+                        position: _slideAnimation,
+                        child: FadeTransition(
+                          opacity: _opacityAnimation,
+                          child: child,
+                        ),
+                      );
+                    },
+                    child: _isNavigationTagVisible
+                        ? Container(
+                            padding: const EdgeInsets.all(8.0),
+                            color: Colors.blue,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => const NavigationInstructionsScreen(),
+                                      ),
+                                    );
+                                  },
+                                  child: const Text(
+                                    'How to navigate the App',
+                                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
                                   ),
-                                );
-                              },
-                              child: const Text(
-                                'How to navigate the App',
-                                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.close, color: Colors.white),
+                                  onPressed: () async {
+                                    await _hideNavigationTag();
+                                  },
+                                ),
+                              ],
+                            ),
+                          )
+                        : const SizedBox.shrink(),
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.fromLTRB(0, 8, 0, 15),
+                    child: Text(
+                      'Balance',
+                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.all(8.0),
+                    decoration: BoxDecoration(
+                      color: const Color.fromARGB(247, 160, 86, 49),
+                      borderRadius: BorderRadius.circular(1), // Reduced roundness
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color.fromARGB(255, 27, 25, 25).withOpacity(0.3),
+                          spreadRadius: 2,
+                          blurRadius: 2,
+                          offset: const Offset(0, 1),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    _isFiguresVisible
+                                        ? '\$${transactionProvider.totalMonthlyReturns.toStringAsFixed(2)} USD'
+                                        : '******',
+                                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: textColor),
+                                    textAlign: TextAlign.left,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    _isFiguresVisible
+                                        ? '($totalReturnsUGX UGX)'
+                                        : '******',
+                                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: textColor),
+                                    textAlign: TextAlign.left,
+                                  ),
+                                ],
                               ),
                             ),
                             IconButton(
-                              icon: const Icon(Icons.close, color: Colors.white),
-                              onPressed: () async {
-                                await _hideNavigationTag();
+                              icon: Icon(
+                                _isFiguresVisible ? Icons.visibility : Icons.visibility_off,
+                                color: iconColor,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _isFiguresVisible = !_isFiguresVisible;
+                                });
                               },
                             ),
                           ],
                         ),
-                      )
-                    : const SizedBox.shrink(),
-              ),
-              const Padding(
-                padding: EdgeInsets.fromLTRB(0, 8, 0, 15),
-                child: Text(
-                  'Your Returns',
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.all(8.0),
-                decoration: BoxDecoration(
-                  color: const Color.fromARGB(247, 155, 119, 101),
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.3),
-                      spreadRadius: 4,
-                      blurRadius: 3,
-                      offset: const Offset(0, 1),
+                        const SizedBox(height: 16),
+                      ],
                     ),
-                  ],
-                ),
-                child: Column(
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                _isFiguresVisible
-                                    ? '\$${transactionProvider.totalMonthlyReturns.toStringAsFixed(2)} USD'
-                                    : '******',
-                                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: textColor),
-                                textAlign: TextAlign.left,
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                _isFiguresVisible
-                                    ? '($totalReturnsUGX UGX)'
-                                    : '******',
-                                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: textColor),
-                                textAlign: TextAlign.left,
-                              ),
-                            ],
-                          ),
-                        ),
-                        IconButton(
-                          icon: Icon(
-                            _isFiguresVisible ? Icons.visibility : Icons.visibility_off,
-                            color: iconColor,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              _isFiguresVisible = !_isFiguresVisible;
-                            });
-                          },
+                  ),
+                  Container(
+                    padding: const EdgeInsets.all(8.0),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).brightness == Brightness.dark ? const Color.fromARGB(255, 80, 80, 80) : Color.fromARGB(255, 192, 191, 191),
+                      borderRadius: BorderRadius.circular(1), // Reduced roundness
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.2),
+                          spreadRadius: 2,
+                          blurRadius: 2,
+                          offset: const Offset(0, 1),
                         ),
                       ],
                     ),
-                  ],
-                ),
-              ),
-              const Padding(
-                padding: EdgeInsets.fromLTRB(0, 15, 0, 4),
-                child: Text(
-                  'Saving Plans',
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                ),
-              ),
-              ServiceCard(
-                title: 'Monthly',
-                icon: Icons.calendar_today_outlined,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const MonthlyScreen(),
-                    ),
-                  );
-                },
-                isRecommended: true,
-              ),
-              ServiceCard(
-                title: 'Weekly',
-                icon: Icons.calendar_view_week_outlined,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const WeeklyScreen(),
-                    ),
-                  );
-                },
-              ),
-              ServiceCard(
-                title: 'Daily',
-                icon: Icons.today_outlined,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const DailyScreen(),
-                    ),
-                  );
-                },
-              ),
-              ServiceCard(
-                title: 'Once',
-                icon: Icons.calendar_view_day_outlined,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const OnceScreen(),
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(height: 8),
-              const FinancialTipsCarousel(),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text('Transactions:', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => AllTransactionsScreen(transactionHistory: transactionProvider.transactionHistory),
-                        ),
-                      );
-                    },
-                    child: const Text(
-                      'View All',
-                      style: TextStyle(fontSize: 16, color: Color.fromARGB(255, 182, 109, 195)),
+                    child: ElevatedButton.icon(
+                      onPressed: () async {
+                        const flutterwaveUrl = "https://flutterwave.com/pay/fnmb9lzxfbfu"; // Replace with your Flutterwave link
+                        if (await canLaunch(flutterwaveUrl)) {
+                          await launch(flutterwaveUrl);
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Could not launch Flutterwave')),
+                          );
+                        }
+                      },
+                      icon: const Icon(FontAwesomeIcons.wallet),
+                      label: const Text('Deposit'),
+                      style: ElevatedButton.styleFrom(
+                        foregroundColor: Colors.white,
+                        backgroundColor: Theme.of(context).brightness == Brightness.dark ? Colors.purple : Colors.purple,
+                        minimumSize: const Size.fromHeight(50), // Stretch button
+                      ),
                     ),
                   ),
+                  const Padding(
+                    padding: EdgeInsets.fromLTRB(0, 15, 0, 4),
+                    child: Text(
+                      'Coming Soon',
+                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  const FinancialTipsCarousel(),
+                  const SizedBox(height: 15),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Transactions:', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => AllTransactionsScreen(transactionHistory: transactionProvider.transactionHistory),
+                            ),
+                          );
+                        },
+                        child: const Text(
+                          'View All',
+                          style: TextStyle(fontSize: 16, color: Color.fromARGB(255, 180, 43, 204)),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  transactionProvider.transactionHistory.isEmpty
+                      ? const Center(child: Text('No transactions yet'))
+                      : ListView.builder(
+                          physics: const NeverScrollableScrollPhysics(),
+                          shrinkWrap: true,
+                          itemCount: transactionProvider.transactionHistory.length,
+                          itemBuilder: (context, index) {
+                            final transaction = transactionProvider.transactionHistory[index];
+                            final date = transaction['date'];
+                            final amount = transaction['amount'];
+                            final monthlyReturns = amount + (amount * 0.12);
+
+                            return Card(
+                              margin: const EdgeInsets.symmetric(vertical: 4.0),
+                              child: ListTile(
+                                title: Text('Transaction ${transactionProvider.transactionHistory.length - index}'),
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text('Date: $date'),
+                                    Text('Amount: \$$amount (${(amount * conversionRate).toStringAsFixed(2)} UGX)'),
+                                    Text('Monthly Returns: \$${monthlyReturns.toStringAsFixed(2)} (${(monthlyReturns * conversionRate).toStringAsFixed(2)} UGX)'),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
                 ],
               ),
-              const SizedBox(height: 8),
-              transactionProvider.transactionHistory.isEmpty
-                  ? const Center(child: Text('No transactions yet'))
-                  : ListView.builder(
-                      physics: const NeverScrollableScrollPhysics(),
-                      shrinkWrap: true,
-                      itemCount: transactionProvider.transactionHistory.length,
-                      itemBuilder: (context, index) {
-                        final transaction = transactionProvider.transactionHistory[index];
-                        final date = transaction['date'];
-                        final amount = transaction['amount'];
-                        final monthlyReturns = amount + (amount * 0.12);
-
-                        return Card(
-                          margin: const EdgeInsets.symmetric(vertical: 4.0),
-                          child: ListTile(
-                            title: Text('Transaction ${transactionProvider.transactionHistory.length - index}'),
-                            subtitle: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('Date: $date'),
-                                Text('Amount: \$$amount (${(amount * conversionRate).toStringAsFixed(2)} UGX)'),
-                                Text('Monthly Returns: \$${monthlyReturns.toStringAsFixed(2)} (${(monthlyReturns * conversionRate).toStringAsFixed(2)} UGX)'),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-            ],
+            ),
           ),
+          // Save Screen
+          const SaveScreen(),
+          // Profile Screen
+          const ProfileScreen(uid: ''),
+        ],
+      ),
+      bottomNavigationBar: Container(
+        height: 80.0,
+        decoration: BoxDecoration(
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.3),
+              spreadRadius: 4,
+              blurRadius: 8,
+            ),
+          ],
+        ),
+        child: AnimatedBottomNavigationBar(
+          items: [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home, color: Theme.of(context).textTheme.bodyLarge!.color),
+              label: 'Home',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.account_balance, color: Theme.of(context).textTheme.bodyLarge!.color),
+              label: 'Save',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.person, color: Theme.of(context).textTheme.bodyLarge!.color),
+              label: 'Profile',
+            ),
+          ],
+          currentIndex: _selectedIndex,
+          selectedItemColor: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black,
+          onTap: _onItemTapped,
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          const whatsappUrl = "https://wa.me/+256784480128"; // Replace with your WhatsApp number
-          if (await canLaunch(whatsappUrl)) {
-            await launch(whatsappUrl);
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Could not launch WhatsApp')),
-            );
-          }
-        },
-        backgroundColor: Colors.green,
-        elevation: 20,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        child: const Icon(FontAwesomeIcons.whatsapp),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 }
 
-class ServiceCard extends StatelessWidget {
-  final String title;
-  final IconData icon;
-  final VoidCallback onTap;
-  final bool isRecommended;
+class AnimatedBottomNavigationBar extends StatelessWidget {
+  final List<BottomNavigationBarItem> items;
+  final int currentIndex;
+  final ValueChanged<int> onTap;
 
-  const ServiceCard({
-    super.key,
-    required this.title,
-    required this.icon,
+  const AnimatedBottomNavigationBar({
+    required this.items,
+    required this.currentIndex,
     required this.onTap,
-    this.isRecommended = false,
-  });
+    Key? key, required Color selectedItemColor,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 4,
-      child: ListTile(
-        leading: Icon(icon, size: 30, color: Colors.purple.shade200),
-        title: Row(
-          children: [
-            Text(
-              title,
-              style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold, color: Theme.of(context).textTheme.bodyLarge!.color),
-            ),
-            if (isRecommended)
-              Container(
-                margin: const EdgeInsets.only(left: 80),
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4)),
-                child: const Text(
-                  'Recommended',
-                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 203, 117, 218)),
-                ),
-              ),
-          ],
-        ),
-        trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 20, color: Colors.grey),
-        onTap: onTap,
-      ),
+    return BottomNavigationBar(
+      items: items,
+      currentIndex: currentIndex,
+      selectedItemColor: Colors.purple, // Set to desired color (purple)
+      onTap: onTap,
+      type: BottomNavigationBarType.fixed,
+      selectedFontSize: 18,
+      unselectedFontSize: 14,
+      backgroundColor: Theme.of(context).bottomAppBarColor,
+      showSelectedLabels: true,
+      showUnselectedLabels: true,
+      elevation: 10,
+      unselectedItemColor: Colors.purple.withOpacity(0.3), // Set unselected with a lighter shade of purple
     );
   }
 }
@@ -406,10 +415,13 @@ class FinancialTipsCarousel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkTheme = Theme.of(context).brightness == Brightness.dark;
+    final backgroundColor = isDarkTheme ? Colors.grey[800] : Colors.white;
+    final textColor = isDarkTheme ? Colors.white : Colors.black;
+
     return CarouselSlider(
       options: CarouselOptions(height: 100, autoPlay: true, enlargeCenterPage: true),
       items: [
-        'Coming soon -> ',
         'Web version',
         'Loans with good interest rates',
         'Emergency fund',
@@ -422,13 +434,21 @@ class FinancialTipsCarousel extends StatelessWidget {
         return Container(
           margin: const EdgeInsets.all(5.0),
           decoration: BoxDecoration(
-            color: Theme.of(context).brightness == Brightness.dark ? const Color.fromARGB(255, 74, 69, 74) : const Color.fromARGB(255, 73, 63, 73),
-            borderRadius: BorderRadius.circular(10.0),
+            color: backgroundColor,
+            borderRadius: BorderRadius.circular(5.0), // Reduced roundness
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.2),
+                spreadRadius: 2,
+                blurRadius: 2,
+                offset: const Offset(0, 1),
+              ),
+            ],
           ),
           child: Center(
             child: Text(
               tip,
-              style: const TextStyle(fontSize: 18.0, color: Colors.white, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 18.0, color: textColor, fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),
           ),

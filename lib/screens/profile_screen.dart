@@ -74,26 +74,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     print('Building ProfileScreen...');
-    final appBarTextColor = Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'PROFILE',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: appBarTextColor,
-          ),
-        ),
-        backgroundColor: AppBarTheme.of(context).backgroundColor,
-        centerTitle: true,
-        elevation: 0,
-        toolbarHeight: 60,
-        bottom: const PreferredSize(
-          preferredSize: Size.fromHeight(0),
-          child: Divider(color: Colors.transparent, height: 0),
-        ),
-      ),
       body: StreamBuilder<AppUser?>(
         stream: _userStreamController.stream,
         builder: (context, snapshot) {
