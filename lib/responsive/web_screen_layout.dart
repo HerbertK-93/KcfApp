@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:kings_cogent/screens/daily_screen.dart';
-import 'package:kings_cogent/screens/monthly_screen.dart';
-import 'package:kings_cogent/screens/once_screen.dart';
-import 'package:kings_cogent/screens/weekly_screen.dart';
-import 'package:kings_cogent/screens/profile_screen.dart';
-import 'package:kings_cogent/widgets/sidebar.dart';
+import 'package:KcfApp/screens/daily_screen.dart';
+import 'package:KcfApp/screens/monthly_screen.dart';
+import 'package:KcfApp/screens/once_screen.dart';
+import 'package:KcfApp/screens/weekly_screen.dart';
+import 'package:KcfApp/screens/profile_screen.dart';
+import 'package:KcfApp/widgets/sidebar.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class SavingPlan {

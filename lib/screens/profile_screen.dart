@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:kings_cogent/models/user.dart';
-import 'package:kings_cogent/resources/user_methods.dart';
-import 'package:kings_cogent/utils/shared_prefs.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:KcfApp/models/user.dart';
+import 'package:KcfApp/other_screens/aboutapp_screen.dart';
+import 'package:KcfApp/other_screens/contact_us_screen.dart';
+import 'package:KcfApp/resources/user_methods.dart';
+import 'package:KcfApp/utils/shared_prefs.dart';
 
+// The main ProfileScreen widget
 class ProfileScreen extends StatefulWidget {
   final String uid;
   const ProfileScreen({super.key, required this.uid});
@@ -13,6 +15,7 @@ class ProfileScreen extends StatefulWidget {
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
+// The ProfileScreen state
 class _ProfileScreenState extends State<ProfileScreen> {
   late UserMethods _userMethods;
   late SharedPrefs _sharedPrefs;
@@ -75,6 +78,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     print('Building ProfileScreen...');
 
+    final iconColor = Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black;
+
     return Scaffold(
       body: StreamBuilder<AppUser?>(
         stream: _userStreamController.stream,
@@ -94,18 +99,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Center(
-                  child: ClipOval(
-                    child: CachedNetworkImage(
-                      imageUrl: userData.photoUrl,
-                      width: 100,
-                      height: 100,
-                      fit: BoxFit.cover,
-                      placeholder: (context, url) => const Icon(Icons.person, size: 100),
-                      errorWidget: (context, url, error) => const Icon(Icons.error),
-                    ),
-                  ),
-                ),
                 const SizedBox(height: 15),
                 Padding(
                   padding: const EdgeInsets.only(left: 0),
@@ -120,7 +113,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                       ),
                       Text(
-                        userData.username,
+                        '${userData.firstName} ${userData.lastName}',
                         style: const TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
@@ -133,11 +126,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 const Divider(),
                 _buildProfileField('Email', userData.email, context),
                 const Divider(),
-                _buildProfileField('Bio', userData.bio, context),
-                const Divider(),
                 _buildProfileField('WhatsApp Number', userData.whatsapp ?? 'N/A', context),
                 const Divider(),
                 _buildProfileField('NIN or Passport Number', _ninPassport ?? 'N/A', context),
+                const Divider(),
+                _buildSpecialNavigationField('Contact Us', Icons.contact_mail, context, () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const ContactUsScreen()),
+                  );
+                }, iconColor),
+                const Divider(),
+                _buildSpecialNavigationField('About the App', Icons.info, context, () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => AboutAppScreen()),
+                  );
+                }, iconColor),
+                const Divider(), // Added divider here
                 const SizedBox(height: 20),
                 Container(
                   margin: const EdgeInsets.symmetric(horizontal: 20),
@@ -175,7 +181,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                           color: Colors.white,
                                         ),
                                       ),
-                                      const SizedBox(width: 60),
+                                      const SizedBox(width: 40),
                                       GestureDetector(
                                         onTap: () {
                                           setState(() {
@@ -259,6 +265,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
           style: TextStyle(fontSize: 18, color: textColor),
         ),
       ],
+    );
+  }
+
+  Widget _buildSpecialNavigationField(String label, IconData icon, BuildContext context, VoidCallback onTap, Color iconColor) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                Icon(icon, color: iconColor),
+                const SizedBox(width: 10),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: iconColor,
+                  ),
+                ),
+              ],
+            ),
+            Icon(
+              Icons.arrow_forward_ios,
+              color: iconColor,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

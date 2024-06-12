@@ -1,9 +1,8 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:kings_cogent/resources/auth_methods.dart';
-import 'package:kings_cogent/screens/login_screen.dart';
-import 'package:kings_cogent/utils/utils.dart';
+import 'package:KcfApp/resources/auth_methods.dart';
+import 'package:KcfApp/screens/login_screen.dart';
+import 'package:KcfApp/utils/utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -16,11 +15,10 @@ class SignupScreen extends StatefulWidget {
 class _SignupScreenState extends State<SignupScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _bioController = TextEditingController();
-  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _firstNameController = TextEditingController();
+  final TextEditingController _lastNameController = TextEditingController();
   final TextEditingController _whatsappController = TextEditingController();
   final TextEditingController _ninPassportController = TextEditingController();
-  Uint8List? _image;
   bool _isLoading = false;
   bool _obscurePassword = true;
 
@@ -28,21 +26,11 @@ class _SignupScreenState extends State<SignupScreen> {
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
-    _bioController.dispose();
-    _usernameController.dispose();
+    _firstNameController.dispose();
+    _lastNameController.dispose();
     _whatsappController.dispose();
     _ninPassportController.dispose();
     super.dispose();
-  }
-
-  Future<void> selectImage() async {
-    final XFile? image = await ImagePicker().pickImage(source: ImageSource.gallery);
-    if (image != null) {
-      final Uint8List bytes = await image.readAsBytes();
-      setState(() {
-        _image = bytes;
-      });
-    }
   }
 
   void _showError(String message) {
@@ -72,12 +60,13 @@ class _SignupScreenState extends State<SignupScreen> {
       _showError('Please enter a password with at least 6 characters.');
       return;
     }
-    if (_usernameController.text.isEmpty) {
-      _showError('Please enter your username.');
+    
+    if (_firstNameController.text.isEmpty) {
+      _showError('Please enter your first name.');
       return;
     }
-    if (_bioController.text.isEmpty) {
-      _showError('Please enter your bio.');
+    if (_lastNameController.text.isEmpty) {
+      _showError('Please enter your last name.');
       return;
     }
     if (_whatsappController.text.isEmpty) {
@@ -88,10 +77,6 @@ class _SignupScreenState extends State<SignupScreen> {
       _showError('Please enter your NIN or Passport number.');
       return;
     }
-    if (_image == null) {
-      _showError('Please select a profile photo.');
-      return;
-    }
 
     setState(() {
       _isLoading = true;
@@ -100,11 +85,10 @@ class _SignupScreenState extends State<SignupScreen> {
     final String res = await AuthMethods().signUpUser(
       email: _emailController.text,
       password: _passwordController.text,
-      username: _usernameController.text,
-      bio: _bioController.text,
+      firstName: _firstNameController.text,
+      lastName: _lastNameController.text,
       whatsapp: _whatsappController.text,
       ninPassport: _ninPassportController.text,
-      file: _image!,
     );
 
     setState(() {
@@ -116,8 +100,8 @@ class _SignupScreenState extends State<SignupScreen> {
     } else {
       await saveUserData(
         _emailController.text,
-        _usernameController.text,
-        _bioController.text,
+        _firstNameController.text,
+        _lastNameController.text,
         _whatsappController.text,
         _ninPassportController.text,
       );
@@ -125,11 +109,11 @@ class _SignupScreenState extends State<SignupScreen> {
     }
   }
 
-  Future<void> saveUserData(String email, String username, String bio, String whatsapp, String ninPassport) async {
+  Future<void> saveUserData(String email, String firstName, String lastName, String whatsapp, String ninPassport) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('email', email);
-    await prefs.setString('username', username);
-    await prefs.setString('bio', bio);
+    await prefs.setString('firstName', firstName);
+    await prefs.setString('lastName', lastName);
     await prefs.setString('whatsapp', whatsapp);
     await prefs.setString('ninPassport', ninPassport);
   }
@@ -168,33 +152,19 @@ class _SignupScreenState extends State<SignupScreen> {
                 ),
                 const SizedBox(height: 4),
                 const SizedBox(height: 12),
-                Stack(
-                  children: [
-                    _image != null
-                        ? CircleAvatar(
-                            radius: 64,
-                            backgroundImage: MemoryImage(_image!),
-                          )
-                        : const CircleAvatar(
-                            radius: 64,
-                            backgroundImage: NetworkImage(
-                              'https://th.bing.com/th?id=OIP.SAcV4rjQCseubnk32USHigHaHx&w=244&h=256&c=8&rs=1&qlt=90&o=6&dpr=1.5&pid=3.1&rm=2',
-                            )),
-                    Positioned(
-                      bottom: -10,
-                      right: -3,
-                      child: IconButton(
-                        onPressed: selectImage,
-                        icon: const Icon(Icons.add_a_photo),
-                      ),
-                    ),
-                  ],
+                TextField(
+                  controller: _firstNameController,
+                  decoration: const InputDecoration(
+                    hintText: 'Enter your first name',
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.text,
                 ),
                 const SizedBox(height: 24),
                 TextField(
-                  controller: _usernameController,
+                  controller: _lastNameController,
                   decoration: const InputDecoration(
-                    hintText: 'Enter your username',
+                    hintText: 'Enter your last name',
                     border: OutlineInputBorder(),
                   ),
                   keyboardType: TextInputType.text,
@@ -238,15 +208,6 @@ class _SignupScreenState extends State<SignupScreen> {
                     ),
                     SizedBox(width: 3),
                   ],
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: _bioController,
-                  decoration: const InputDecoration(
-                    hintText: 'Enter your bio',
-                    border: OutlineInputBorder(),
-                  ),
-                  keyboardType: TextInputType.text,
                 ),
                 const SizedBox(height: 24),
                 TextField(

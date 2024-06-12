@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:kings_cogent/models/user.dart';
+import 'package:KcfApp/models/user.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SharedPrefs {

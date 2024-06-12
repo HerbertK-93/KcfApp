@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:kings_cogent/other_screens/about_us_screen.dart';
-import 'package:kings_cogent/other_screens/contact_us_screen.dart';
-import 'package:kings_cogent/other_screens/our_services_screen.dart';
-import 'package:kings_cogent/other_screens/our_team_screen.dart';
+import 'package:KcfApp/other_screens/about_us_screen.dart';
+import 'package:KcfApp/other_screens/our_services_screen.dart';
+import 'package:KcfApp/other_screens/our_team_screen.dart';
 
 class MoreScreen extends StatelessWidget {
   const MoreScreen({super.key});
@@ -28,13 +27,6 @@ class MoreScreen extends StatelessWidget {
             context,
             'About Us',
             const AboutUsScreen(),
-            Icons.arrow_forward,
-          ),
-          const Divider(),
-          _buildMenuItem(
-            context,
-            'Contact Us',
-            const ContactUsScreen(),
             Icons.arrow_forward,
           ),
           const Divider(),

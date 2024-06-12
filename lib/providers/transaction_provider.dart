@@ -18,6 +18,10 @@ class TransactionProvider extends ChangeNotifier {
   double get totalMonthlyReturns => _totalMonthlyReturns;
 
   void addTransaction(Map<String, dynamic> transaction) async {
+    if (!_isValidDouble(transaction['amount'].toString())) {
+      throw FormatException('Invalid transaction amount');
+    }
+
     _transactionHistory.insert(0, transaction);
     _totalMonthlyReturns += transaction['amount'] + (transaction['amount'] * _interestRate);
     _saveToPrefs();
@@ -31,6 +35,15 @@ class TransactionProvider extends ChangeNotifier {
     }
   }
 
+  void deleteTransaction(int index) {
+    if (index >= 0 && index < _transactionHistory.length) {
+      _totalMonthlyReturns -= _transactionHistory[index]['amount'] + (_transactionHistory[index]['amount'] * _interestRate);
+      _transactionHistory.removeAt(index);
+      _saveToPrefs();
+      notifyListeners();
+    }
+  }
+
   void _loadFromPrefs() async {
     _prefs = await SharedPreferences.getInstance();
     List<String>? history = _prefs?.getStringList('transaction_history');
@@ -40,7 +53,11 @@ class TransactionProvider extends ChangeNotifier {
       }).toList();
 
       _totalMonthlyReturns = _transactionHistory.fold(0, (total, transaction) {
-        return total + transaction['amount'] + (transaction['amount'] * _interestRate);
+        if (_isValidDouble(transaction['amount'].toString())) {
+          return total + transaction['amount'] + (transaction['amount'] * _interestRate);
+        } else {
+          return total;
+        }
       });
       notifyListeners();
     }
@@ -51,5 +68,9 @@ class TransactionProvider extends ChangeNotifier {
       return json.encode(transaction);
     }).toList();
     await _prefs?.setStringList('transaction_history', history);
+  }
+
+  bool _isValidDouble(String value) {
+    return double.tryParse(value) != null;
   }
 }

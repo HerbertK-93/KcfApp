@@ -1,14 +1,32 @@
 import 'package:flutter/material.dart';
-import 'package:kings_cogent/screens/daily_screen.dart';
-import 'package:kings_cogent/screens/emergency_fund.dart';
-import 'package:kings_cogent/screens/land_acquisition.dart';
-import 'package:kings_cogent/screens/medical_facilitation.dart';
-import 'package:kings_cogent/screens/once_screen.dart';
-import 'package:kings_cogent/screens/weekly_screen.dart';
-import 'package:kings_cogent/screens/monthly_screen.dart';
+import 'package:KcfApp/screens/daily_screen.dart';
+
+import 'package:KcfApp/screens/once_screen.dart';
+import 'package:KcfApp/screens/weekly_screen.dart';
+import 'package:KcfApp/screens/monthly_screen.dart';
 
 class SaveScreen extends StatelessWidget {
   const SaveScreen({Key? key}) : super(key: key);
+
+  void _showUnlockOffersDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Unlock Offers'),
+          content: Text('Continue saving to unlock offers'),
+          actions: [
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Close'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +41,7 @@ class SaveScreen extends StatelessWidget {
                 padding: EdgeInsets.fromLTRB(0, 15, 0, 4),
                 child: Text(
                   'Saving Plans',
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
               ),
               ServiceCard(
@@ -79,7 +97,7 @@ class SaveScreen extends StatelessWidget {
                 padding: EdgeInsets.fromLTRB(0, 20, 0, 4),
                 child: Text(
                   'Offers',
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
               ),
               Row(
@@ -89,12 +107,7 @@ class SaveScreen extends StatelessWidget {
                       title: 'Emergency Fund',
                       icon: Icons.health_and_safety_outlined,
                       onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const EmergencyFundScreen(),
-                          ),
-                        );
+                        _showUnlockOffersDialog(context);
                       },
                     ),
                   ),
@@ -104,12 +117,7 @@ class SaveScreen extends StatelessWidget {
                       title: 'Medical Facilitation',
                       icon: Icons.local_hospital_outlined,
                       onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const MedicalFacilitationScreen(),
-                          ),
-                        );
+                        _showUnlockOffersDialog(context);
                       },
                       centerTextBelowIcon: true,
                     ),
@@ -121,12 +129,7 @@ class SaveScreen extends StatelessWidget {
                 title: 'Land Acquisition',
                 icon: Icons.landscape_outlined,
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const LandAcquisitionScreen(),
-                    ),
-                  );
+                  _showUnlockOffersDialog(context);
                 },
               ),
             ],
@@ -165,7 +168,7 @@ class ServiceCard extends StatelessWidget {
             ),
             if (isRecommended)
               Container(
-                margin: const EdgeInsets.only(left: 80),
+                margin: const EdgeInsets.only(left: 60),
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4)),
                 child: const Text(

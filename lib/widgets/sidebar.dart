@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:kings_cogent/screens/more.dart';
-import 'package:kings_cogent/screens/settings_screen.dart';
+import 'package:KcfApp/screens/more.dart';
+import 'package:KcfApp/screens/settings_screen.dart';
 
 class SideBar extends StatelessWidget {
   const SideBar({super.key});

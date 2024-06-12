@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:kings_cogent/providers/transaction_provider.dart';
+import 'package:KcfApp/providers/transaction_provider.dart';
 
 class MonthlyScreen extends StatefulWidget {
   const MonthlyScreen({super.key});
@@ -215,7 +215,7 @@ class _MonthlyScreenState extends State<MonthlyScreen> {
               ),
               const SizedBox(height: 8),
               const Text(
-                '12%', // Fixed interest rate
+                '8%', // Fixed interest rate
                 style: TextStyle(fontSize: 16),
               ),
               const SizedBox(height: 8),
@@ -275,6 +275,12 @@ class _MonthlyScreenState extends State<MonthlyScreen> {
                                 Text('Amount: \$${transaction['amount']}'),
                                 Text('Monthly Returns: ${monthlyReturns.toStringAsFixed(2)} USD (${(monthlyReturns * _conversionRate).toStringAsFixed(2)} UGX)'),
                               ],
+                            ),
+                            trailing: IconButton(
+                              icon: const Icon(Icons.delete, color: Colors.grey),
+                              onPressed: () {
+                                transactionProvider.deleteTransaction(index);
+                              },
                             ),
                           ),
                         );

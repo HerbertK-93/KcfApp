@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import "package:kings_cogent/models/user.dart" as model;
-import 'package:kings_cogent/utils/shared_prefs.dart';
+import "package:KcfApp/models/user.dart" as model;
+import 'package:KcfApp/utils/shared_prefs.dart';
 
 class UserMethods {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;

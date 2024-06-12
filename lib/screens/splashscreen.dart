@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:kings_cogent/screens/login_screen.dart';
-import 'package:kings_cogent/responsive/mobile_screen_layout.dart';
-import 'package:kings_cogent/responsive/responsive_layout_scrteen.dart';
-import 'package:kings_cogent/responsive/web_screen_layout.dart';
+import 'package:KcfApp/screens/login_screen.dart';
+import 'package:KcfApp/responsive/mobile_screen_layout.dart';
+import 'package:KcfApp/responsive/responsive_layout_scrteen.dart';
+import 'package:KcfApp/responsive/web_screen_layout.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});

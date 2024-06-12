@@ -1,6 +1,6 @@
 import "package:flutter/material.dart";
-import "package:kings_cogent/providers/user_provider.dart";
-import "package:kings_cogent/utils/dimensions.dart";
+import "package:KcfApp/providers/user_provider.dart";
+import "package:KcfApp/utils/dimensions.dart";
 import "package:provider/provider.dart";
 
 class ResponsiveLayout extends StatefulWidget {

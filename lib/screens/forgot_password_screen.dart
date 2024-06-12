@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:kings_cogent/resources/auth_methods.dart';
+import 'package:KcfApp/resources/auth_methods.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});

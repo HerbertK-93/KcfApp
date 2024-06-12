@@ -5,9 +5,9 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:path_provider/path_provider.dart';
 
 class AllTransactionsScreen extends StatelessWidget {
-  final List<Map<String, dynamic>> transactionHistory;
+  final List<Map<String, dynamic>> combinedHistory;
 
-  const AllTransactionsScreen({super.key, required this.transactionHistory});
+  const AllTransactionsScreen({super.key, required this.combinedHistory});
 
   @override
   Widget build(BuildContext context) {
@@ -26,28 +26,47 @@ class AllTransactionsScreen extends StatelessWidget {
         ],
       ),
       body: ListView.builder(
-        itemCount: transactionHistory.length,
+        itemCount: combinedHistory.length,
         itemBuilder: (context, index) {
-          final transaction = transactionHistory[index];
-          final date = transaction['date'];
-          final amount = transaction['amount'];
-          const interestRate = 0.12;
-          final monthlyReturns = amount + (amount * interestRate);
+          final item = combinedHistory[index];
+          final date = item['date'];
+          final amount = item['amount'];
+          final type = item['type'];
+          
+          if (type == 'transaction') {
+            const interestRate = 0.12;
+            final monthlyReturns = amount + (amount * interestRate);
 
-          return Card(
-            margin: const EdgeInsets.symmetric(vertical: 4.0),
-            child: ListTile(
-              title: Text('Transaction ${transactionHistory.length - index}'),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Date: $date'),
-                  Text('Amount: \$$amount (${(amount * conversionRate).toStringAsFixed(2)} UGX)'),
-                  Text('Monthly Returns: \$${monthlyReturns.toStringAsFixed(2)} (${(monthlyReturns * conversionRate).toStringAsFixed(2)} UGX)'),
-                ],
+            return Card(
+              margin: const EdgeInsets.symmetric(vertical: 4.0),
+              child: ListTile(
+                title: Text('Transaction ${combinedHistory.length - index}'),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Date: $date'),
+                    Text('Amount: \$$amount (${(amount * conversionRate).toStringAsFixed(2)} UGX)'),
+                    Text('Monthly Returns: \$${monthlyReturns.toStringAsFixed(2)} (${(monthlyReturns * conversionRate).toStringAsFixed(2)} UGX)'),
+                  ],
+                ),
               ),
-            ),
-          );
+            );
+          } else if (type == 'deposit') {
+            return Card(
+              margin: const EdgeInsets.symmetric(vertical: 4.0),
+              child: ListTile(
+                title: Text('Deposit ${combinedHistory.length - index}'),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Date: $date'),
+                    Text('Amount: $amount UGX'),
+                  ],
+                ),
+              ),
+            );
+          }
+          return SizedBox.shrink();
         },
       ),
     );
@@ -55,30 +74,37 @@ class AllTransactionsScreen extends StatelessWidget {
 
   Future<void> _downloadTransactionHistory(BuildContext context) async {
     try {
-      // Request storage permissions
       if (await _requestStoragePermission()) {
-        // Generate CSV data
         List<List<dynamic>> rows = [];
         rows.add(["Date", "Amount (USD)", "Amount (UGX)", "Monthly Returns (USD)", "Monthly Returns (UGX)"]);
 
-        for (var transaction in transactionHistory) {
-          final date = transaction['date'];
-          final amount = transaction['amount'];
-          const interestRate = 0.12;
-          const conversionRate = 3600;
-          final monthlyReturns = amount + (amount * interestRate);
-          rows.add([
-            date,
-            amount,
-            (amount * conversionRate).toStringAsFixed(2),
-            monthlyReturns.toStringAsFixed(2),
-            (monthlyReturns * conversionRate).toStringAsFixed(2)
-          ]);
+        for (var item in combinedHistory) {
+          final date = item['date'];
+          final amount = item['amount'];
+          final type = item['type'];
+          if (type == 'transaction') {
+            const interestRate = 0.12;
+            const conversionRate = 3600;
+            final monthlyReturns = amount + (amount * interestRate);
+            rows.add([
+              date,
+              amount,
+              (amount * conversionRate).toStringAsFixed(2),
+              monthlyReturns.toStringAsFixed(2),
+              (monthlyReturns * conversionRate).toStringAsFixed(2)
+            ]);
+          } else if (type == 'deposit') {
+            rows.add([
+              date,
+              '',
+              amount,
+              '',
+              ''
+            ]);
+          }
         }
 
         String csvData = const ListToCsvConverter().convert(rows);
-
-        // Get the Downloads directory
         final directory = await getExternalStorageDirectory();
 
         if (directory != null) {
@@ -86,24 +112,20 @@ class AllTransactionsScreen extends StatelessWidget {
           final file = File(path);
           await file.writeAsString(csvData);
 
-          // Notify user of successful download
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text("Transaction history saved to $path")),
           );
         } else {
-          // Notify user if directory is null
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text("Unable to access storage directory")),
           );
         }
       } else {
-        // Notify user of permission denial
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Storage permission denied")),
         );
       }
     } catch (e) {
-      // Notify user of an error
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Failed to save transaction history: $e")),
       );
@@ -112,19 +134,9 @@ class AllTransactionsScreen extends StatelessWidget {
 
   Future<bool> _requestStoragePermission() async {
     var status = await Permission.storage.status;
-    print('Initial storage permission status: $status'); // Debug log
-
     if (status.isDenied || status.isPermanentlyDenied || status.isRestricted) {
       status = await Permission.storage.request();
-      print('Requested storage permission status: $status'); // Debug log
     }
-
-    if (status.isGranted) {
-      print('Storage permission granted'); // Debug log
-      return true;
-    } else {
-      print('Storage permission not granted: $status'); // Debug log
-      return false;
-    }
+    return status.isGranted;
   }
 }

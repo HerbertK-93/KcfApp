@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
-import 'package:kings_cogent/resources/auth_methods.dart';
-import 'package:kings_cogent/responsive/mobile_screen_layout.dart';
-import 'package:kings_cogent/responsive/responsive_layout_scrteen.dart';
-import 'package:kings_cogent/responsive/web_screen_layout.dart';
-import 'package:kings_cogent/screens/forgot_password_screen.dart'; 
-import 'package:kings_cogent/screens/signup_screen.dart';
-import 'package:kings_cogent/utils/utils.dart';
+import 'package:KcfApp/resources/auth_methods.dart';
+import 'package:KcfApp/responsive/mobile_screen_layout.dart';
+import 'package:KcfApp/responsive/responsive_layout_scrteen.dart';
+import 'package:KcfApp/responsive/web_screen_layout.dart';
+import 'package:KcfApp/screens/forgot_password_screen.dart'; 
+import 'package:KcfApp/screens/signup_screen.dart';
+import 'package:KcfApp/utils/utils.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});

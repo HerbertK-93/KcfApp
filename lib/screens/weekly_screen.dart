@@ -1,5 +1,6 @@
+import 'package:KcfApp/providers/weekly_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -19,42 +20,16 @@ class _WeeklyScreenState extends State<WeeklyScreen> {
   double _amount = 20;
   double _calculatedAmount = 0.0;
   final double _conversionRate = 3600;
-  List<Map<String, dynamic>> _transactionHistory = [];
 
   @override
   void initState() {
     super.initState();
     _loadDefaults();
-    _loadTransactionHistory();
   }
 
   void _loadDefaults() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {});
-  }
-
-  void _loadTransactionHistory() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    List<String>? history = prefs.getStringList('weekly_transaction_history');
-    if (history != null) {
-      setState(() {
-        _transactionHistory = history.map((item) {
-          Map<String, dynamic> transaction = {};
-          List<String> details = item.split('|');
-          transaction['day'] = details[0];
-          transaction['amount'] = double.parse(details[1]);
-          return transaction;
-        }).toList();
-      });
-    }
-  }
-
-  void _saveTransactionHistory() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    List<String> history = _transactionHistory.map((transaction) {
-      return '${transaction['day']}|${transaction['amount']}';
-    }).toList();
-    await prefs.setStringList('weekly_transaction_history', history);
   }
 
   void _saveDefaults() async {
@@ -120,56 +95,33 @@ class _WeeklyScreenState extends State<WeeklyScreen> {
     );
 
     if (confirm == true) {
-      FirebaseFirestore.instance.collection('weekly_plan').add({
-        'selected_day': _selectedDate,
-        'weekly_deposit': _weeklyDeposit,
-        'interest_rate': _interestRate,
-        'period': _period,
-        'amount': _amount,
-      }).then((value) async {
-        _saveDefaults();
+      print('Confirmation received, proceeding to save transaction.');
 
-        setState(() {
-          _transactionHistory.insert(0, {
-            'day': _selectedDate.toString().split(' ')[0],
-            'amount': _amount,
-          });
-        });
+      final provider = Provider.of<WeeklyProvider>(context, listen: false);
 
-        _saveTransactionHistory();
-        _fetchDataAndUpdateUI();
+      await provider.saveTransactionToFirestore(
+        _selectedDate,
+        _weeklyDeposit,
+        _interestRate,
+        _period,
+        _amount,
+      );
 
-        // Launch payment URL
-        const url = 'https://flutterwave.com/pay/g3vpxdi0d3n8';
-        if (await canLaunch(url)) {
-          await launch(url);
-        } else {
-          print('Could not launch $url');
-        }
-      }).catchError((error) {
-        // Handle error
-        print('Error saving transaction: $error');
-      });
-    }
-  }
+      _saveDefaults();
 
-  void _fetchDataAndUpdateUI() async {
-    try {
-      final querySnapshot = await FirebaseFirestore.instance.collection('weekly_plan').get();
-      if (querySnapshot.docs.isNotEmpty) {
-        final userData = querySnapshot.docs.first.data();
-        setState(() {
-          _selectedDate = (userData['selected_day'] as Timestamp).toDate();
-          _weeklyDeposit = userData['weekly_deposit'] ?? 0.0;
-          _interestRate = userData['interest_rate'] ?? 0.12;
-          _period = userData['period'] ?? '6 months';
-          _amount = userData['amount'] ?? 20.0;
-          _calculateTotalSavings();
-        });
+      provider.addTransaction(
+        _selectedDate.toString().split(' ')[0],
+        _amount,
+      );
+
+      // Launch payment URL
+      const url = 'https://flutterwave.com/pay/g3vpxdi0d3n8';
+      if (await canLaunch(url)) {
+        print('Launching payment URL.');
+        await launch(url);
+      } else {
+        print('Could not launch $url');
       }
-    } catch (error) {
-      // Handle error
-      print('Error fetching data: $error');
     }
   }
 
@@ -284,7 +236,7 @@ class _WeeklyScreenState extends State<WeeklyScreen> {
               ),
               const SizedBox(height: 8),
               const Text(
-                '12%',
+                '8%',
                 style: TextStyle(fontSize: 16),
               ),
               const SizedBox(height: 8),
@@ -325,29 +277,39 @@ class _WeeklyScreenState extends State<WeeklyScreen> {
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
-              SizedBox(
-                height: 200,
-                child: ListView.builder(
-                  itemCount: _transactionHistory.length,
-                  itemBuilder: (context, index) {
-                    final transaction = _transactionHistory[index];
-                    final weeklyReturns = transaction['amount'] + (transaction['amount'] * _interestRate);
-                    return Card(
-                      margin: const EdgeInsets.symmetric(vertical: 4.0),
-                      child: ListTile(
-                        title: Text('Transaction ${_transactionHistory.length - index}'),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Day: ${transaction['day']}'),
-                            Text('Amount: \$${transaction['amount']} (${(transaction['amount'] * _conversionRate).toStringAsFixed(2)} UGX)'),
-                            Text('Weekly Returns: \$${weeklyReturns.toStringAsFixed(2)} (${(weeklyReturns * _conversionRate).toStringAsFixed(2)} UGX)'),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
+              Consumer<WeeklyProvider>(
+                builder: (context, provider, child) {
+                  return SizedBox(
+                    height: 200,
+                    child: ListView.builder(
+                      itemCount: provider.transactionHistory.length,
+                      itemBuilder: (context, index) {
+                        final transaction = provider.transactionHistory[index];
+                        final weeklyReturns = transaction['amount'] + (transaction['amount'] * _interestRate);
+                        return Card(
+                          margin: const EdgeInsets.symmetric(vertical: 4.0),
+                          child: ListTile(
+                            title: Text('Transaction ${provider.transactionHistory.length - index}'),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Day: ${transaction['day']}'),
+                                Text('Amount: \$${transaction['amount']} (${(transaction['amount'] * _conversionRate).toStringAsFixed(2)} UGX)'),
+                                Text('Weekly Returns: \$${weeklyReturns.toStringAsFixed(2)} (${(weeklyReturns * _conversionRate).toStringAsFixed(2)} UGX)'),
+                              ],
+                            ),
+                            trailing: IconButton(
+                              icon: const Icon(Icons.delete, color: Colors.grey),
+                              onPressed: () {
+                                provider.deleteTransaction(index);
+                              },
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                },
               ),
             ],
           ),

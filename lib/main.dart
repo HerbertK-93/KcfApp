@@ -1,13 +1,18 @@
 // ignore_for_file: prefer_const_constructors, unnecessary_import
 
+import 'package:KcfApp/providers/daily_provider.dart';
+import 'package:KcfApp/providers/once_provider.dart';
+import 'package:KcfApp/providers/weekly_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:kings_cogent/screens/splashscreen.dart';
+import 'package:KcfApp/providers/deposit_provider.dart';
+import 'package:KcfApp/screens/deposit_screen.dart';
+import 'package:KcfApp/screens/splashscreen.dart';
 import 'package:provider/provider.dart';
-import 'package:kings_cogent/providers/user_provider.dart';
-import 'package:kings_cogent/providers/transaction_provider.dart'; // Import TransactionProvider
-import 'package:kings_cogent/screens/login_screen.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart'; // Import ScreenUtil
+import 'package:KcfApp/providers/user_provider.dart';
+import 'package:KcfApp/providers/transaction_provider.dart';
+import 'package:KcfApp/screens/login_screen.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,15 +37,15 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(
-          create: (_) => UserProvider(),
-        ),
-        ChangeNotifierProvider(
-          create: (_) => TransactionProvider(), // Add TransactionProvider
-        ),
+        ChangeNotifierProvider(create: (_) => UserProvider()),
+        ChangeNotifierProvider(create: (_) => TransactionProvider()),
+        ChangeNotifierProvider(create: (_) => DepositProvider()),
+        ChangeNotifierProvider(create: (_) => WeeklyProvider()),
+        ChangeNotifierProvider(create: (_) => DailyProvider()),
+        ChangeNotifierProvider(create: (_) => OnceProvider()),
       ],
       child: ScreenUtilInit(
-        designSize: const Size(360, 690), // Specify the design size
+        designSize: const Size(360, 690),
         minTextAdapt: true,
         splitScreenMode: true,
         builder: (context, child) {
@@ -48,9 +53,7 @@ class MyApp extends StatelessWidget {
             debugShowCheckedModeBanner: false,
             title: 'Kings Cogent',
             themeMode: ThemeMode.system,
-            theme: ThemeData.light().copyWith(
-              scaffoldBackgroundColor: Colors.white,
-            ),
+            theme: ThemeData.light().copyWith(scaffoldBackgroundColor: Colors.white),
             darkTheme: ThemeData.dark().copyWith(),
             builder: (context, child) {
               return MediaQuery(

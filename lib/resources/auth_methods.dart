@@ -1,9 +1,9 @@
 import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:kings_cogent/models/user.dart' as model;
-import 'package:kings_cogent/resources/storage_methods.dart';
-import 'package:kings_cogent/utils/shared_prefs.dart';
+import 'package:KcfApp/models/user.dart' as model;
+import 'package:KcfApp/resources/storage_methods.dart';
+import 'package:KcfApp/utils/shared_prefs.dart';
 
 class AuthMethods {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -25,27 +25,23 @@ class AuthMethods {
   Future<String> signUpUser({
     required String email,
     required String password,
-    required String username,
-    required String bio,
+    required String firstName,
+    required String lastName,
     required String whatsapp,
     required String ninPassport,
-    required Uint8List file,
   }) async {
     String res = "Some error occurred";
     try {
-      if (email.isNotEmpty || password.isNotEmpty || username.isNotEmpty || bio.isNotEmpty || whatsapp.isNotEmpty || ninPassport.isNotEmpty) {
+      if (email.isNotEmpty || password.isNotEmpty ||  firstName.isNotEmpty || lastName.isNotEmpty || whatsapp.isNotEmpty || ninPassport.isNotEmpty) {
         UserCredential cred = await _auth.createUserWithEmailAndPassword(email: email, password: password);
 
-        String photoUrl = await StorageMethods().uploadImageToStorage('profilePics', file);
-
         model.AppUser user = model.AppUser(
-          username: username,
+          firstName: firstName,
+          lastName: lastName,
           uid: cred.user!.uid,
           email: email,
-          bio: bio,
           whatsapp: whatsapp,
           ninPassport: ninPassport,
-          photoUrl: photoUrl,
         );
 
         await _firestore.collection('users').doc(cred.user!.uid).set(user.toJson());

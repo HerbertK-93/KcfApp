@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:kings_cogent/other_screens/howto.dart';
-import 'package:kings_cogent/utils/shared_prefs.dart';
+import 'package:KcfApp/other_screens/howto.dart';
+import 'package:KcfApp/utils/shared_prefs.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class SettingsScreen extends StatefulWidget {

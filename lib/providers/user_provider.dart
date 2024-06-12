@@ -1,7 +1,7 @@
 import 'package:flutter/widgets.dart';
-import 'package:kings_cogent/models/user.dart';
-import 'package:kings_cogent/resources/auth_methods.dart';
-import 'package:kings_cogent/utils/shared_prefs.dart';
+import 'package:KcfApp/models/user.dart';
+import 'package:KcfApp/resources/auth_methods.dart';
+import 'package:KcfApp/utils/shared_prefs.dart';
 
 class UserProvider with ChangeNotifier {
   AppUser? _user;
