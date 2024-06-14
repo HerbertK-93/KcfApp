@@ -49,7 +49,7 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> with SingleTick
           IconButton(
             icon: const Icon(FontAwesomeIcons.whatsapp, color: Colors.green),
             onPressed: () async {
-              const whatsappUrl = "https://wa.me/+256784480128";
+              const whatsappUrl = "https://wa.me/+256701936975";
               if (await canLaunchUrl(Uri.parse(whatsappUrl))) {
                 await launchUrl(Uri.parse(whatsappUrl));
               } else {

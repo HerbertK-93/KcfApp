@@ -1,0 +1,42 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Define a function to check if the request is made by an authenticated user
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Define a function to check if the request is made by an administrator
+    function isAdmin() {
+      return isAuthenticated() && request.auth.token.admin == true;
+    }
+
+    // Allow full access to administrators
+    match /{document=**} {
+      allow read, write: if isAdmin();
+    }
+
+    // User profiles - users can read and write their own profiles
+    match /users/{userId} {
+      allow read, write: if isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Transactions - users can read and write their own transactions
+    match /transactions/{userId}/{transactionId} {
+      allow read, write: if isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Savings goals - users can read and write their own savings goals
+    match /savingsGoals/{userId}/{goalId} {
+      allow read, write: if isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Public information - all authenticated users can read but not write
+    match /public/{document=**} {
+      allow read: if isAuthenticated();
+      allow write: if false;
+    }
+  }
+}
