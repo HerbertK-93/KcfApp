@@ -1,0 +1,2 @@
+-keep class androidx.core.** { *; }
+-dontwarn androidx.core.**
