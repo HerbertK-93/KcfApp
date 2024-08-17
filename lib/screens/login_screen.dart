@@ -7,6 +7,7 @@ import 'package:KcfApp/responsive/web_screen_layout.dart';
 import 'package:KcfApp/screens/forgot_password_screen.dart'; 
 import 'package:KcfApp/screens/signup_screen.dart';
 import 'package:KcfApp/utils/utils.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -20,6 +21,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
   bool _obscurePassword = true; 
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
   @override
   void dispose() {
@@ -37,14 +39,19 @@ class _LoginScreenState extends State<LoginScreen> {
       password: _passwordController.text,
     );
     if (res == "success") {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (context) =>  const ResponsiveLayout(
-            mobileScreenLayout: MobileScreenLayout(),
-            webScreenLayout: WebScreenLayout(),
+      String? pin = await _storage.read(key: 'user_password');
+      if (pin == null) {
+        Navigator.of(context).pushReplacementNamed('/password'); // Set PIN if none exists
+      } else {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => const ResponsiveLayout(
+              mobileScreenLayout: MobileScreenLayout(),
+              webScreenLayout: WebScreenLayout(),
+            ),
           ),
-        ),
-      );
+        );
+      }
     } else {
       showSnackBar(res, context);
     }

@@ -1,23 +1,24 @@
- // ignore_for_file: prefer_const_constructors, unnecessary_import
-
+import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:KcfApp/providers/daily_provider.dart';
 import 'package:KcfApp/providers/once_provider.dart';
 import 'package:KcfApp/providers/weekly_provider.dart';
-import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:KcfApp/providers/deposit_provider.dart';
-import 'package:KcfApp/screens/deposit_screen.dart';
-import 'package:KcfApp/screens/splashscreen.dart';
-import 'package:provider/provider.dart';
 import 'package:KcfApp/providers/user_provider.dart';
 import 'package:KcfApp/providers/transaction_provider.dart';
+import 'package:KcfApp/screens/splashscreen.dart';
 import 'package:KcfApp/screens/login_screen.dart';
+import 'package:provider/provider.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+
+import 'responsive/mobile_screen_layout.dart';
+import 'screens/password_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
-    options: FirebaseOptions(
+    options: const FirebaseOptions(
       apiKey: 'AIzaSyBQCrbMLwMAxgK8Aky5RfkQE8bmquRplnQ',
       authDomain: 'kings-cogent-finance-ltd-ecab6.firebaseapp.com',
       projectId: 'kings-cogent-finance-ltd-ecab6',
@@ -61,10 +62,12 @@ class MyApp extends StatelessWidget {
                 child: child!,
               );
             },
+            home: const SplashScreen(),
             routes: {
+              '/password': (context) => PasswordScreen(),
+              '/home': (context) => const MobileScreenLayout(),
               '/login': (context) => const LoginScreen(),
             },
-            home: const SplashScreen(),
           );
         },
       ),
