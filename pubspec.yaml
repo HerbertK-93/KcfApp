@@ -54,6 +54,7 @@ dependencies:
   shared_preferences: ^2.2.2
   url_launcher: ^6.2.5
   flutter_secure_storage: ^8.0.0
+  flutter_dotenv: ^5.0.2
 
 dev_dependencies:
   flutter_launcher_icons: "^0.13.1"
@@ -92,6 +93,7 @@ flutter:
     - assets/images/24.jpg
     - assets/images/10.jpg
     - assets/images/11.jpg
+    - .env.flutterwavesecretkey
   #   - images/a_dot_ham.jpeg
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

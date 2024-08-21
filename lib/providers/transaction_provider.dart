@@ -1,7 +1,8 @@
+import 'dart:convert';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'dart:convert';
 
 class TransactionProvider extends ChangeNotifier {
   List<Map<String, dynamic>> _transactionHistory = [];
@@ -27,12 +28,17 @@ class TransactionProvider extends ChangeNotifier {
     _saveToPrefs();
     notifyListeners();
 
-    // Save to Firestore
     try {
       await _firestore.collection('transactions').add(transaction);
     } catch (e) {
       print('Failed to save transaction to Firestore: $e');
     }
+  }
+
+  void addFailedTransaction(Map<String, dynamic> transaction) async {
+    // Implement logic to handle failed transactions (e.g., log them, notify the user)
+    transaction['status'] = 'failed';
+    addTransaction(transaction);
   }
 
   void deleteTransaction(int index) {
