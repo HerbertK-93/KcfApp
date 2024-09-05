@@ -22,7 +22,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Load environment variables
-  await dotenv.load(fileName: ".env.flutterwavesecretkey");
+  // await dotenv.load(fileName: ".env");
 
   // Initialize Firebase
   await Firebase.initializeApp(

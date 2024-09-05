@@ -93,7 +93,7 @@ flutter:
     - assets/images/24.jpg
     - assets/images/10.jpg
     - assets/images/11.jpg
-    - .env.flutterwavesecretkey
+    - .env
   #   - images/a_dot_ham.jpeg
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

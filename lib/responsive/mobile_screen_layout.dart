@@ -3,6 +3,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:KcfApp/screens/profile_screen.dart';
 import 'package:KcfApp/screens/save_screen.dart';
 import 'package:KcfApp/screens/home_screen.dart';
+import 'package:KcfApp/screens/deposit_screen.dart';  // Import DepositScreen
 import 'package:KcfApp/widgets/sidebar.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -17,7 +18,7 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> with SingleTick
   int _selectedIndex = 0;
   final PageController _pageController = PageController();
   
-  final List<String> _pageTitles = ["Home", "Save", "Profile"];
+  final List<String> _pageTitles = ["Home", "Deposit", "Save", "Profile"];
 
   void _onItemTapped(int index) {
     setState(() {
@@ -72,6 +73,7 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> with SingleTick
         },
         children: const <Widget>[
           HomeScreen(),
+          DepositScreen(),  // DepositScreen comes before SaveScreen
           SaveScreen(),
           ProfileScreen(uid: ''),
         ],
@@ -94,11 +96,15 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> with SingleTick
               label: 'Home',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.account_balance, color: _selectedIndex == 1 ? Colors.purple : textColor),
+              icon: Icon(Icons.savings, color: _selectedIndex == 1 ? Colors.purple : textColor),
+              label: 'Deposit',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.account_balance, color: _selectedIndex == 2 ? Colors.purple : textColor),
               label: 'Save',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.person, color: _selectedIndex == 2 ? Colors.purple : textColor),
+              icon: Icon(Icons.person, color: _selectedIndex == 3 ? Colors.purple : textColor),
               label: 'Profile',
             ),
           ],

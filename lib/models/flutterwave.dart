@@ -1,15 +1,41 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class FlutterwaveService {
   final String _baseUrl = 'https://api.flutterwave.com/v3';
   late final String _secretKey;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   FlutterwaveService() {
-    _secretKey = dotenv.env['FLUTTERWAVE_SECRET_KEY'] ?? '';
+    _secretKey = "FLWSECK-175bd285fceb48d9f8b437a3bfa32ee9-19192cf141cvt-X";
     if (_secretKey.isEmpty) {
       throw Exception('Flutterwave secret key is not set in the environment variables.');
+    }
+  }
+
+  Future<void> storeDepositTransaction(Map<String, dynamic> transactionData) async {
+    final uid = _auth.currentUser?.uid;
+    if (uid != null) {
+      final txRef = transactionData['tx_ref'];
+      try {
+        await _firestore
+            .collection('users')
+            .doc(uid)
+            .collection('transactions')
+            .doc(txRef)
+            .set(transactionData);
+        print("Transaction stored successfully under user $uid with tx_ref $txRef");
+      } catch (e) {
+        print("Error storing transaction: $e");
+        throw Exception('Failed to store transaction');
+      }
+    } else {
+      print("User not authenticated");
+      throw Exception('User not authenticated');
     }
   }
 
@@ -20,7 +46,8 @@ class FlutterwaveService {
     required String redirectUrl,
     required String email,
     required String phoneNumber,
-    required String paymentType, required String paymentOptions, // "card", "mobilemoney", "bank_transfer"
+    required String paymentType,
+    required String paymentOptions,
   }) async {
     final url = Uri.parse('$_baseUrl/payments');
     final response = await http.post(
@@ -41,6 +68,17 @@ class FlutterwaveService {
         },
       }),
     );
+
+    final transactionData = {
+      'tx_ref': txRef,
+      'amount': amount,
+      'currency': currency,
+      'status': 'pending',
+      'date': DateTime.now().toIso8601String(),
+    };
+
+    // Store the transaction in Firestore before returning response
+    await storeDepositTransaction(transactionData);
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
@@ -70,12 +108,20 @@ class FlutterwaveService {
     try {
       final response = await verifyPayment(txRef);
       if (response['status'] == 'success' && response['data']['status'] == 'successful') {
-        return true;  // Payment was successful
+        final transactionData = {
+          'tx_ref': txRef,
+          'amount': response['data']['amount'],
+          'currency': response['data']['currency'],
+          'status': 'successful',
+          'date': DateTime.now().toIso8601String(),
+        };
+        await storeDepositTransaction(transactionData);
+        return true;
       }
-      return false;  // Payment was not successful
+      return false;
     } catch (e) {
       print('Error checking transaction status: $e');
-      return false;  // Treat as unsuccessful if there's an error
+      return false;
     }
   }
 }

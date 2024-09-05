@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class Deposit {
   final String amount;
@@ -28,6 +30,8 @@ class Deposit {
 
 class DepositProvider with ChangeNotifier {
   List<Deposit> _deposits = [];
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   List<Deposit> get deposits => List.unmodifiable(_deposits);
 
@@ -43,13 +47,40 @@ class DepositProvider with ChangeNotifier {
     _loadDeposits();
   }
 
-  void addDeposit(String amount, String date, String currency) {
+  void addDeposit(String amount, String date, String currency, {bool saveToFirestore = true}) async {
     if (!_isValidDouble(amount)) {
       throw FormatException('Invalid amount');
     }
-    _deposits.add(Deposit(amount: amount, date: date, currency: currency));
+
+    final newDeposit = Deposit(amount: amount, date: date, currency: currency);
+    _deposits.add(newDeposit);
     _saveDeposits();
     notifyListeners();
+
+    if (saveToFirestore) {
+      await _saveDepositToFirestore(newDeposit);
+    }
+  }
+
+  Future<void> _saveDepositToFirestore(Deposit deposit) async {
+    final uid = _auth.currentUser?.uid;
+    if (uid != null) {
+      final txRef = DateTime.now().millisecondsSinceEpoch.toString();
+      final depositData = {
+        'amount': deposit.amount,
+        'currency': deposit.currency,
+        'tx_ref': txRef,
+        'status': 'successful',
+        'date': deposit.date,
+      };
+
+      await _firestore
+          .collection('users')
+          .doc(uid)
+          .collection('deposits')
+          .doc(txRef)
+          .set(depositData);
+    }
   }
 
   void deleteDeposit(int index) {

@@ -1,11 +1,9 @@
-import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:KcfApp/providers/deposit_provider.dart';
 import 'package:KcfApp/providers/transaction_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-
-import 'deposit_screen.dart';
 import 'alltransactions_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -16,10 +14,10 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
-  bool _isFiguresVisible = true;
+  String _visibleSection = "deposits"; // Default to showing deposits
+
   late AnimationController _controller;
   late Animation<Offset> _slideAnimation;
-  late Animation<double> _opacityAnimation;
 
   double previousDepositsUGX = 0;
   double previousReturns = 0;
@@ -27,32 +25,36 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   @override
   void initState() {
     super.initState();
+
     _controller = AnimationController(
       duration: const Duration(milliseconds: 300),
       vsync: this,
     );
 
     _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0),
-      end: const Offset(0, -1),
+      begin: const Offset(0, 1), // Slide up from bottom
+      end: const Offset(0, 0),
     ).animate(CurvedAnimation(
       parent: _controller,
       curve: Curves.easeInOut,
     ));
 
-    _opacityAnimation = Tween<double>(
-      begin: 1.0,
-      end: 0.0,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeInOut,
-    ));
+    // Start with the first card visible
+    _controller.forward();
   }
 
   @override
   void dispose() {
     _controller.dispose();
     super.dispose();
+  }
+
+  void _toggleVisibility(String section) {
+    setState(() {
+      _visibleSection = section;
+      _controller.reset();
+      _controller.forward();
+    });
   }
 
   @override
@@ -63,9 +65,9 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     double totalReturns = transactionProvider.totalMonthlyReturns;
     double totalDepositsUGX = depositProvider.getTotalDepositsInUGX();
 
-    final totalReturnsUGX = (totalReturns * 3600).toStringAsFixed(2);
-
-    final textColor = Theme.of(context).textTheme.bodyLarge!.color;
+    final double totalReturnsUGX = totalReturns * 3600;
+    final String totalDepositsUSD = (totalDepositsUGX / 3600).toStringAsFixed(2);
+    final String totalReturnsUSD = totalReturns.toStringAsFixed(2);
 
     bool isDepositsIncreasing = totalDepositsUGX > previousDepositsUGX;
     bool isReturnsIncreasing = totalReturns > previousReturns;
@@ -79,31 +81,80 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _buildCard(
-              context,
-              icon: Icons.account_balance_wallet,
-              title: 'Total Deposits',
-              amount: totalDepositsUGX,
-              currency: 'UGX',
-              gradientColors: [
-                const Color.fromARGB(255, 133, 127, 66)!,
-                const Color.fromARGB(255, 88, 151, 151)!
-              ],
-              isIncreasing: isDepositsIncreasing,
+            const SizedBox(height: 24),
+            Container(
+              // Adaptive background color based on the theme
+              decoration: BoxDecoration(
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.grey[850]  // Dark mode background color
+                    : Colors.grey[350], // Light mode background color (Soft light grey)
+                borderRadius: BorderRadius.circular(15), // Rounded corners
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    spreadRadius: 3,
+                    blurRadius: 5,
+                    offset: Offset(0, 3), // Shadow position
+                  ),
+                ],
+              ),
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: _buildButton(
+                          context,
+                          title: 'Deposits',
+                          section: 'deposits',
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: _buildButton(
+                          context,
+                          title: 'Returns',
+                          section: 'returns',
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  // Slide-in Card
+                  SlideTransition(
+                    position: _slideAnimation,
+                    child: _visibleSection == 'deposits'
+                        ? _buildCard(
+                            context,
+                            icon: Icons.account_balance_wallet,
+                            title: 'Total Deposits',
+                            amountUGX: totalDepositsUGX,
+                            amountUSD: totalDepositsUSD,
+                            gradientColors: [
+                              const Color(0xFF56ab2f),
+                              Color.fromARGB(255, 246, 238, 148),
+                            ],
+                            isIncreasing: isDepositsIncreasing,
+                          )
+                        : _buildCard(
+                            context,
+                            icon: FontAwesomeIcons.chartLine,
+                            title: 'Total Returns',
+                            amountUGX: totalReturnsUGX,
+                            amountUSD: totalReturnsUSD,
+                            gradientColors: [
+                              Color.fromARGB(255, 121, 240, 198),
+                              const Color(0xFF2F80ED),
+                            ],
+                            isIncreasing: isReturnsIncreasing,
+                          ),
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: 16),
-            _buildCard(
-              context,
-              icon: FontAwesomeIcons.chartLine,
-              title: 'Total Returns',
-              amount: totalReturns,
-              currency: 'USD',
-              subtitle: '($totalReturnsUGX UGX)',
-              gradientColors: [const Color.fromARGB(255, 77, 199, 255), const Color.fromARGB(255, 107, 209, 172)],
-              isIncreasing: isReturnsIncreasing,
-            ),
-            const SizedBox(height: 16),
-            _buildDepositButton(context),
             const Padding(
               padding: EdgeInsets.fromLTRB(0, 15, 0, 4),
               child: Text(
@@ -120,144 +171,83 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     );
   }
 
-  Widget _buildCard(
-    BuildContext context, {
-    required IconData icon,
-    required String title,
-    required double amount,
-    required String currency,
-    String? subtitle,
-    required List<Color> gradientColors,
-    required bool isIncreasing,
-  }) {
-    final textColor = Theme.of(context).textTheme.bodyLarge!.color;
-
-    return Card(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-      ),
-      elevation: 5,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: gradientColors,
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    FaIcon(icon, color: Colors.white),
-                    const SizedBox(width: 8),
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 15),
-                Row(
-                  children: [
-                    AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 500),
-                      transitionBuilder: (Widget child, Animation<double> animation) {
-                        return ScaleTransition(scale: animation, child: child);
-                      },
-                      child: Text(
-                        amount.toStringAsFixed(2),
-                        key: ValueKey<double>(amount),
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: textColor,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 5),
-                    Text(
-                      ' $currency',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: textColor,
-                      ),
-                    ),
-                  ],
-                ),
-                if (subtitle != null) ...[
-                  const SizedBox(height: 8),
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: textColor,
-                    ),
-                    textAlign: TextAlign.left,
-                  ),
-                ],
-              ],
-            ),
-            Column(
-              children: [
-                Icon(
-                  Icons.arrow_upward,
-                  color: isIncreasing ? const Color.fromARGB(255, 2, 111, 5) : Colors.grey,
-                ),
-                Icon(
-                  Icons.arrow_downward,
-                  color: isIncreasing ? Colors.grey : const Color.fromARGB(255, 219, 40, 27),
-                ),
-              ],
-            ),
-          ],
-        ),
+  Widget _buildButton(BuildContext context, {required String title, required String section}) {
+    return ElevatedButton(
+      onPressed: () => _toggleVisibility(section),
+      child: Text(title),
+      style: ElevatedButton.styleFrom(
+        foregroundColor: Colors.white,
+        backgroundColor: Colors.purple,
+        minimumSize: const Size.fromHeight(50),
       ),
     );
   }
 
-  Widget _buildDepositButton(BuildContext context) {
+  Widget _buildCard(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required double amountUGX,
+    required String amountUSD,
+    required List<Color> gradientColors,
+    required bool isIncreasing,
+  }) {
     return Container(
-      padding: const EdgeInsets.all(8.0),
-      decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.dark
-            ? const Color.fromARGB(255, 80, 80, 80)
-            : const Color.fromARGB(255, 192, 191, 191),
-        borderRadius: BorderRadius.circular(5),
-        boxShadow: [
-          BoxShadow(
-            color: const Color.fromARGB(255, 27, 25, 25).withOpacity(0.3),
-            spreadRadius: 2,
-            blurRadius: 2,
-            offset: const Offset(0, 1),
+      height: 150, // Uniform height
+      width: double.infinity, // Stretch to full width
+      child: Card(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+        ),
+        elevation: 8,
+        shadowColor: Colors.black.withOpacity(0.3),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: gradientColors,
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(15),
           ),
-        ],
-      ),
-      child: ElevatedButton.icon(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const DepositScreen()),
-          );
-        },
-        icon: const Icon(FontAwesomeIcons.wallet),
-        label: const Text('Deposit'),
-        style: ElevatedButton.styleFrom(
-          foregroundColor: Colors.white,
-          backgroundColor: Colors.purple,
-          minimumSize: const Size.fromHeight(50),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center, // Center content vertically
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  FaIcon(icon, color: Colors.white, size: 28),
+                  const SizedBox(width: 12),
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 15),
+              Text(
+                '${amountUGX.toStringAsFixed(2)} UGX',
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              Text(
+                '\$$amountUSD USD',
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white70,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -397,7 +387,7 @@ class FinancialTipsCarousel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDarkTheme = Theme.of(context).brightness == Brightness.dark;
-    final backgroundColor = isDarkTheme ? Colors.grey[800] : Colors.white;
+    final backgroundColor = isDarkTheme ? Colors.grey[850] : Colors.grey[350];
     final textColor = isDarkTheme ? Colors.white : Colors.black;
 
     return CarouselSlider(

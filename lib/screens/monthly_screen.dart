@@ -186,9 +186,7 @@ class _MonthlyScreenState extends State<MonthlyScreen> {
 
           Navigator.pop(context);
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Transaction failed or was cancelled')),
-          );
+        
         }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -266,12 +264,15 @@ class _MonthlyScreenState extends State<MonthlyScreen> {
                     ),
                     child: _isProcessing
                         ? const CircularProgressIndicator(color: Colors.white)
-                        : const SizedBox(
+                        : SizedBox(
                             width: double.infinity,
                             child: Center(
                               child: Text(
                                 'Confirm',
-                                style: TextStyle(fontSize: 16),
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Theme.of(context).colorScheme.onPrimary,
+                                ),
                               ),
                             ),
                           ),
@@ -341,12 +342,15 @@ class _MonthlyScreenState extends State<MonthlyScreen> {
                     ),
                     child: _isProcessing
                         ? const CircularProgressIndicator(color: Colors.white)
-                        : const SizedBox(
+                        : SizedBox(
                             width: double.infinity,
                             child: Center(
                               child: Text(
                                 'Confirm',
-                                style: TextStyle(fontSize: 16),
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Theme.of(context).colorScheme.onPrimary,
+                                ),
                               ),
                             ),
                           ),
@@ -509,8 +513,7 @@ class _MonthlyScreenState extends State<MonthlyScreen> {
                 Text(
                   label,
                   style: TextStyle(
-                    color: isSelected ?
-                    Colors.white : theme.textTheme.bodyText1?.color,
+                    color: isSelected ? Colors.white : theme.textTheme.bodyText1?.color,
                   ),
                 ),
               ],
