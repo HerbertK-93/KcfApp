@@ -121,4 +121,6 @@ class DepositProvider with ChangeNotifier {
   bool _isValidDouble(String value) {
     return double.tryParse(value) != null;
   }
+
+  getDepositTransactionsStream() {}
 }

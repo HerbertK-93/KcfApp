@@ -1,10 +1,13 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:carousel_slider/carousel_slider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
 import 'package:KcfApp/providers/deposit_provider.dart';
 import 'package:KcfApp/providers/transaction_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'alltransactions_screen.dart';
+import 'package:carousel_slider/carousel_slider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -31,16 +34,16 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       vsync: this,
     );
 
+    // Update the tween to slide horizontally (left to right)
     _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 1), // Slide up from bottom
-      end: const Offset(0, 0),
+      begin: const Offset(-1, 0), // Start from the left (off-screen)
+      end: const Offset(0, 0),    // End at the center
     ).animate(CurvedAnimation(
       parent: _controller,
       curve: Curves.easeInOut,
     ));
 
-    // Start with the first card visible
-    _controller.forward();
+    _controller.forward(); // Start with the first card visible
   }
 
   @override
@@ -51,10 +54,57 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
   void _toggleVisibility(String section) {
     setState(() {
-      _visibleSection = section;
+      _visibleSection = section;  // Update the visible section
       _controller.reset();
-      _controller.forward();
+      _controller.forward();  // Re-run the animation when the section changes
     });
+  }
+
+  // Function to fetch all deposit transactions from Firestore
+  Stream<QuerySnapshot> _getRecentDepositTransactionsStream() {
+    return FirebaseFirestore.instance
+        .collection('users')
+        .doc(FirebaseAuth.instance.currentUser?.uid)
+        .collection('transactions')
+        .where('transaction_type', isEqualTo: 'deposit')  // Fetch deposit transactions
+        .snapshots();
+  }
+
+  // Function to calculate total successful deposits in UGX
+  Future<double> _calculateTotalDepositsUGX() async {
+    final snapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(FirebaseAuth.instance.currentUser?.uid)
+        .collection('transactions')
+        .where('transaction_type', isEqualTo: 'deposit')
+        .where('status', isEqualTo: 'successful')  // Only successful transactions
+        .get();
+
+    double totalDepositsUGX = 0.0;
+    for (var doc in snapshot.docs) {
+      totalDepositsUGX += double.parse(doc['amount'].toString());
+    }
+
+    return totalDepositsUGX;
+  }
+
+  // Function to format date and time
+  String _formatDateTime(DateTime dateTime) {
+    return DateFormat('MMM d, y, h:mm a').format(dateTime);
+  }
+
+  // Function to get status icon based on the transaction status
+  Icon _getStatusIcon(String status) {
+    switch (status.toLowerCase()) {
+      case 'successful':
+        return const Icon(Icons.check_circle, color: Colors.green);
+      case 'pending':
+        return const Icon(Icons.access_time, color: Colors.orange);
+      case 'failed':
+        return const Icon(Icons.cancel, color: Colors.red);
+      default:
+        return const Icon(Icons.info, color: Colors.grey);
+    }
   }
 
   @override
@@ -62,67 +112,37 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     final transactionProvider = Provider.of<TransactionProvider>(context);
     final depositProvider = Provider.of<DepositProvider>(context);
 
-    double totalReturns = transactionProvider.totalMonthlyReturns;
-    double totalDepositsUGX = depositProvider.getTotalDepositsInUGX();
+    return FutureBuilder<double>(
+      future: _calculateTotalDepositsUGX(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-    final double totalReturnsUGX = totalReturns * 3600;
-    final String totalDepositsUSD = (totalDepositsUGX / 3600).toStringAsFixed(2);
-    final String totalReturnsUSD = totalReturns.toStringAsFixed(2);
+        double totalDepositsUGX = snapshot.data!;
+        final double totalReturns = transactionProvider.totalMonthlyReturns;
 
-    bool isDepositsIncreasing = totalDepositsUGX > previousDepositsUGX;
-    bool isReturnsIncreasing = totalReturns > previousReturns;
+        final double totalReturnsUGX = totalReturns * 3600;
+        final String totalDepositsUSD = (totalDepositsUGX / 3600).toStringAsFixed(2);
+        final String totalReturnsUSD = totalReturns.toStringAsFixed(2);
 
-    previousDepositsUGX = totalDepositsUGX;
-    previousReturns = totalReturns;
+        bool isDepositsIncreasing = totalDepositsUGX > previousDepositsUGX;
+        bool isReturnsIncreasing = totalReturns > previousReturns;
 
-    return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const SizedBox(height: 24),
-            Container(
-              // Adaptive background color based on the theme
-              decoration: BoxDecoration(
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? Colors.grey[850]  // Dark mode background color
-                    : Colors.grey[350], // Light mode background color (Soft light grey)
-                borderRadius: BorderRadius.circular(15), // Rounded corners
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    spreadRadius: 3,
-                    blurRadius: 5,
-                    offset: Offset(0, 3), // Shadow position
-                  ),
-                ],
-              ),
-              padding: const EdgeInsets.all(16),
+        previousDepositsUGX = totalDepositsUGX;
+        previousReturns = totalReturns;
+
+        return Scaffold(
+          backgroundColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1A1A1A) : Colors.white,
+          body: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: _buildButton(
-                          context,
-                          title: 'Deposits',
-                          section: 'deposits',
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: _buildButton(
-                          context,
-                          title: 'Returns',
-                          section: 'returns',
-                        ),
-                      ),
-                    ],
-                  ),
                   const SizedBox(height: 16),
-                  // Slide-in Card
+                  _buildSectionToggle(),
+                  const SizedBox(height: 20),
                   SlideTransition(
                     position: _slideAnimation,
                     child: _visibleSection == 'deposits'
@@ -132,10 +152,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                             title: 'Total Deposits',
                             amountUGX: totalDepositsUGX,
                             amountUSD: totalDepositsUSD,
-                            gradientColors: [
-                              const Color(0xFF56ab2f),
-                              Color.fromARGB(255, 246, 238, 148),
-                            ],
+                            gradientColors: [const Color(0xFF56ab2f), const Color(0xFFCDE345)],
                             isIncreasing: isDepositsIncreasing,
                           )
                         : _buildCard(
@@ -144,41 +161,96 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                             title: 'Total Returns',
                             amountUGX: totalReturnsUGX,
                             amountUSD: totalReturnsUSD,
-                            gradientColors: [
-                              Color.fromARGB(255, 121, 240, 198),
-                              const Color(0xFF2F80ED),
-                            ],
+                            gradientColors: [const Color(0xFF30C7DA), const Color(0xFF245BB2)],
                             isIncreasing: isReturnsIncreasing,
                           ),
                   ),
+                  const SizedBox(height: 24),
+                  const FinancialTipsCarousel(),
+                  const SizedBox(height: 24),
+
+                  // Recent Transactions and View All text
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Recent Transactions',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          // Navigate to all transactions screen
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const AllTransactionsScreen(combinedHistory: [],)),
+                          );
+                        },
+                        child: const Text(
+                          'View All',
+                          style: TextStyle(fontSize: 16, color: Colors.purple),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16), // Add some spacing
+
+                  _buildTransactionsSection(), // Updated transaction section
                 ],
               ),
             ),
-            const SizedBox(height: 16),
-            const Padding(
-              padding: EdgeInsets.fromLTRB(0, 15, 0, 4),
-              child: Text(
-                'Coming Soon',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-            ),
-            const FinancialTipsCarousel(),
-            const SizedBox(height: 15),
-            _buildTransactionsSection(context, transactionProvider, depositProvider),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildSectionToggle() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            spreadRadius: 3,
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+        gradient: LinearGradient(
+          colors: [
+            Theme.of(context).brightness == Brightness.dark
+                ? const Color(0xFF2E2E2E)
+                : const Color(0xFFF3F4F6),
+            Theme.of(context).brightness == Brightness.dark
+                ? const Color(0xFF1C1C1C)
+                : const Color(0xFFFFFFFF),
           ],
         ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          _buildToggleButton('Deposits', 'deposits'),
+          const SizedBox(width: 8),
+          _buildToggleButton('Returns', 'returns'),
+        ],
       ),
     );
   }
 
-  Widget _buildButton(BuildContext context, {required String title, required String section}) {
+  Widget _buildToggleButton(String title, String section) {
     return ElevatedButton(
       onPressed: () => _toggleVisibility(section),
-      child: Text(title),
+      child: Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
       style: ElevatedButton.styleFrom(
         foregroundColor: Colors.white,
-        backgroundColor: Colors.purple,
-        minimumSize: const Size.fromHeight(50),
+        backgroundColor: _visibleSection == section ? Colors.purple.shade400 : Colors.purple.shade200,
+        elevation: 6,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(30),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
       ),
     );
   }
@@ -193,190 +265,157 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     required bool isIncreasing,
   }) {
     return Container(
-      height: 150, // Uniform height
-      width: double.infinity, // Stretch to full width
-      child: Card(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15),
+      height: 180,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        gradient: LinearGradient(
+          colors: gradientColors,
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
-        elevation: 8,
-        shadowColor: Colors.black.withOpacity(0.3),
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: gradientColors,
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(15),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 10,
+            spreadRadius: 2,
+            offset: const Offset(0, 4),
           ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center, // Center content vertically
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  FaIcon(icon, color: Colors.white, size: 28),
-                  const SizedBox(width: 12),
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                FaIcon(icon, color: Colors.white, size: 30),
+                const SizedBox(width: 12),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
                   ),
-                ],
-              ),
-              const SizedBox(height: 15),
-              Text(
-                '${amountUGX.toStringAsFixed(2)} UGX',
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
                 ),
+              ],
+            ),
+            const SizedBox(height: 18),
+            Text(
+              '${amountUGX.toStringAsFixed(2)} UGX',
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
               ),
-              Text(
-                '\$$amountUSD USD',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white70,
-                ),
+            ),
+            Text(
+              '\$$amountUSD USD',
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w400,
+                color: Colors.white70,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildTransactionsSection(
-    BuildContext context,
-    TransactionProvider transactionProvider,
-    DepositProvider depositProvider,
-  ) {
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  Widget _buildTransactionsSection() {
+    return StreamBuilder<QuerySnapshot>(
+      stream: _getRecentDepositTransactionsStream(), // Fetch deposit transactions of all statuses
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const CircularProgressIndicator();
+        }
+
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          return const Text('No transactions yet.');
+        }
+
+        final transactions = snapshot.data!.docs;
+
+        return ListView.builder(
+          physics: const NeverScrollableScrollPhysics(),
+          shrinkWrap: true,
+          itemCount: transactions.length,
+          itemBuilder: (context, index) {
+            final transaction = transactions[index].data() as Map<String, dynamic>;
+            final amount = transaction['amount'];
+            final currency = transaction['currency'];  // Currency stored in the database
+            final status = transaction['status'];
+            final date = DateTime.parse(transaction['date']);
+
+            return _buildTransactionCard(
+              currency, // Use the correct currency format
+              double.parse(amount.toString()),
+              status,
+              _formatDateTime(date),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildTransactionCard(String currency, double amount, String status, String date) {
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 8.0),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15),
+      ),
+      elevation: 5,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Transactions:',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            GestureDetector(
-              onTap: () {
-                final combinedHistory = [
-                  ...transactionProvider.transactionHistory.map((transaction) {
-                    return {
-                      'date': transaction['date'],
-                      'amount': transaction['amount'],
-                      'type': 'transaction',
-                    };
-                  }),
-                  ...depositProvider.deposits.map((deposit) {
-                    return {
-                      'date': deposit.date,
-                      'amount': double.parse(deposit.amount),
-                      'type': 'deposit',
-                    };
-                  }),
-                ];
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => AllTransactionsScreen(combinedHistory: combinedHistory),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  '$currency $amount',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
                   ),
-                );
-              },
-              child: const Text(
-                'View All',
-                style: TextStyle(fontSize: 16, color: Color.fromARGB(255, 180, 43, 204)),
-              ),
+                ),
+                _getStatusIcon(status),  // Show the status icon based on the status
+              ],
+            ),
+            const SizedBox(height: 8),
+            Divider(color: Colors.grey.shade300),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  date,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+                Text(
+                  status.toUpperCase(),
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: status == 'successful'
+                        ? Colors.green
+                        : (status == 'pending' ? Colors.orange : Colors.red),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
-        const SizedBox(height: 8),
-        if (transactionProvider.transactionHistory.isEmpty &&
-            depositProvider.deposits.isEmpty)
-          const Center(child: Text('No transactions yet'))
-        else
-          ListView.builder(
-            physics: const NeverScrollableScrollPhysics(),
-            shrinkWrap: true,
-            itemCount: transactionProvider.transactionHistory.length +
-                depositProvider.deposits.length,
-            itemBuilder: (context, index) {
-              if (index < transactionProvider.transactionHistory.length) {
-                final transaction = transactionProvider.transactionHistory[index];
-                final date = transaction['date'];
-                final amount = transaction['amount'];
-
-                if (amount is! double || !amount.isFinite) {
-                  return const Center(child: Text('Invalid transaction data'));
-                }
-
-                final monthlyReturns = amount + (amount * 0.12);
-
-                return Card(
-                  margin: const EdgeInsets.symmetric(vertical: 4.0),
-                  child: ListTile(
-                    title: Text(
-                      'Transaction ${transactionProvider.transactionHistory.length - index}',
-                    ),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Date: $date'),
-                        Text('Amount: \$$amount (${(amount * 3600).toStringAsFixed(2)} UGX)'),
-                        Text(
-                          'Monthly Returns: \$${monthlyReturns.toStringAsFixed(2)} (${(monthlyReturns * 3600).toStringAsFixed(2)} UGX)',
-                        ),
-                      ],
-                    ),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.delete),
-                      onPressed: () {
-                        transactionProvider.deleteTransaction(index);
-                      },
-                    ),
-                  ),
-                );
-              } else {
-                final depositIndex = index - transactionProvider.transactionHistory.length;
-                final deposit = depositProvider.deposits[depositIndex];
-                final amount = double.tryParse(deposit.amount) ?? 0.0;
-
-                if (!amount.isFinite) {
-                  return const Center(child: Text('Invalid deposit data'));
-                }
-
-                return Card(
-                  margin: const EdgeInsets.symmetric(vertical: 4.0),
-                  child: ListTile(
-                    title: Text('Deposit ${depositProvider.deposits.length - depositIndex}'),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Date: ${deposit.date}'),
-                        Text('Amount: ${deposit.amount} ${deposit.currency}'),
-                      ],
-                    ),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.delete),
-                      onPressed: () {
-                        depositProvider.deleteDeposit(depositIndex);
-                      },
-                    ),
-                  ),
-                );
-              }
-            },
-          ),
-      ],
+      ),
     );
   }
 }
@@ -386,12 +425,13 @@ class FinancialTipsCarousel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDarkTheme = Theme.of(context).brightness == Brightness.dark;
-    final backgroundColor = isDarkTheme ? Colors.grey[850] : Colors.grey[350];
-    final textColor = isDarkTheme ? Colors.white : Colors.black;
-
     return CarouselSlider(
-      options: CarouselOptions(height: 100, autoPlay: true, enlargeCenterPage: true),
+      options: CarouselOptions(
+        height: 120,
+        autoPlay: true,
+        enlargeCenterPage: true,
+        viewportFraction: 0.8,
+      ),
       items: [
         'Web version',
         'Loans with good interest rates',
@@ -403,16 +443,18 @@ class FinancialTipsCarousel extends StatelessWidget {
         'And much more!',
       ].map((tip) {
         return Container(
-          margin: const EdgeInsets.all(5.0),
+          margin: const EdgeInsets.symmetric(horizontal: 8.0),
           decoration: BoxDecoration(
-            color: backgroundColor,
-            borderRadius: BorderRadius.circular(5.0),
+            color: Theme.of(context).brightness == Brightness.dark
+                ? const Color(0xFF2A2A2A)
+                : const Color(0xFFE3E4E5),
+            borderRadius: BorderRadius.circular(15),
             boxShadow: [
               BoxShadow(
-                color: Colors.grey.withOpacity(0.2),
-                spreadRadius: 2,
-                blurRadius: 2,
-                offset: const Offset(0, 1),
+                color: Colors.grey.withOpacity(0.3),
+                spreadRadius: 1,
+                blurRadius: 4,
+                offset: const Offset(0, 2),
               ),
             ],
           ),
@@ -420,8 +462,10 @@ class FinancialTipsCarousel extends StatelessWidget {
             child: Text(
               tip,
               style: TextStyle(
-                fontSize: 18.0,
-                color: textColor,
+                fontSize: 18,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.white
+                    : Colors.black87,
                 fontWeight: FontWeight.bold,
               ),
               textAlign: TextAlign.center,

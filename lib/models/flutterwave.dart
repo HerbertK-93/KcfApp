@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -27,7 +26,7 @@ class FlutterwaveService {
             .doc(uid)
             .collection('transactions')
             .doc(txRef)
-            .set(transactionData);
+            .set(transactionData);  // Store the transaction with "pending" status
         print("Transaction stored successfully under user $uid with tx_ref $txRef");
       } catch (e) {
         print("Error storing transaction: $e");
@@ -48,6 +47,7 @@ class FlutterwaveService {
     required String phoneNumber,
     required String paymentType,
     required String paymentOptions,
+    required String transactionType,  // Add this parameter
   }) async {
     final url = Uri.parse('$_baseUrl/payments');
     final response = await http.post(
@@ -75,6 +75,8 @@ class FlutterwaveService {
       'currency': currency,
       'status': 'pending',
       'date': DateTime.now().toIso8601String(),
+      'email': email,
+      'transaction_type': transactionType,  // Store the transaction type (deposit, monthly, etc.)
     };
 
     // Store the transaction in Firestore before returning response
@@ -114,8 +116,10 @@ class FlutterwaveService {
           'currency': response['data']['currency'],
           'status': 'successful',
           'date': DateTime.now().toIso8601String(),
+          'email': response['data']['customer']['email'],
+          'transaction_type': response['data']['transaction_type'], // Ensure this is maintained
         };
-        await storeDepositTransaction(transactionData);
+        await storeDepositTransaction(transactionData);  // Update transaction status to "successful"
         return true;
       }
       return false;
