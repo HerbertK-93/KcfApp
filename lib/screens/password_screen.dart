@@ -9,7 +9,9 @@ class PasswordScreen extends StatefulWidget {
 class _PasswordScreenState extends State<PasswordScreen> with SingleTickerProviderStateMixin {
   final _storage = const FlutterSecureStorage();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
   bool _isFirstLaunch = false;
+  bool _isConfirmingPassword = false; // To track password confirmation
   late AnimationController _controller;
   late Animation<double> _animation;
   List<String> _input = ["", "", "", ""];
@@ -38,11 +40,20 @@ class _PasswordScreenState extends State<PasswordScreen> with SingleTickerProvid
 
   Future<void> _setPassword() async {
     final password = _input.join();
-    if (password.length == 4) {
-      await _storage.write(key: 'user_password', value: password);
-      _navigateToHomeScreen();
+    if (_isConfirmingPassword) {
+      final confirmPassword = _confirmPasswordController.text;
+      if (password == confirmPassword) {
+        await _storage.write(key: 'user_password', value: password);
+        _navigateToHomeScreen();
+      } else {
+        _showError('Passwords do not match');
+      }
     } else {
-      _showError('Password must be 4 digits');
+      setState(() {
+        _isConfirmingPassword = true;
+        _confirmPasswordController.text = password;
+        _input = ["", "", "", ""];
+      });
     }
   }
 
@@ -128,24 +139,23 @@ class _PasswordScreenState extends State<PasswordScreen> with SingleTickerProvid
   }
 
   void _handleForgotPin() {
-  showDialog(
-    context: context,
-    builder: (context) => AlertDialog(
-      title: const Text('Forgot PIN'),
-      content: const Text(
-          'To reset your PIN, please contact support at:\n\n'
-          'Phone: +256 701936975\n'
-          'Email: kingscogentfinance@gmail.com'),
-      actions: <Widget>[
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('OK'),
-        ),
-      ],
-    ),
-  );
-}
-
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Forgot PIN'),
+        content: const Text(
+            'To reset your PIN, please contact support at:\n\n'
+            'Phone: +256 701936975\n'
+            'Email: kingscogentfinance@gmail.com'),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget _buildInputField(int index) {
     return Container(
@@ -241,8 +251,19 @@ class _PasswordScreenState extends State<PasswordScreen> with SingleTickerProvid
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
+              // **Company Logo** (Ensure it's adaptive)
+              Image.asset(
+                'assets/images/L.png',  // Your logo file
+                height: 150,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.white
+                    : Colors.black, // Adapt to system theme
+              ),
+              const SizedBox(height: 20),
               Text(
-                _isFirstLaunch ? 'Set PIN' : 'Enter PIN',
+                _isFirstLaunch
+                    ? (_isConfirmingPassword ? 'Confirm PIN' : 'Set PIN')
+                    : 'Enter PIN',
                 style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 10),
@@ -265,8 +286,6 @@ class _PasswordScreenState extends State<PasswordScreen> with SingleTickerProvid
                   ),
                 ),
               ),
-              const SizedBox(height: 20),
-              const Icon(Icons.lock, size: 80, color: Colors.purple),
               const SizedBox(height: 20),
               _buildKeyboard(),
             ],
