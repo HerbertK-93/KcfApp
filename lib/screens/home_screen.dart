@@ -24,6 +24,9 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
   double previousDepositsUGX = 0;
   double previousReturns = 0;
+  double totalDepositsUGX = 0.0;
+  double totalReturnsUGX = 0.0; // Adding totalReturnsUGX for Returns
+  bool isLoading = true;
 
   @override
   void initState() {
@@ -44,6 +47,21 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     ));
 
     _controller.forward(); // Start with the first card visible
+
+    // Fetch the initial data
+    _calculateTotalDepositsUGX().then((value) {
+      setState(() {
+        totalDepositsUGX = value;
+        isLoading = false;
+      });
+    });
+
+    _calculateTotalReturnsUGX().then((value) {  // Fetch total returns UGX
+      setState(() {
+        totalReturnsUGX = value;
+        isLoading = false;
+      });
+    });
   }
 
   @override
@@ -60,13 +78,23 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     });
   }
 
-  // Function to fetch all deposit transactions from Firestore
+  // Fetch deposit transactions for the Deposits section
   Stream<QuerySnapshot> _getRecentDepositTransactionsStream() {
     return FirebaseFirestore.instance
         .collection('users')
         .doc(FirebaseAuth.instance.currentUser?.uid)
         .collection('transactions')
         .where('transaction_type', isEqualTo: 'deposit')  // Fetch deposit transactions
+        .snapshots();
+  }
+
+  // Fetch recent transactions for the Returns section
+  Stream<QuerySnapshot> _getMonthlyTransactionsStream() {
+    return FirebaseFirestore.instance
+        .collection('users')
+        .doc(FirebaseAuth.instance.currentUser?.uid)
+        .collection('transactions')
+        .where('transaction_type', isEqualTo: 'monthly')  // Fetch only monthly transactions
         .snapshots();
   }
 
@@ -86,6 +114,24 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     }
 
     return totalDepositsUGX;
+  }
+
+  // Function to calculate total successful returns in UGX (for the Returns section)
+  Future<double> _calculateTotalReturnsUGX() async {
+    final snapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(FirebaseAuth.instance.currentUser?.uid)
+        .collection('transactions')
+        .where('transaction_type', isEqualTo: 'monthly')
+        .where('status', isEqualTo: 'successful')  // Only successful transactions
+        .get();
+
+    double totalReturnsUGX = 0.0;
+    for (var doc in snapshot.docs) {
+      totalReturnsUGX += double.parse(doc['amount'].toString());
+    }
+
+    return totalReturnsUGX;
   }
 
   // Function to format date and time
@@ -112,95 +158,75 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     final transactionProvider = Provider.of<TransactionProvider>(context);
     final depositProvider = Provider.of<DepositProvider>(context);
 
-    return FutureBuilder<double>(
-      future: _calculateTotalDepositsUGX(),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return const Center(child: CircularProgressIndicator());
-        }
+    final String totalDepositsUSD = (totalDepositsUGX / 3600).toStringAsFixed(2);
+    final String totalReturnsUSD = (totalReturnsUGX / 3600).toStringAsFixed(2);  // Convert returns to USD
 
-        double totalDepositsUGX = snapshot.data!;
-        final double totalReturns = transactionProvider.totalMonthlyReturns;
+    bool isDepositsIncreasing = totalDepositsUGX > previousDepositsUGX;
+    bool isReturnsIncreasing = totalReturnsUGX > previousReturns;
 
-        final double totalReturnsUGX = totalReturns * 3600;
-        final String totalDepositsUSD = (totalDepositsUGX / 3600).toStringAsFixed(2);
-        final String totalReturnsUSD = totalReturns.toStringAsFixed(2);
+    previousDepositsUGX = totalDepositsUGX;
+    previousReturns = totalReturnsUGX;
 
-        bool isDepositsIncreasing = totalDepositsUGX > previousDepositsUGX;
-        bool isReturnsIncreasing = totalReturns > previousReturns;
-
-        previousDepositsUGX = totalDepositsUGX;
-        previousReturns = totalReturns;
-
-        return Scaffold(
-          backgroundColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1A1A1A) : Colors.white,
-          body: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const SizedBox(height: 16),
-                  _buildSectionToggle(),
-                  const SizedBox(height: 20),
-                  SlideTransition(
-                    position: _slideAnimation,
-                    child: _visibleSection == 'deposits'
-                        ? _buildCard(
-                            context,
-                            icon: Icons.account_balance_wallet,
-                            title: 'Total Deposits',
-                            amountUGX: totalDepositsUGX,
-                            amountUSD: totalDepositsUSD,
-                            gradientColors: [const Color(0xFF56ab2f), const Color(0xFFCDE345)],
-                            isIncreasing: isDepositsIncreasing,
-                          )
-                        : _buildCard(
-                            context,
-                            icon: FontAwesomeIcons.chartLine,
-                            title: 'Total Returns',
-                            amountUGX: totalReturnsUGX,
-                            amountUSD: totalReturnsUSD,
-                            gradientColors: [const Color(0xFF30C7DA), const Color(0xFF245BB2)],
-                            isIncreasing: isReturnsIncreasing,
-                          ),
-                  ),
-                  const SizedBox(height: 24),
-                  const FinancialTipsCarousel(),
-                  const SizedBox(height: 24),
-
-                  // Recent Transactions and View All text
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'Recent Transactions',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+    return Scaffold(
+      backgroundColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1A1A1A) : Colors.white,
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const SizedBox(height: 16),
+              _buildSectionToggle(),
+              const SizedBox(height: 20),
+              SlideTransition(
+                position: _slideAnimation,
+                child: _visibleSection == 'deposits'
+                    ? _buildCard(
+                        context,
+                        icon: Icons.account_balance_wallet,
+                        title: 'Total Deposits',
+                        amountUGX: totalDepositsUGX,
+                        amountUSD: totalDepositsUSD,
+                        gradientColors: [const Color(0xFF56ab2f), const Color(0xFFCDE345)],
+                        isIncreasing: isDepositsIncreasing,
+                      )
+                    : _buildCard(
+                        context,
+                        icon: FontAwesomeIcons.chartLine,
+                        title: 'Total Returns',
+                        amountUGX: totalReturnsUGX,  // Updated for Returns UGX
+                        amountUSD: totalReturnsUSD,  // Updated for Returns USD
+                        gradientColors: [const Color(0xFF30C7DA), const Color(0xFF245BB2)],
+                        isIncreasing: isReturnsIncreasing,
                       ),
-                      GestureDetector(
-                        onTap: () {
-                          // Navigate to all transactions screen
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => const AllTransactionsScreen(combinedHistory: [],)),
-                          );
-                        },
-                        child: const Text(
-                          'View All',
-                          style: TextStyle(fontSize: 16, color: Colors.purple),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16), // Add some spacing
-
-                  _buildTransactionsSection(), // Updated transaction section
-                ],
               ),
-            ),
+              const SizedBox(height: 24),
+              const FinancialTipsCarousel(),
+              const SizedBox(height: 24),
+
+              // Recent Transactions for Deposits
+              if (_visibleSection == 'deposits') ...[
+                const Text(
+                  'Recent Transactions',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 16), // Add some spacing
+                _buildDepositTransactionsSection(), // Show recent deposit transactions
+              ],
+
+              // Recent Transactions for Returns (Renamed Monthly to Recent Transactions)
+              if (_visibleSection == 'returns') ...[
+                const Text(
+                  'Recent Transactions',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 16), // Add some spacing
+                _buildMonthlyTransactionsSection(), // Show recent transactions
+              ],
+            ],
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 
@@ -326,36 +352,83 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     );
   }
 
-  Widget _buildTransactionsSection() {
+  // Independent Recent Transactions for Deposits Section
+  Widget _buildDepositTransactionsSection() {
     return StreamBuilder<QuerySnapshot>(
-      stream: _getRecentDepositTransactionsStream(), // Fetch deposit transactions of all statuses
+      stream: _getRecentDepositTransactionsStream(), // Fetch deposit transactions
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const CircularProgressIndicator();
         }
 
         if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-          return const Text('No transactions yet.');
+          return const Text('No recent transactions.');
         }
 
         final transactions = snapshot.data!.docs;
 
         return ListView.builder(
-          physics: const NeverScrollableScrollPhysics(),
           shrinkWrap: true,
           itemCount: transactions.length,
           itemBuilder: (context, index) {
             final transaction = transactions[index].data() as Map<String, dynamic>;
             final amount = transaction['amount'];
-            final currency = transaction['currency'];  // Currency stored in the database
+            final currency = transaction['currency'];
             final status = transaction['status'];
             final date = DateTime.parse(transaction['date']);
 
-            return _buildTransactionCard(
-              currency, // Use the correct currency format
-              double.parse(amount.toString()),
-              status,
-              _formatDateTime(date),
+            return Card(
+              elevation: 4,
+              margin: const EdgeInsets.symmetric(vertical: 8.0),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          '$currency $amount',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        _getStatusIcon(status),  // Status icon
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Divider(color: Colors.grey.shade300),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          _formatDateTime(date),
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                        Text(
+                          status.toUpperCase(),
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: status == 'successful'
+                                ? Colors.green
+                                : (status == 'pending' ? Colors.orange : Colors.red),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
             );
           },
         );
@@ -363,59 +436,87 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     );
   }
 
-  Widget _buildTransactionCard(String currency, double amount, String status, String date) {
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8.0),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15),
-      ),
-      elevation: 5,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  '$currency $amount',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+  // Independent Recent Transactions Section (renamed from Monthly)
+  Widget _buildMonthlyTransactionsSection() {
+    return StreamBuilder<QuerySnapshot>(
+      stream: _getMonthlyTransactionsStream(), // Fetch monthly transactions
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const CircularProgressIndicator();
+        }
+
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          return const Text('No recent transactions.');
+        }
+
+        final transactions = snapshot.data!.docs;
+
+        return ListView.builder(
+          shrinkWrap: true,
+          itemCount: transactions.length,
+          itemBuilder: (context, index) {
+            final transaction = transactions[index].data() as Map<String, dynamic>;
+            final amount = transaction['amount'];
+            final currency = transaction['currency'];
+            final status = transaction['status'];
+            final date = DateTime.parse(transaction['date']);
+
+            return Card(
+              elevation: 4,
+              margin: const EdgeInsets.symmetric(vertical: 8.0),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          '$currency $amount',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        _getStatusIcon(status),  // Status icon
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Divider(color: Colors.grey.shade300),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          _formatDateTime(date),
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                        Text(
+                          status.toUpperCase(),
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: status == 'successful'
+                                ? Colors.green
+                                : (status == 'pending' ? Colors.orange : Colors.red),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-                _getStatusIcon(status),  // Show the status icon based on the status
-              ],
-            ),
-            const SizedBox(height: 8),
-            Divider(color: Colors.grey.shade300),
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  date,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey.shade600,
-                  ),
-                ),
-                Text(
-                  status.toUpperCase(),
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: status == 'successful'
-                        ? Colors.green
-                        : (status == 'pending' ? Colors.orange : Colors.red),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }

@@ -1,3 +1,4 @@
+import 'package:KcfApp/screens/notification_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:KcfApp/screens/profile_screen.dart';
@@ -6,6 +7,8 @@ import 'package:KcfApp/screens/home_screen.dart';
 import 'package:KcfApp/screens/deposit_screen.dart';  // Import DepositScreen
 import 'package:KcfApp/widgets/sidebar.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:firebase_auth/firebase_auth.dart';  // For Firebase Authentication
+import 'package:cloud_firestore/cloud_firestore.dart';  // For Firestore
 
 class MobileScreenLayout extends StatefulWidget {
   const MobileScreenLayout({super.key});
@@ -14,11 +17,40 @@ class MobileScreenLayout extends StatefulWidget {
   _MobileScreenLayoutState createState() => _MobileScreenLayoutState();
 }
 
-class _MobileScreenLayoutState extends State<MobileScreenLayout> with SingleTickerProviderStateMixin {
+class _MobileScreenLayoutState extends State<MobileScreenLayout> {
   int _selectedIndex = 0;
+  int _unreadNotifications = 0;  // Start with 0 unread notifications
   final PageController _pageController = PageController();
   
   final List<String> _pageTitles = ["Home", "Deposit", "Save", "Profile"];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUnreadNotificationsCount();  // Fetch unread notifications on init
+  }
+
+  void _fetchUnreadNotificationsCount() async {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId == null) {
+      setState(() {
+        _unreadNotifications = 0;  // No notifications if user not logged in
+      });
+      return;
+    }
+
+    // Query Firestore for unread notifications
+    final querySnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(userId)
+        .collection('notifications')
+        .where('read', isEqualTo: false)
+        .get();
+
+    setState(() {
+      _unreadNotifications = querySnapshot.size;  // Update unread notifications count
+    });
+  }
 
   void _onItemTapped(int index) {
     setState(() {
@@ -31,6 +63,18 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> with SingleTick
     );
   }
 
+  void _openNotificationScreen() {
+    setState(() {
+      _unreadNotifications = 0;  // Reset unread notifications count when viewed
+    });
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => NotificationScreen()),  // Navigate to NotificationScreen
+    ).then((_) {
+      _fetchUnreadNotificationsCount();  // Fetch notifications again after returning to the screen
+    });
+  }
+
   @override
   void dispose() {
     _pageController.dispose();
@@ -39,14 +83,49 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> with SingleTick
 
   @override
   Widget build(BuildContext context) {
-    final textColor = Theme.of(context).textTheme.bodyLarge!.color;
+    final theme = Theme.of(context);
+    final textColor = theme.textTheme.bodyLarge!.color;
+    final iconColor = theme.brightness == Brightness.dark ? Colors.white : Colors.black;  // Adaptive icon color
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).brightness == Brightness.dark ? Colors.grey[900] : Colors.white,
+        backgroundColor: theme.brightness == Brightness.dark ? Colors.grey[900] : Colors.white,
         title: Text(_pageTitles[_selectedIndex]),
         centerTitle: true,
         actions: [
+          Stack(
+            children: [
+              IconButton(
+                icon: Icon(Icons.notifications, color: iconColor),  // Bell icon
+                onPressed: _openNotificationScreen,  // Open notifications
+                iconSize: 30,
+              ),
+              if (_unreadNotifications > 0)  // Show red badge only if there are unread notifications
+                Positioned(
+                  right: 10,
+                  top: 10,
+                  child: Container(
+                    padding: const EdgeInsets.all(2),
+                    decoration: BoxDecoration(
+                      color: Colors.red,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    constraints: const BoxConstraints(
+                      minWidth: 16,
+                      minHeight: 16,
+                    ),
+                    child: Text(
+                      '$_unreadNotifications',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+            ],
+          ),
           IconButton(
             icon: const Icon(FontAwesomeIcons.whatsapp, color: Colors.green),
             onPressed: () async {
@@ -73,7 +152,7 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> with SingleTick
         },
         children: const <Widget>[
           HomeScreen(),
-          DepositScreen(),  // DepositScreen comes before SaveScreen
+          DepositScreen(),
           SaveScreen(),
           ProfileScreen(uid: ''),
         ],
