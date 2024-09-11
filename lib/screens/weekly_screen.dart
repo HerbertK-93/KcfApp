@@ -247,7 +247,20 @@ class _WeeklyScreenState extends State<WeeklyScreen> {
       stream: _getWeeklySavingsStream(isLocal),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const CircularProgressIndicator();
+          // Determine the system's theme and adapt the CircularProgressIndicator's color
+          final brightness = Theme.of(context).brightness;
+          final indicatorColor = brightness == Brightness.dark ? Colors.white : Colors.black;
+
+          return Center(
+            child: SizedBox(
+              width: 20,  // Size similar to sign-up screen
+              height: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2.0,  // Stroke width
+                valueColor: AlwaysStoppedAnimation<Color>(indicatorColor),  // Adaptive color
+              ),
+            ),
+          );
         }
 
         if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {

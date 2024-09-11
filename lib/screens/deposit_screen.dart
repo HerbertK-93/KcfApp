@@ -114,180 +114,191 @@ class _DepositScreenState extends State<DepositScreen> {
   }
 
   // UI for the Deposits section below the Confirm button
-Widget _buildDepositList() {
-  return StreamBuilder<QuerySnapshot>(
-    stream: _getDepositTransactionsStream(),
-    builder: (context, snapshot) {
-      if (snapshot.connectionState == ConnectionState.waiting) {
-        return const CircularProgressIndicator();
-      }
+  Widget _buildDepositList() {
+    return StreamBuilder<QuerySnapshot>(
+      stream: _getDepositTransactionsStream(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          // Determine the system's theme and adapt the CircularProgressIndicator's color
+          final brightness = Theme.of(context).brightness;
+          final indicatorColor = brightness == Brightness.dark ? Colors.white : Colors.black;
 
-      if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-        return const Text('No deposits found.');
-      }
-
-      // List of deposit transactions (already sorted by date, newest first)
-      final deposits = snapshot.data!.docs;
-
-      return ListView.builder(
-        itemCount: deposits.length,
-        itemBuilder: (context, index) {
-          final deposit = deposits[index].data() as Map<String, dynamic>;
-          final amount = deposit['amount'];
-          final currency = deposit['currency'];
-          final status = deposit['status'];
-          final date = DateTime.parse(deposit['date']);
-
-          return Card(
-            elevation: 4,
-            margin: const EdgeInsets.symmetric(vertical: 8.0),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        '$currency $amount',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      _getStatusIcon(status),  // Status icon
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Divider(color: Colors.grey.shade300),
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        _formatDateTime(date),
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey.shade600,
-                        ),
-                      ),
-                      Text(
-                        status.toUpperCase(),
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: status == 'successful'
-                              ? Colors.green
-                              : (status == 'pending' ? Colors.orange : Colors.red),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+          return Center(
+            child: SizedBox(
+              width: 20,  // Size similar to sign-up screen
+              height: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2.0,  // Stroke width
+                valueColor: AlwaysStoppedAnimation<Color>(indicatorColor),  // Adaptive color
               ),
             ),
           );
-        },
-      );
-    },
-  );
-}
+        }
 
-@override
-Widget build(BuildContext context) {
-  return Scaffold(
-    appBar: AppBar(title: const Text('Deposit')),
-    body: Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const Text('Enter Amount'),
-          TextField(
-            controller: _amountController,
-            decoration: InputDecoration(
-              border: const OutlineInputBorder(),
-              hintText: 'Enter the amount',
-              suffix: SizedBox(
-                height: 24,
-                child: DropdownButton<String>(
-                  value: _selectedCurrency,
-                  items: _currencies.map((currency) {
-                    return DropdownMenuItem<String>(
-                      value: currency,
-                      child: Text(currency),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedCurrency = value!;
-                    });
-                  },
-                  underline: Container(),
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          return const Text('No deposits found.');
+        }
+
+        final deposits = snapshot.data!.docs;
+
+        return ListView.builder(
+          itemCount: deposits.length,
+          itemBuilder: (context, index) {
+            final deposit = deposits[index].data() as Map<String, dynamic>;
+            final amount = deposit['amount'];
+            final currency = deposit['currency'];
+            final status = deposit['status'];
+            final date = DateTime.parse(deposit['date']);
+
+            return Card(
+              elevation: 4,
+              margin: const EdgeInsets.symmetric(vertical: 8.0),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          '$currency $amount',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        _getStatusIcon(status),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Divider(color: Colors.grey.shade300),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          _formatDateTime(date),
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                        Text(
+                          status.toUpperCase(),
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: status == 'successful'
+                                ? Colors.green
+                                : (status == 'pending' ? Colors.orange : Colors.red),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
-            ),
-            keyboardType: TextInputType.number,
-          ),
-          const SizedBox(height: 16),
-          const Text('Enter Email'),
-          TextField(
-            controller: _emailController,
-            decoration: const InputDecoration(
-              border: OutlineInputBorder(),
-              hintText: 'Enter your email',
-            ),
-            keyboardType: TextInputType.emailAddress,
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: _isProcessing ? null : _initiatePayment,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.purple,
-                    padding: const EdgeInsets.symmetric(vertical: 12.0),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Deposit')),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text('Enter Amount'),
+            TextField(
+              controller: _amountController,
+              decoration: InputDecoration(
+                border: const OutlineInputBorder(),
+                hintText: 'Enter the amount',
+                suffix: SizedBox(
+                  height: 24,
+                  child: DropdownButton<String>(
+                    value: _selectedCurrency,
+                    items: _currencies.map((currency) {
+                      return DropdownMenuItem<String>(
+                        value: currency,
+                        child: Text(currency),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedCurrency = value!;
+                      });
+                    },
+                    underline: Container(),
                   ),
-                  child: _isProcessing
-                      ? const CircularProgressIndicator(color: Colors.white)
-                      : SizedBox(
-                          width: double.infinity,
-                          child: Center(
-                            child: Text(
-                              'Confirm',
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Theme.of(context).colorScheme.onPrimary,
+                ),
+              ),
+              keyboardType: TextInputType.number,
+            ),
+            const SizedBox(height: 16),
+            const Text('Enter Email'),
+            TextField(
+              controller: _emailController,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                hintText: 'Enter your email',
+              ),
+              keyboardType: TextInputType.emailAddress,
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: _isProcessing ? null : _initiatePayment,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.purple,
+                      padding: const EdgeInsets.symmetric(vertical: 12.0),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: _isProcessing
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : SizedBox(
+                            width: double.infinity,
+                            child: Center(
+                              child: Text(
+                                'Confirm',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Theme.of(context).colorScheme.onPrimary,
+                                ),
                               ),
                             ),
                           ),
-                        ),
+                  ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          const Text(
-            'Deposits',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 10),
+              ],
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'Deposits',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 10),
 
-          // Wrapping this in Expanded to allow it to take the remaining space and scroll
-          Expanded(
-            child: _buildDepositList(),  // Show the deposit transactions list here with enhanced UI
-          ),
-        ],
+            Expanded(
+              child: _buildDepositList(),
+            ),
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 }
