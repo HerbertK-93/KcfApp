@@ -13,6 +13,7 @@ import 'package:KcfApp/screens/splashscreen.dart';
 import 'package:KcfApp/screens/login_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:permission_handler/permission_handler.dart'; // <-- Import for handling permissions
 
 import 'responsive/mobile_screen_layout.dart';
 import 'screens/password_screen.dart';
@@ -32,6 +33,9 @@ void main() async {
       appId: '1:589265652458:web:3787a3dcf5d0e4eb49e593',
     ),
   );
+
+  // Request storage permission
+  await _requestStoragePermission(); // <-- Request storage permission during app start
 
   // Listen to authentication state changes
   FirebaseAuth.instance.authStateChanges().listen((User? user) async {
@@ -75,6 +79,21 @@ void main() async {
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
   runApp(const MyApp());
+}
+
+// Function to request storage permission
+Future<void> _requestStoragePermission() async {
+  var status = await Permission.storage.status;
+  if (!status.isGranted) {
+    status = await Permission.storage.request();
+  }
+
+  if (status.isDenied || status.isPermanentlyDenied) {
+    // Optionally handle the scenario where permission is denied
+    print("Storage permission denied.");
+  } else {
+    print("Storage permission granted.");
+  }
 }
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {

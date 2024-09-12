@@ -15,17 +15,20 @@ class SignupScreen extends StatefulWidget {
 class _SignupScreenState extends State<SignupScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
   final TextEditingController _firstNameController = TextEditingController();
   final TextEditingController _lastNameController = TextEditingController();
   final TextEditingController _whatsappController = TextEditingController();
   final TextEditingController _ninPassportController = TextEditingController();
   bool _isLoading = false;
   bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     _firstNameController.dispose();
     _lastNameController.dispose();
     _whatsappController.dispose();
@@ -60,7 +63,14 @@ class _SignupScreenState extends State<SignupScreen> {
       _showError('Please enter a password with at least 6 characters.');
       return;
     }
-    
+    if (!_passwordController.text.contains(RegExp(r'[A-Z]')) || !_passwordController.text.contains(RegExp(r'[a-z]')) || !_passwordController.text.contains(RegExp(r'[0-9]'))) {
+      _showError('Password must contain both uppercase, lowercase letters, and numbers.');
+      return;
+    }
+    if (_passwordController.text != _confirmPasswordController.text) {
+      _showError('Passwords do not match.');
+      return;
+    }
     if (_firstNameController.text.isEmpty) {
       _showError('Please enter your first name.');
       return;
@@ -199,15 +209,33 @@ class _SignupScreenState extends State<SignupScreen> {
                   obscureText: _obscurePassword,
                 ),
                 const SizedBox(height: 8),
-                const Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Text(
-                      'Password must have more than six characters',
-                      style: TextStyle(color: Colors.red, fontSize: 10),
+                TextField(
+                  controller: _confirmPasswordController,
+                  decoration: InputDecoration(
+                    hintText: 'Confirm your password',
+                    border: const OutlineInputBorder(),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscureConfirmPassword ? Icons.visibility : Icons.visibility_off,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _obscureConfirmPassword = !_obscureConfirmPassword;
+                        });
+                      },
                     ),
-                    SizedBox(width: 3),
-                  ],
+                  ),
+                  obscureText: _obscureConfirmPassword,
+                ),
+                const SizedBox(height: 8),
+                const Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'Password must have more than six characters and contain numbers, uppercase and lowercase letters.',
+                    style: TextStyle(color: Colors.red, fontSize: 10),
+                    textAlign: TextAlign.left,
+                    softWrap: true,
+                  ),
                 ),
                 const SizedBox(height: 24),
                 TextField(

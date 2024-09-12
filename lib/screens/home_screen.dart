@@ -153,6 +153,15 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     }
   }
 
+  void _viewAllTransactions(String transactionType) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AllTransactionsScreen(transactionType: transactionType),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final transactionProvider = Provider.of<TransactionProvider>(context);
@@ -206,9 +215,25 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
               // Recent Transactions for Deposits
               if (_visibleSection == 'deposits') ...[
-                const Text(
-                  'Recent Transactions',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Recent Transactions',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    GestureDetector(
+                      onTap: () => _viewAllTransactions('deposit'),
+                      child: const Text(
+                        'View All',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.purple,
+                          decoration: TextDecoration.underline,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 16), // Add some spacing
                 _buildDepositTransactionsSection(), // Show recent deposit transactions
@@ -216,9 +241,25 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
               // Recent Transactions for Returns (Renamed Monthly to Recent Transactions)
               if (_visibleSection == 'returns') ...[
-                const Text(
-                  'Recent Transactions',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Recent Transactions',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    GestureDetector(
+                      onTap: () => _viewAllTransactions('monthly'),
+                      child: const Text(
+                        'View All',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.purple,
+                          decoration: TextDecoration.underline,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 16), // Add some spacing
                 _buildMonthlyTransactionsSection(), // Show recent transactions
