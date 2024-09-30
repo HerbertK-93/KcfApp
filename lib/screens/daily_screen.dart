@@ -614,7 +614,7 @@ Widget _buildScrollableInterface(Widget child) {
                 Text(
                   label,
                   style: TextStyle(
-                    color: isSelected ? Colors.white : theme.textTheme.bodyText1?.color,
+                    color: isSelected ? Colors.white : theme.textTheme.bodyLarge?.color,
                   ),
                 ),
               ],

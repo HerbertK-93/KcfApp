@@ -175,7 +175,7 @@ class _PasswordScreenState extends State<PasswordScreen> with SingleTickerProvid
         style: TextStyle(
           fontSize: 20,
           fontWeight: FontWeight.bold,
-          color: Theme.of(context).textTheme.bodyText1?.color ?? Colors.black,
+          color: Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black,
         ),
       ),
     );
@@ -246,49 +246,51 @@ class _PasswordScreenState extends State<PasswordScreen> with SingleTickerProvid
       ),
       body: FadeTransition(
         opacity: _animation,
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              // **Company Logo** (Ensure it's adaptive)
-              Image.asset(
-                'assets/images/L.png',  // Your logo file
-                height: 150,
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? Colors.white
-                    : Colors.black, // Adapt to system theme
-              ),
-              const SizedBox(height: 20),
-              Text(
-                _isFirstLaunch
-                    ? (_isConfirmingPassword ? 'Confirm PIN' : 'Set PIN')
-                    : 'Enter PIN',
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 10),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(4, _buildInputField),
-              ),
-              const SizedBox(height: 10),
-              Align(
-                alignment: Alignment.centerRight,
-                child: GestureDetector(
-                  onTap: _handleForgotPin,
-                  child: const Text(
-                    'Forgot PIN?',
-                    style: TextStyle(
-                      color: Colors.red,
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
+        child: SingleChildScrollView( // **Scrollable added here**
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                // **Company Logo** (Ensure it's adaptive)
+                Image.asset(
+                  'assets/images/L.png',  // Your logo file
+                  height: 150,
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.white
+                      : Colors.black, // Adapt to system theme
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  _isFirstLaunch
+                      ? (_isConfirmingPassword ? 'Confirm PIN' : 'Set PIN')
+                      : 'Enter PIN',
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(4, _buildInputField),
+                ),
+                const SizedBox(height: 10),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: GestureDetector(
+                    onTap: _handleForgotPin,
+                    child: const Text(
+                      'Forgot PIN?',
+                      style: TextStyle(
+                        color: Colors.red,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 20),
-              _buildKeyboard(),
-            ],
+                const SizedBox(height: 20),
+                _buildKeyboard(),
+              ],
+            ),
           ),
         ),
       ),
