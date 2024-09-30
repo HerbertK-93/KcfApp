@@ -6,6 +6,7 @@ import 'package:KcfApp/providers/deposit_provider.dart';
 import 'package:KcfApp/providers/transaction_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:KcfApp/screens/returns_screen.dart';  // Import Returns Screen
 import 'alltransactions_screen.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 
@@ -202,7 +203,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                     : _buildCard(
                         context,
                         icon: FontAwesomeIcons.chartLine,
-                        title: 'Total Returns',
+                        title: 'Total Savings',
                         amountUGX: totalReturnsUGX,  // Updated for Returns UGX
                         amountUSD: totalReturnsUSD,  // Updated for Returns USD
                         gradientColors: [const Color(0xFF30C7DA), const Color(0xFF245BB2)],
@@ -240,7 +241,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               ],
 
               // Recent Transactions for Returns (Renamed Monthly to Recent Transactions)
-              if (_visibleSection == 'returns') ...[
+              if (_visibleSection == 'savings') ...[
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -300,7 +301,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         children: [
           _buildToggleButton('Deposits', 'deposits'),
           const SizedBox(width: 8),
-          _buildToggleButton('Returns', 'returns'),
+          _buildToggleButton('Savings', 'savings'),
         ],
       ),
     );
@@ -323,75 +324,97 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   }
 
   Widget _buildCard(
-    BuildContext context, {
-    required IconData icon,
-    required String title,
-    required double amountUGX,
-    required String amountUSD,
-    required List<Color> gradientColors,
-    required bool isIncreasing,
-  }) {
-    return Container(
-      height: 180,
-      width: double.infinity,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        gradient: LinearGradient(
-          colors: gradientColors,
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+  BuildContext context, {
+  required IconData icon,
+  required String title,
+  required double amountUGX,
+  required String amountUSD,
+  required List<Color> gradientColors,
+  required bool isIncreasing,
+}) {
+  return Container(
+    height: 180,
+    width: double.infinity,
+    decoration: BoxDecoration(
+      borderRadius: BorderRadius.circular(20),
+      gradient: LinearGradient(
+        colors: gradientColors,
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      ),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withOpacity(0.2),
+          blurRadius: 10,
+          spreadRadius: 2,
+          offset: const Offset(0, 4),
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.2),
-            blurRadius: 10,
-            spreadRadius: 2,
-            offset: const Offset(0, 4),
+      ],
+    ),
+    child: Padding(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,  // Align text and icon horizontally
+            children: [
+              Row(
+                children: [
+                  FaIcon(icon, color: Colors.white, size: 30),
+                  const SizedBox(width: 12),
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+              // Icon for returns
+              if (_visibleSection == 'savings') 
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ReturnsScreen(totalSavingsUGX: totalDepositsUGX),  // Pass totalSavingsUGX to ReturnsScreen
+                      ),
+                    );
+                  },
+                  child: const Icon(
+                    Icons.assignment_return,  // Icon for returns
+                    color: Colors.white,
+                    size: 28,
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 18),
+          Text(
+            '${amountUGX.toStringAsFixed(2)} UGX',
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+            ),
+          ),
+          Text(
+            '\$$amountUSD USD',
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w400,
+              color: Colors.white70,
+            ),
           ),
         ],
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                FaIcon(icon, color: Colors.white, size: 30),
-                const SizedBox(width: 12),
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 18),
-            Text(
-              '${amountUGX.toStringAsFixed(2)} UGX',
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
-              ),
-            ),
-            Text(
-              '\$$amountUSD USD',
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w400,
-                color: Colors.white70,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+    ),
+  );
+}
 
   // Independent Recent Transactions for Deposits Section
   Widget _buildDepositTransactionsSection() {

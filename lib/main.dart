@@ -1,3 +1,4 @@
+import 'package:KcfApp/providers/savings_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -132,6 +133,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => WeeklyProvider()),
         ChangeNotifierProvider(create: (_) => DailyProvider()),
         ChangeNotifierProvider(create: (_) => OnceProvider()),
+        ChangeNotifierProvider(create: (_) => SavingsProvider()),
       ],
       child: ScreenUtilInit(
         designSize: const Size(360, 690),
